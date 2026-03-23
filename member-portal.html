@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Portal – Daero Filitet</title>
+    <link rel="stylesheet" href="css/app.css">
+</head>
+
+<body>
+
+<header class="navbar glass-nav">
+    <div class="logo-container">
+        <img src="assets/logo.jpeg" class="logo-img" alt="Daero Filitet Logo">
+    </div>
+    <nav class="main-nav">
+        <ul>
+           <li><a href="index.html" data-page="index">Home</a></li>
+           <li><a href="programs.html" data-page="programs">Programs</a></li>
+           <li><a href="member.html" data-page="member">Member</a></li>
+           <li><a href="register.html" data-page="register">Register</a></li>
+           <li><a href="help.html" data-page="help">Help</a></li>
+        </ul>
+    </nav>
+</header>
+
+<section
+    class="page-wrapper member-portal-wrapper"
+    data-sb-enabled="false"
+    data-sb-assignments-table="assignments"
+    data-sb-submissions-table="assignment_submissions"
+    data-sb-announcements-table="announcements"
+    data-sb-progress-table="student_progress"
+    data-sb-profiles-table="student_profiles"
+    data-sb-storage-bucket="student-submissions"
+>
+    <h1 class="page-title member-portal-title">My Learning Portal</h1>
+
+    <div class="member-portal-grid">
+
+        <article class="glass-card portal-panel" id="panelCourses" data-panel="courses">
+            <h2>My Courses</h2>
+            <div class="portal-kv-list">
+                <div class="portal-kv-item"><span>Program</span><strong data-field="course-program">—</strong></div>
+                <div class="portal-kv-item"><span>Level</span><strong data-field="course-level">—</strong></div>
+                <div class="portal-kv-item"><span>Schedule</span><strong data-field="course-schedule">—</strong></div>
+                <div class="portal-kv-item"><span>Assigned Teacher</span><strong data-field="course-teacher">—</strong></div>
+            </div>
+
+            <div class="portal-subsection">
+                <h3>Monthly Payment</h3>
+                <div class="portal-kv-list">
+                    <div class="portal-kv-item"><span>Regular Price</span><strong id="monthlyRegularPrice">$0</strong></div>
+                    <div class="portal-kv-item"><span>Special Offer</span><strong id="monthlyOfferPrice">No offer</strong></div>
+                    <div class="portal-kv-item"><span>Offer Ends</span><strong id="monthlyOfferEndDate">—</strong></div>
+                    <div class="portal-kv-item"><span>Amount Due</span><strong id="monthlyAmountDue">$0</strong></div>
+                    <div class="portal-kv-item"><span>Due Date</span><strong id="monthlyDueDate">—</strong></div>
+                    <div class="portal-kv-item"><span>Status</span><strong id="monthlyPaymentStatus">Unpaid</strong></div>
+                </div>
+                <div class="support-actions">
+                    <button type="button" class="glass-btn btn-primary" id="payMonthlyNow">Pay Monthly Fee</button>
+                </div>
+            </div>
+        </article>
+
+        <article class="glass-card portal-panel" id="panelFriendlyReminder" data-panel="friendly-reminder">
+            <h2>Friendly Reminder</h2>
+            <ul class="portal-list" id="friendlyReminderList" data-bind="friendly-reminders"></ul>
+        </article>
+
+        <article class="glass-card portal-panel" id="panelAssignments" data-panel="assignments">
+            <h2>Assignments</h2>
+
+            <div class="portal-subsection">
+                <h3>Assignment List</h3>
+                <ul class="portal-list" id="assignmentList" data-bind="assignment-list"></ul>
+            </div>
+
+            <div class="portal-subsection">
+                <h3>Upload Assignment</h3>
+                <form id="assignmentUploadForm" class="portal-form" data-form="assignment-upload">
+                    <input type="text" id="uploadAssignmentTitle" placeholder="Assignment title" required>
+                    <input type="date" id="uploadAssignmentDueDate" required>
+                    <input type="file" id="uploadAssignmentFile" required>
+                    <button type="submit" class="glass-btn btn-primary">Upload</button>
+                </form>
+            </div>
+
+            <div class="portal-subsection">
+                <h3>Upload History</h3>
+                <ul class="portal-list" id="uploadHistoryList" data-bind="upload-history"></ul>
+            </div>
+        </article>
+
+        <article class="glass-card portal-panel" id="panelOptionalAssignments" data-panel="optional-assignments">
+            <h2>Optional Additional Assignments</h2>
+            <ul class="portal-list" id="optionalAssignmentList" data-bind="optional-assignment-list"></ul>
+        </article>
+
+        <article class="glass-card portal-panel" id="panelProgress" data-panel="progress">
+            <h2>Progress</h2>
+            <div class="portal-kv-list">
+                <div class="portal-kv-item"><span>Completed Lessons</span><strong id="completedLessonsValue">0</strong></div>
+                <div class="portal-kv-item"><span>Completed Assignments</span><strong id="completedAssignmentsValue">0</strong></div>
+            </div>
+
+            <div class="portal-progress-track" aria-label="Progress bar">
+                <div class="portal-progress-fill" id="studentProgressFill" style="width: 0%;"></div>
+            </div>
+            <p class="portal-progress-label" id="studentProgressLabel">0% completed</p>
+
+            <div class="portal-subsection">
+                <h3>Next Steps</h3>
+                <ul class="portal-list" id="nextStepsList" data-bind="next-steps"></ul>
+            </div>
+        </article>
+
+        <article class="glass-card portal-panel" id="panelAnnouncements" data-panel="announcements">
+            <h2>Announcements</h2>
+            <ul class="portal-list" id="announcementList" data-bind="announcements"></ul>
+        </article>
+
+        <article class="glass-card portal-panel portal-panel-wide" id="panelProfile" data-panel="profile">
+            <h2>My Profile</h2>
+            <div class="portal-kv-list">
+                <div class="portal-kv-item"><span>Student Name</span><strong id="profileStudentName">—</strong></div>
+                <div class="portal-kv-item"><span>Guardian Name</span><strong id="profileGuardianName">—</strong></div>
+                <div class="portal-kv-item"><span>Guardian Email</span><strong id="profileGuardianEmail">—</strong></div>
+                <div class="portal-kv-item"><span>Guardian Phone</span><strong id="profileGuardianPhone">—</strong></div>
+            </div>
+
+            <details class="profile-edit-block">
+                <summary>Edit Profile (Optional)</summary>
+                <form id="profileEditForm" class="portal-form" data-form="profile-edit">
+                    <input type="text" id="editGuardianName" placeholder="Guardian Name">
+                    <input type="text" id="editGuardianPhone" placeholder="Guardian Phone">
+                    <input type="text" id="editSchedule" placeholder="Preferred Schedule">
+                    <button type="submit" class="glass-btn btn-primary">Save Profile</button>
+                </form>
+            </details>
+
+            <details class="profile-edit-block">
+                <summary>Change Password</summary>
+                <form id="passwordChangeForm" class="portal-form" data-form="password-change" autocomplete="off" data-lpignore="true">
+                    <div class="password-input-wrap">
+                        <label for="currentPortalPassword">Current Password</label>
+                        <input type="password" id="currentPortalPassword" placeholder="Current Password" autocomplete="off" data-lpignore="true" required>
+                        <button type="button" class="password-visibility-toggle" data-target="currentPortalPassword" aria-label="Show password">👁</button>
+                    </div>
+                    <div class="password-input-wrap">
+                        <label for="newPortalPassword">New Password</label>
+                        <input type="password" id="newPortalPassword" placeholder="New Password" autocomplete="off" data-lpignore="true" required>
+                        <button type="button" class="password-visibility-toggle" data-target="newPortalPassword" aria-label="Show password">👁</button>
+                    </div>
+                    <div class="password-input-wrap">
+                        <label for="confirmPortalPassword">Confirm New Password</label>
+                        <input type="password" id="confirmPortalPassword" placeholder="Confirm New Password" autocomplete="off" data-lpignore="true" required>
+                        <button type="button" class="password-visibility-toggle" data-target="confirmPortalPassword" aria-label="Show password">👁</button>
+                        <p id="passwordMatchHint" class="password-match-hint"></p>
+                    </div>
+                    <button type="submit" class="glass-btn btn-primary">Update Password</button>
+                </form>
+                <p id="passwordChangeStatus" class="support-status"></p>
+            </details>
+        </article>
+
+    </div>
+</section>
+
+<footer class="glass-footer">
+    <ul class="footer-links">
+        <li>© 2026 Daero Filitet. All Rights Reserved.</li>
+        <li><a href="info.html">Web Design by Eyob Kidane</a></li>
+    </ul>
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="js/supabase-client.js"></script>
+<script src="js/db.js"></script>
+<script src="js/app.js"></script>
+<script src="js/member-portal.js"></script>
+</body>
+</html>

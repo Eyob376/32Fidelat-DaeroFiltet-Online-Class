@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta name="google" content="notranslate">
+    <meta name="robots" content="noai, noimageai">
+    <meta http-equiv="Content-Language" content="en">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Contact – Daero Filitet</title>
+    <link rel="stylesheet" href="css/app.css">
+</head>
+
+<body>
+
+<!-- NAVIGATION BAR -->
+<header class="navbar glass-nav">
+    <div class="logo-container">
+        <img src="assets/logo.jpeg" class="logo-img" alt="Daero Filitet Logo">
+    </div>
+</header>
+
+
+<!-- CONTACT PAGE CONTENT -->
+<section class="page-wrapper contact-page-wrapper">
+
+    <h1 class="page-title reveal stagger-1">Contact Us</h1>
+
+    <div class="admin-support-grid">
+        <div class="glass-card support-card contact-form-panel reveal stagger-2">
+            <h2>Send Suggestion or Question</h2>
+            <form id="contactMessageForm" class="support-form">
+                <input type="text" id="contactName" placeholder="Your Name" required>
+                <input type="email" id="contactEmail" placeholder="Your Email" required>
+                <select id="contactType" required>
+                    <option value="">Message Type</option>
+                    <option value="Suggestion">Suggestion</option>
+                    <option value="Question">Question</option>
+                    <option value="Portal Help">Portal Help</option>
+                </select>
+                <textarea id="contactMessage" rows="6" placeholder="Write your message here..." required></textarea>
+                <button type="submit" class="programs-cta-btn programs-cta-btn-gradient contact-send-btn"><span>Send Message</span><span class="cta-arrow" aria-hidden="true">→</span></button>
+            </form>
+            <p id="contactFormStatus" class="support-status"></p>
+        </div>
+
+        <div class="glass-card support-card reveal stagger-3">
+            <h2>Support Information</h2>
+            <p><strong>Email:</strong> Daerofiltet@gmail.com</p>
+            <p><strong>Phone:</strong> (425) 426‑8816</p>
+            <p><strong>Phone:</strong> (425) 599‑6356</p>
+            <p><strong>Location:</strong> Seattle, Washington</p>
+            <p><strong>Office Hours:</strong> Mon–Fri, 7am–5pm</p>
+            <p><strong>Response Time:</strong> Within 24 hours</p>
+        </div>
+    </div>
+
+</section>
+
+
+<!-- FOOTER -->
+<footer class="glass-footer">
+    <ul class="footer-links">
+        <li>© 2026 Daero Filitet. All Rights Reserved.</li>
+        <li><a href="info.html">Web Design by Eyob Kidane</a></li>
+    </ul>
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="js/supabase-client.js"></script>
+<script src="js/db.js"></script>
+<script src="js/app.js"></script>
+<script>
+    document.getElementById("contactMessageForm")?.addEventListener("submit", async (e) => {
+        e.preventDefault();
+
+        const form = document.getElementById("contactMessageForm");
+        const status = document.getElementById("contactFormStatus");
+        const submitBtn = form?.querySelector('button[type="submit"]');
+
+        const name = (document.getElementById("contactName")?.value || "").trim();
+        const email = (document.getElementById("contactEmail")?.value || "").trim();
+        const type = (document.getElementById("contactType")?.value || "").trim();
+        const message = (document.getElementById("contactMessage")?.value || "").trim();
+
+        if (!name || !email || !type || !message) {
+            if (status) status.textContent = "Please complete all fields before sending.";
+            return;
+        }
+
+        const payloadMessage = `[${type}] ${message}`;
+
+        if (submitBtn) submitBtn.disabled = true;
+        if (status) status.textContent = "Sending your message...";
+
+        try {
+            if (typeof db === "undefined" || !db.contactMessages?.add) {
+                throw new Error("Message service is not configured.");
+            }
+
+            const { error } = await db.contactMessages.add(name, email, payloadMessage);
+            if (error) throw error;
+
+            if (status) status.textContent = "Your message has been successfully submitted";
+            setTimeout(() => {
+                window.location.href = "index.html";
+            }, 1400);
+        } catch (err) {
+            if (status) status.textContent = `Could not send message: ${err.message || "Unknown error"}`;
+            if (submitBtn) submitBtn.disabled = false;
+        }
+    });
+</script>
+</body>
+</html>

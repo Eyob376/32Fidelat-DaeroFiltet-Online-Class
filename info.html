@@ -1,0 +1,454 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Developer Biography | Daero Filitet</title>
+    <meta name="description" content="Biography of Eyob Gobozay, developer and IT professional behind the Daero Filitet platform.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Archivo+Expanded:wght@500;700&family=Literata:opsz,wght@7..72,400;7..72,600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-ink: #091424;
+            --bg-deep: #142845;
+            --bg-soft: #edf5ff;
+            --card: rgba(255, 255, 255, 0.9);
+            --line: rgba(12, 39, 71, 0.15);
+            --text-main: #0f2238;
+            --text-muted: #3f5772;
+            --accent: #f4b942;
+            --accent-strong: #d98a09;
+            --glow: rgba(244, 185, 66, 0.3);
+            --shadow: 0 20px 60px rgba(8, 24, 44, 0.2);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            min-height: 100vh;
+            font-family: "Literata", Georgia, serif;
+            color: var(--text-main);
+            background:
+                radial-gradient(circle at 10% 20%, rgba(150, 198, 255, 0.22), transparent 40%),
+                radial-gradient(circle at 90% 10%, rgba(244, 185, 66, 0.2), transparent 35%),
+                linear-gradient(135deg, var(--bg-ink), var(--bg-deep) 35%, #2e4e75 100%);
+        }
+
+        .page-wrap {
+            width: min(1120px, 92vw);
+            margin: 0 auto;
+            padding: 28px 0 44px;
+        }
+
+        .top-nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 26px;
+        }
+
+        .brand {
+            font-family: "Archivo Expanded", sans-serif;
+            letter-spacing: 0.04em;
+            color: #f6fbff;
+            font-size: clamp(0.95rem, 2.2vw, 1.1rem);
+        }
+
+        .top-nav a {
+            text-decoration: none;
+            font-family: "Archivo Expanded", sans-serif;
+            font-size: 0.75rem;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            color: #102238;
+            background: #f6fbff;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            border-radius: 999px;
+            padding: 10px 14px;
+            box-shadow: 0 10px 20px rgba(4, 19, 37, 0.25);
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .top-nav a:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 14px 28px rgba(4, 19, 37, 0.32);
+        }
+
+        .hero {
+            position: relative;
+            border-radius: 28px;
+            overflow: hidden;
+            padding: clamp(26px, 5vw, 54px);
+            padding-right: clamp(26px, 30vw, 360px);
+            background:
+                linear-gradient(115deg, rgba(248, 252, 255, 0.95), rgba(231, 242, 255, 0.86)),
+                radial-gradient(circle at 90% 0%, rgba(244, 185, 66, 0.22), transparent 50%);
+            box-shadow: var(--shadow);
+            border: 1px solid rgba(255, 255, 255, 0.7);
+            margin-bottom: 22px;
+            animation: riseIn 0.8s ease both;
+        }
+
+        .hero-photo {
+            position: absolute;
+            top: 18px;
+            right: 18px;
+            width: clamp(130px, 22vw, 240px);
+            aspect-ratio: 4 / 5;
+            border-radius: 22px;
+            overflow: hidden;
+            border: 3px solid rgba(255, 255, 255, 0.85);
+            box-shadow: 0 16px 36px rgba(8, 24, 44, 0.25), 0 0 0 10px rgba(255, 255, 255, 0.22);
+            z-index: 2;
+            background: #d9e8f9;
+        }
+
+        .hero-photo img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+        }
+
+        .hero::after {
+            content: "";
+            position: absolute;
+            width: 160px;
+            height: 160px;
+            border-radius: 50%;
+            background: radial-gradient(circle at 30% 30%, var(--accent), var(--accent-strong));
+            opacity: 0.17;
+            top: -40px;
+            right: -30px;
+            pointer-events: none;
+        }
+
+        .hero h1 {
+            font-family: "Archivo Expanded", sans-serif;
+            font-size: clamp(1.8rem, 4vw, 2.8rem);
+            line-height: 1.15;
+            margin-bottom: 14px;
+            max-width: 16ch;
+        }
+
+        .hero .role {
+            font-family: "Archivo Expanded", sans-serif;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            font-size: 0.8rem;
+            color: var(--accent-strong);
+            margin-bottom: 10px;
+        }
+
+        .hero p {
+            font-size: clamp(1rem, 2vw, 1.15rem);
+            color: var(--text-muted);
+            max-width: 65ch;
+            line-height: 1.7;
+        }
+
+        .highlights {
+            display: grid;
+            grid-template-columns: repeat(4, minmax(0, 1fr));
+            gap: 12px;
+            margin-top: 24px;
+        }
+
+        .pill {
+            border-radius: 16px;
+            padding: 12px;
+            border: 1px solid var(--line);
+            background: rgba(255, 255, 255, 0.75);
+            font-size: 0.92rem;
+            color: #1f3854;
+        }
+
+        .sections {
+            display: grid;
+            grid-template-columns: 1.15fr 0.85fr;
+            gap: 16px;
+        }
+
+        .card {
+            background: var(--card);
+            border: 1px solid rgba(255, 255, 255, 0.8);
+            border-radius: 24px;
+            padding: clamp(20px, 4vw, 30px);
+            box-shadow: var(--shadow);
+            animation: riseIn 0.65s ease both;
+        }
+
+        .card:nth-child(2) {
+            animation-delay: 0.14s;
+        }
+
+        h2 {
+            font-family: "Archivo Expanded", sans-serif;
+            font-size: clamp(1.05rem, 2.6vw, 1.35rem);
+            margin-bottom: 12px;
+            letter-spacing: 0.02em;
+        }
+
+        .bio p {
+            line-height: 1.8;
+            color: var(--text-muted);
+            margin-bottom: 12px;
+        }
+
+        .grid-two {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin-top: 14px;
+        }
+
+        .skill-box {
+            border: 1px solid var(--line);
+            border-radius: 16px;
+            padding: 12px;
+            background: linear-gradient(145deg, rgba(255, 255, 255, 0.75), rgba(232, 242, 255, 0.66));
+        }
+
+        .skill-box h3 {
+            font-family: "Archivo Expanded", sans-serif;
+            font-size: 0.88rem;
+            margin-bottom: 8px;
+            color: #16314c;
+        }
+
+        ul {
+            padding-left: 18px;
+        }
+
+        li {
+            line-height: 1.7;
+            color: #294763;
+            margin-bottom: 2px;
+        }
+
+        .timeline {
+            display: grid;
+            gap: 10px;
+            margin-bottom: 18px;
+        }
+
+        .time-item {
+            border-left: 4px solid var(--accent);
+            padding: 8px 0 8px 12px;
+            background: linear-gradient(to right, rgba(255, 243, 219, 0.75), rgba(255, 255, 255, 0.7));
+            border-radius: 8px;
+        }
+
+        .time-item strong {
+            display: block;
+            color: #1e3a56;
+        }
+
+        .time-item span {
+            color: #42607d;
+            font-size: 0.94rem;
+        }
+
+        .meta {
+            margin-top: 10px;
+            padding: 14px;
+            border-radius: 16px;
+            background: linear-gradient(120deg, rgba(20, 40, 69, 0.95), rgba(48, 77, 110, 0.93));
+            color: #e9f3ff;
+            box-shadow: 0 10px 30px rgba(8, 24, 44, 0.3);
+        }
+
+        .meta p {
+            line-height: 1.6;
+            font-size: 0.96rem;
+        }
+
+        .meta p + p {
+            margin-top: 6px;
+        }
+
+        .footer-note {
+            margin-top: 20px;
+            text-align: center;
+            color: rgba(241, 248, 255, 0.9);
+            font-size: 0.9rem;
+            animation: fadeIn 1.2s ease both;
+        }
+
+        @keyframes riseIn {
+            from {
+                opacity: 0;
+                transform: translateY(18px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        @media (max-width: 960px) {
+            .sections {
+                grid-template-columns: 1fr;
+            }
+
+            .hero {
+                padding-right: clamp(26px, 5vw, 54px);
+            }
+
+            .hero-photo {
+                position: static;
+                width: min(280px, 100%);
+                margin: 14px 0 8px;
+            }
+
+            .highlights {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+            }
+
+            .grid-two {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 560px) {
+            .page-wrap {
+                width: min(96vw, 1120px);
+                padding-top: 18px;
+            }
+
+            .top-nav {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .highlights {
+                grid-template-columns: 1fr;
+            }
+
+            .pill {
+                font-size: 0.88rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="page-wrap">
+        <header class="top-nav">
+            <div class="brand">DAERO FILITET</div>
+            <a href="index.html">Back to Home</a>
+        </header>
+
+        <section class="hero" aria-label="Developer introduction">
+            <figure class="hero-photo" aria-label="Developer photo">
+                <img src="assets/Congra-Eyob.png" alt="Eyob Gobozay graduation portrait">
+            </figure>
+            <p class="role">Developer Profile</p>
+            <h1>Eyob Gobozay</h1>
+            <p>
+                A practical, systems-minded developer with a strong foundation in computer technology,
+                accounting workflows, and network administration. Eyob builds solutions that connect real
+                community needs with stable, maintainable digital tools.
+            </p>
+            <div class="highlights">
+                <div class="pill">3+ years computer technician experience</div>
+                <div class="pill">2 years accounting operations experience</div>
+                <div class="pill">Tri-lingual: English, Tigrigna, Italian</div>
+                <div class="pill">Web and database projects: HTML, CSS, JavaScript, PHP, SQL</div>
+            </div>
+        </section>
+
+        <section class="sections" aria-label="Biography details">
+            <article class="card bio">
+                <h2>Biography</h2>
+                <p>
+                    Eyob Gobozay is an Eritrean technology professional whose journey combines hands-on IT
+                    problem solving, business process accuracy, and modern software development. His early
+                    years were shaped by practical service work, where reliability and clarity mattered as much
+                    as technical depth.
+                </p>
+                <p>
+                    As a PC Technician at T.A.T Computer Technology in Asmara (2012-2015), he supported diverse
+                    clients by troubleshooting systems, upgrading hardware, installing software, and restoring
+                    critical data after virus attacks and drive failures. He also led workstation and operating
+                    system upgrades, helping clients transition from older platforms to modern Windows environments.
+                </p>
+                <p>
+                    Alongside IT support, Eyob developed accounting expertise in accounts payable, receivable,
+                    general ledger, reconciliations, and year-end entries. This cross-functional background now
+                    informs his development work, allowing him to design software that is technically sound and
+                    operationally useful for schools, organizations, and service teams.
+                </p>
+
+                <div class="grid-two">
+                    <section class="skill-box">
+                        <h3>Technical Strengths</h3>
+                        <ul>
+                            <li>Desktop and laptop assembly and maintenance</li>
+                            <li>Windows installation, configuration, and troubleshooting</li>
+                            <li>Network setup with routers, switches, hubs, and shared printers</li>
+                            <li>Software setup tailored to business workflows</li>
+                        </ul>
+                    </section>
+
+                    <section class="skill-box">
+                        <h3>Software and Data</h3>
+                        <ul>
+                            <li>QuickBooks (desktop and online), Peachtree, MS Access</li>
+                            <li>Excel, Word, Publisher, PowerPoint</li>
+                            <li>HTML, CSS, JavaScript, PHP</li>
+                            <li>SQL projects using MySQL and Supabase</li>
+                        </ul>
+                    </section>
+                </div>
+            </article>
+
+            <aside class="card" aria-label="Timeline and education">
+                <h2>Experience Timeline</h2>
+                <div class="timeline">
+                    <div class="time-item">
+                        <strong>PC Technician | T.A.T Computer Technology</strong>
+                        <span>Asmara, Eritrea • 2012-2015</span>
+                    </div>
+                    <div class="time-item">
+                        <strong>Accounting Practice</strong>
+                        <span>2 years of hands-on accounting operations and reconciliation</span>
+                    </div>
+                    <div class="time-item">
+                        <strong>Associate Track: Networking and Server Administration</strong>
+                        <span>North Seattle College (4 years completed)</span>
+                    </div>
+                </div>
+
+                <h2>Education</h2>
+                <ul>
+                    <li>High school completion (12 years)</li>
+                    <li>Diploma in Accounting, Asmara University</li>
+                    <li>Diploma in Computer Information Systems, Asmara University</li>
+                    <li>Networking, Windows Server, and Cisco interconnection coursework</li>
+                    <li>Web development and SQL database project coursework</li>
+                </ul>
+
+                <div class="meta">
+                    <p><strong>Location:</strong> Seattle, Washington, USA</p>
+                    <p><strong>Focus:</strong> Practical software for education and community platforms</p>
+                    <p><strong>Working Style:</strong> Reliable, detail-oriented, and service-driven</p>
+                </div>
+            </aside>
+        </section>
+
+        <p class="footer-note">Designed to reflect the builder behind Daero Filitet.</p>
+    </div>
+    <script src="js/app.js"></script>
+</body>
+</html>

@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Maintenance Update - Daero Filitet</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: linear-gradient(135deg, #b4e3f8 0%, #d8f2ff 45%, #fff6d5 100%);
+            color: #11324b;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            text-align: center;
+            padding: 20px;
+        }
+
+        .thank-you-container {
+            background: rgba(255, 255, 255, 0.88);
+            backdrop-filter: blur(10px);
+            border-radius: 24px;
+            padding: 52px;
+            border: 2px solid rgba(92, 171, 206, 0.45);
+            box-shadow: 0 18px 45px rgba(30, 97, 129, 0.2);
+            max-width: 760px;
+            width: min(92vw, 760px);
+        }
+
+        h1 {
+            color: #155d8a;
+            margin-bottom: 14px;
+            font-size: clamp(2rem, 3vw, 3rem);
+        }
+
+        p {
+            line-height: 1.6;
+            margin-bottom: 12px;
+            font-size: 1.1rem;
+        }
+
+        .fun-row {
+            font-size: 1.8rem;
+            margin: 8px 0 20px;
+        }
+
+        .pink-bike {
+            color: #ff4fa3;
+        }
+
+        .button-row {
+            display: flex;
+            justify-content: center;
+            gap: 14px;
+            flex-wrap: wrap;
+            margin-top: 18px;
+        }
+
+        .close-button,
+        .message-button {
+            display: inline-block;
+            background: linear-gradient(135deg, #1f8fcb, #3aa7df);
+            color: white;
+            padding: 16px 44px;
+            border-radius: 14px;
+            border: none;
+            font-size: 1.2rem;
+            font-weight: 700;
+            letter-spacing: 0.3px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .close-button:hover,
+        .message-button:hover {
+            background: linear-gradient(135deg, #1576ad, #2f97ca);
+            transform: translateY(-3px);
+        }
+
+        .message-button {
+            background: linear-gradient(135deg, #18a96f, #2fc08a);
+        }
+
+        .message-button:hover {
+            background: linear-gradient(135deg, #12895a, #22a474);
+        }
+    </style>
+</head>
+<body>
+    <div class="thank-you-container">
+        <h1>Website Maintenance in Progress ✨</h1>
+        <div class="fun-row">🎈 🧩 🎨 📚 <span class="pink-bike">🚲</span></div>
+        <p>We are building something amazing for kids and families.</p>
+        <p>Please visit again shortly.</p>
+        <p>Meanwhile, call us for registration support:</p>
+        <p>Email: Daerofiltet@gmail.com</p>
+        <p>Phone: (425) 426-8816</p>
+        <p>Phone: (425) 599-6356</p>
+        <p>Phone: (514) 575-6356</p>
+        <p>Office Hours: Mon-Fri, 7am-5pm</p>
+        <p>Response Time: Within 24 hours</p>
+        <div class="button-row">
+            <button id="leaveMessageBtn" class="message-button">Leave Message</button>
+            <button id="closeSiteBtn" class="close-button">Cancel</button>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById("leaveMessageBtn")?.addEventListener("click", () => {
+            window.location.href = "contact.html";
+        });
+
+        document.getElementById("closeSiteBtn")?.addEventListener("click", () => {
+            try {
+                window.open("", "_self");
+                window.close();
+            } catch (e) {
+            }
+            window.location.href = "about:blank";
+        });
+    </script>
+</body>
+</html>

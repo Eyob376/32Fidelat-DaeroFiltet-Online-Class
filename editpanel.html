@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Edit Registration</title>
+    <link rel="stylesheet" href="css/app.css">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+            color: white;
+            margin: 0;
+            padding: 40px;
+            display: flex;
+            justify-content: center;
+        }
+
+        .edit-container {
+            width: 90%;
+            max-width: 1100px;
+            background: rgba(255,255,255,0.08);
+            padding: 30px;
+            border-radius: 16px;
+            display: flex;
+            gap: 30px;
+            position: relative;
+        }
+
+        .panel {
+            flex: 1;
+            background: rgba(255,255,255,0.06);
+            padding: 20px;
+            border-radius: 12px;
+            height: 80vh;
+            overflow-y: auto;
+        }
+
+        h2 {
+            margin-top: 0;
+            color: #8bc9eb;
+        }
+
+        .field {
+            margin-bottom: 15px;
+        }
+
+        label {
+            display: block;
+            font-size: 14px;
+            margin-bottom: 4px;
+        }
+
+        input, select {
+            width: 100%;
+            padding: 10px;
+            border-radius: 8px;
+            border: none;
+            outline: none;
+        }
+
+        .student-block {
+            background: rgba(255,255,255,0.08);
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 15px;
+        }
+
+        .schedule-row {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+
+        .actions {
+            margin-top: 25px;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .btn {
+            padding: 12px 25px;
+            border-radius: 10px;
+            border: none;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        .save-btn {
+            background: #4fd4c7;
+            color: black;
+        }
+
+        .cancel-btn {
+            background: #ff6f8a;
+            color: white;
+        }
+
+        .success-box {
+            display: none;
+            margin-top: 20px;
+            padding: 15px;
+            background: rgba(79, 212, 199, 0.3);
+            border-left: 4px solid #4fd4c7;
+            border-radius: 8px;
+        }
+
+        /* Floating Add Student Button */
+        .add-student-btn {
+            position: absolute;
+            right: -20px;
+            top: 20px;
+            width: 55px;
+            height: 55px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #4fd4c7, #2fb8a8);
+            color: black;
+            font-size: 30px;
+            border: none;
+            cursor: pointer;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+            transition: 0.25s ease;
+        }
+
+        .add-student-btn:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 6px 16px rgba(0,0,0,0.4);
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="edit-container">
+
+    <!-- Floating Add Student Button -->
+    <button class="add-student-btn" id="addStudentBtn">+</button>
+
+    <!-- LEFT PANEL (Guardian Info) -->
+    <div class="panel">
+        <h2>Guardian Information</h2>
+
+        <div class="field">
+            <label>Full Name</label>
+            <input type="text" id="guardianName">
+        </div>
+
+        <div class="field">
+            <label>Email</label>
+            <input type="email" id="guardianEmail">
+        </div>
+
+        <div class="field">
+            <label>Phone</label>
+            <input type="text" id="guardianPhone">
+        </div>
+
+        <div class="field">
+            <label>Country</label>
+            <input type="text" id="country">
+        </div>
+
+        <div class="field">
+            <label>City</label>
+            <input type="text" id="city">
+        </div>
+    </div>
+
+    <!-- RIGHT PANEL (Students Info) -->
+    <div class="panel">
+        <h2>Student Information</h2>
+
+        <div id="studentsContainer"></div>
+
+        <div class="actions">
+            <button class="btn save-btn" id="saveBtn">Save</button>
+            <button class="btn cancel-btn" id="cancelBtn">Cancel</button>
+        </div>
+
+        <div class="success-box" id="successBox">
+            Updated Successfully!
+        </div>
+    </div>
+
+</div>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="js/supabase-client.js"></script>
+<script src="js/db.js"></script>
+<script src="js/editpanel.js"></script>
+</body>
+</html>

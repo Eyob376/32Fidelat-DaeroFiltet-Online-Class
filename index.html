@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta name="google" content="notranslate">
+    <meta name="robots" content="noai, noimageai">
+    <meta http-equiv="Content-Language" content="en">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Daero Filitet Tigrinya Language School</title>
+   <link rel="stylesheet" href="css/app.css">
+</head>
+<body>
+
+    <!-- NAVIGATION BAR -->
+    <header class="navbar glass-nav">
+        <div class="logo-container">
+            <img src="assets/logo.jpeg" alt="Daero Filitet Logo" class="logo-img">
+        </div>
+
+    <nav class="main-nav">
+        <ul>
+            <li><a href="index.html" data-page="index">Home</a></li>
+            <li><a href="programs.html" data-page="programs">Programs</a></li>
+            <li><a href="member.html" data-page="member">Member</a></li>
+            <li><a href="register.html" data-page="register">Register</a></li>
+            <li><a href="help.html" data-page="help">Help</a></li>
+        </ul>
+    </nav>
+    </header>
+
+    <!-- PAGE WRAPPER -->
+    <section class="page-wrapper">
+
+        <h1 class="gallery-title">
+            ዳዕሮ ፍልጠት ትምህርቲ ቋንቋን ባህልን<br>
+            DAEROFILTETT LANGUAGE &amp; CULTURE CLASS
+        </h1>
+		
+        <div class="home-layout">
+
+            <!-- LEFT COLUMN -->
+            <aside class="index-aside">
+                <div class="side-cardbig">
+                    <h4>Our Mission is Fostering Identity & Pride</h4>
+                    <p>
+                        The aim of Daero Filitet is to empower our children to foster a sense of identity, pride, belonging,
+                        and to strengthen communal bonds. We encourage all Eritrean families to join the program and register
+                        their children.
+                    </p>
+                    <br>
+                    <p>
+                        By connecting with their language and culture, children gain a deeper understanding of who they are
+                        and where they come from, building a strong foundation for their future.
+                    </p>
+                </div>
+                     <br>
+                <div class="side-card-second">
+                    <h4>The Tigrinya Language (ትግርኛ)</h4>
+                    <p>A Semitic language spoken in Eritrea and the Tigray Region of Northern Ethiopia, rich in history and cultural significance.</p>
+                </div>
+                   <br>
+                <div class="side-card-rgbtn">
+                    <h4>Linguistic Roots & Development</h4>
+                    <p>Tigrinya is descended from Ge'ez, the classical and liturgical language of the region. It began developing as a spoken language around the 7th up to 9th century. It shares roots with other Eritrean languages like Tigre and Arabic. It uses the Ge'ez script (Fidel) and has a rich grammar system, with verb conjugations that change based on person, number, and gender.</p>
+                    <a href="register.html" class="glass-btn btn-primary">Register Now</a>
+                </div>
+            </aside>
+
+            <!-- CENTER GALLERY -->
+            <div class="center-gallery-column">
+                <h2 class="gallery-top-label">Latest Posts</h2>
+                <div class="gallery-wrapper glass-card"></div>
+            </div>
+
+            <!-- RIGHT COLUMN -->
+            <aside class="index-aside">
+                <div class="side-card glass-card">
+                    <h4>Graduation of Students</h4>
+
+                    <figure class="Graduations graduation-slideshow" id="graduation-slideshow">
+                        <div class="graduation-frame"></div>
+                        <p>Students graduate every 2 months after completing each level.</p>
+                    </figure>
+                </div>
+            </aside>
+
+        </div>
+    </section>
+
+    <!-- LATEST POSTS SECTION -->
+    <section class="posts">
+    <h2 class="glass-title">Cultural & Traditional Practices</h2>
+
+    <div class="posts-grid">
+
+        <!-- WRAPPER 1 — IMAGE SLIDESHOW -->
+        <div class="post-wrapper">
+            <h3 class="post-title">Traditional Practices</h3>
+            <div class="post-media slideshow" id="customs-slideshow"></div>
+			<p class="post-illustration">🕯️ Traditional coffee ceremony, greetings, and family hospitality in everyday life.</p>
+        </div>
+
+        <!-- WRAPPER 2 — VIDEO PLAYER -->
+        <div class="post-wrapper">
+            <h5 class="post-title">Graduations and Class Events</h5>
+            <div class="post-media video-wrapper">
+                <video id="eventVideo" class="video-player" controls></video>
+                <div class="video-thumbs"></div>
+                <div class="support-actions video-nav-controls">
+                    <button type="button" class="glass-btn btn-primary" id="eventVideoPrev">Previous</button>
+                    <button type="button" class="glass-btn btn-primary" id="eventVideoNext">Next</button>
+                </div>
+            </div>
+            <p class="post-illustration">🎓 Student graduations, class celebrations, and school event highlights.</p>
+        </div>
+
+        <!-- WRAPPER 3 — IMAGE SLIDESHOW -->
+        <div class="post-wrapper">
+            <h3 class="post-title">Tribes and Their Practices</h3>
+            <div class="post-media slideshow" id="dance-slideshow"></div>
+            <p class="post-illustration">🥁 Traditional dances, instruments, and customs from Eritrea’s different tribes.</p>
+        </div>
+
+    </div>
+</section>
+
+
+    <!-- FOOTER -->
+    <footer class="glass-footer">
+        <ul class="footer-links">
+            <li>© 2026 Daero Filitet. All Rights Reserved.</li>
+            <li><a href="info.html">Web Design by Eyob Kidane</a></li>
+        </ul>
+    </footer>
+	 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+	 <script src="js/supabase-client.js"></script>
+	 <script src="js/db.js"></script>
+	 <script src="js/app.js"></script>
+</body>
+</html>

@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta name="google" content="notranslate">
+    <meta name="robots" content="noai, noimageai">
+    <meta http-equiv="Content-Language" content="en">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Register Daero Filitet</title>
+     <link rel="stylesheet" href="css/app.css">
+</head>
+<body>
+<!-- NAVIGATION BAR -->
+<header class="navbar glass-nav">
+    <div class="logo-container">
+        <img src="assets/logo.jpeg" class="logo-img" alt="Daero Filitet Logo">
+    </div>
+
+        <nav class="main-nav">
+            <ul>
+               <li><a href="index.html" data-page="index">Home</a></li>
+               <li><a href="programs.html" data-page="programs">Programs</a></li>
+               <li><a href="member.html" data-page="member">Member</a></li>
+               <li><a href="register.html" data-page="register">Register</a></li>
+               <li><a href="help.html" data-page="help">Help</a></li>
+            </ul>
+        </nav>
+
+</header>
+
+<!-- REGISTRATION FORM -->
+<section class="page-wrapper">
+
+    <h1 class="page-title reveal stagger-1">Student Registration</h1>
+
+    <!-- TWO-COLUMN LAYOUT -->
+    <div class="register-layout">
+
+        <!-- LEFT SIDE: ORIGINAL FORM -->
+        <div class="left-form">
+
+            <div class="glass-card register-card">
+
+<!-- MODERN PROGRESS BAR -->
+    <!-- MODERN 3-STEP PROGRESS BAR WITH ROLLING BALL -->
+<div class="progress-wrapper">
+
+    <!-- Rolling Ball -->
+    <img src="assets/soccerball.png" class="progress-ball" id="progressBall">
+
+    <!-- Track -->
+    <div class="progress-track">
+        <div class="progress-fill" id="progressFill"></div>
+    </div>
+
+    <!-- Step Numbers -->
+    <div class="progress-steps">
+        <div class="progress-step active" data-step="1">1</div>
+        <div class="progress-step" data-step="2">2</div>
+        <div class="progress-step" data-step="3">✓</div>
+    </div>
+</div>
+
+
+    <form id="registerForm" novalidate>
+
+                    <!-- ⭐ STEP 1 — GUARDIAN + STUDENT INFO -->
+    <div class="step-panel active" data-step="1">
+
+         <h2 class="form-title">Guardian</h2>
+
+        <div class="compact-row">
+            <label>Full Name</label>
+            <input type="text" id="guardianName" required>
+        </div>
+
+        <div class="compact-row">
+            <label>Email</label>
+            <input type="email" id="guardianEmail" required>
+        </div>
+
+        <div class="compact-row">
+            <label>Phone</label>
+            <input type="text" id="guardianPhone" required>
+        </div>
+
+        <div class="compact-row">
+            <label>Country</label>
+            <input type="text" id="country" required>
+        </div>
+
+        <div class="compact-row">
+            <label>City</label>
+            <input type="text" id="city" required>
+        </div>
+
+        <div class="compact-row">
+            <label>Students</label>
+            <select id="studentCount" required>
+               <option value="">Select</option>
+               <option value="1">1 Student</option>
+               <option value="2">2 Students</option>
+               <option value="3">3 Students</option>
+               <option value="4">4 Students</option>
+               <option value="5">5 Students</option>
+            </select>
+        </div>
+
+            <h2 class="form-title">Student Information</h2>
+
+         <div id="studentsContainer"></div>
+
+         <button type="button" id="nextBtn1" class="glass-btn btn-primary">Next</button>
+    </div>
+
+                    <!-- STEP 2: LEARNING PREFERENCES -->
+    <div class="step-panel" data-step="2">
+
+    <h2 class="form-title">Learning Goal</h2>
+
+    <div class="compact-row">
+        <label>Goal</label>
+        <select id="learningGoal" required>
+            <option value="">Select</option>
+            <option value="Connect with Heritage/Culture">Connect with Heritage/Culture</option>
+            <option value="Language Practice (Read/Write/Speak)">Language Practice</option>
+            <option value="Credit Advancement">Credit Advancement</option>
+            <option value="College Requirement">College Requirement</option>
+        </select>
+    </div>
+
+    <h2 class="form-title">Schedule</h2>
+
+    <div class="compact-row">
+        <label>Morning</label>
+        <div class="time-row">
+            <input type="time" id="morningStart"> to
+            <input type="time" id="morningEnd">
+        </div>
+    </div>
+
+        <div class="compact-row">
+             <label>Afternoon</label>
+            <div class="time-row">
+               <input type="time" id="afternoonStart"> to
+               <input type="time" id="afternoonEnd">
+            </div>
+        </div>
+
+        <div class="compact-row">
+             <label>Evening</label>
+            <div class="time-row">
+                <input type="time" id="eveningStart"> to
+                <input type="time" id="eveningEnd">
+            </div>
+        </div>
+
+        <div class="step-actions">
+               <button type="button" id="prevStep" class="glass-btn btn-secondary">Back</button>
+               <button type="button" id="nextStep2" class="glass-btn btn-primary">Next</button>
+        </div>
+
+    </div>
+
+
+                    <!-- STEP 3: CONFIRMATION -->
+                    <div class="step-panel" data-step="3">
+
+                        <h2 class="form-title">Confirm Your Information</h2>
+
+                        <div id="summaryBox" class="summary-box"></div>
+
+                        <div class="step-actions">
+                            <button type="button" id="backToStep2" class="glass-btn btn-secondary">Back</button>
+                            <button type="submit" id="submitForm" class="glass-btn btn-primary">Submit Registration</button>
+                        </div>
+
+                    </div>
+
+    </form>
+
+            </div>
+
+        </div>
+
+        <!-- RIGHT SIDE: FLOATING IMAGE SLIDESHOW -->
+        <div class="right-slideshow">
+            <img src="assets/mom-braiding.png" class="slide-img active">
+            <img src="assets/Mom-Blessing.png" class="slide-img">
+            <img src="assets/Grandpalesson.png" class="slide-img">
+            <img src="assets/Graduation.png" class="slide-img">
+        </div>
+
+    </div>
+</section>
+
+<!-- FOOTER -->
+<footer class="glass-footer">
+    <ul class="footer-links">
+        <li>© 2026 Daero Filitet. All Rights Reserved.</li>
+        <li><a href="info.html">Web Design by Eyob Kidane</a></li>
+    </ul>
+</footer>
+<script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="js/supabase-client.js"></script>
+<script src="js/db.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>

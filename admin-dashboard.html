@@ -1,0 +1,624 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard – Daero Filitet</title>
+    <link rel="icon" href="data:,">
+    <link rel="stylesheet" href="css/app.css">
+</head>
+
+<body class="admin-body">
+<header class="navbar glass-nav">
+    <div class="logo-container">
+        <img src="assets/logo.jpeg" class="logo-img" alt="Daero Filitet Logo">
+    </div>
+
+    <nav class="main-nav">
+        <ul>
+           <li><a href="index.html" data-page="index">Home</a></li>
+           <li><a href="programs.html" data-page="programs">Programs</a></li>
+           <li><a href="member.html" data-page="member">Member</a></li>
+           <li><a href="register.html" data-page="register">Register</a></li>
+           <li><a href="help.html" data-page="help">Help</a></li>
+        </ul>
+    </nav>
+</header>
+
+<div class="admin-layout">
+
+    <!-- LEFT SIDEBAR -->
+    <aside class="admin-sidebar glass-card">
+        <h2>MAIN CONTENTS</h2>
+
+        <div class="admin-section">
+            <h3>Welcome</h3>
+            <a href="#" class="admin-link" data-target="programsPage">Programs</a>
+            <a href="#" class="admin-link" data-target="newApplicantsPage">New Applicants</a>
+            <a href="#" class="admin-link" data-target="admittedStudentsPage">Admitted Students</a>
+            <a href="#" class="admin-link" data-target="adminSupportPage">Admin Support</a>
+        </div>
+
+        <div class="admin-section">
+            <h3>Resources</h3>
+            <a href="#" class="admin-link" data-target="allPostsMediaPage">Uploading All Posts</a>
+        </div>
+
+        <div class="admin-section">
+            <h3>Settings</h3>
+            <a href="#" class="admin-link" data-target="priceSettingsPage">Price Settings</a>
+            <a href="#" class="admin-link" data-target="classTeachersTaskPage">Teachers Task</a>
+        </div>
+
+        <div class="admin-footer">
+            Logged in as: Yohanes
+        </div>
+    </aside>
+
+    <!-- RIGHT SIDE MAIN CONTENT -->
+    <main class="admin-main">
+
+        <!-- PROGRAMS PAGE -->
+        <section id="programsPage" class="admin-page">
+            <h1 class="page-title">Programs</h1>
+
+            <div class="programs-section-grid">
+
+                <!-- Beginner -->
+                <div class="program-box" data-level="beginner">
+                    <div class="program-title-row">
+                        <h2>Beginner Class</h2>
+                        <p class="program-price"><span class="admin-program-price-value" data-level="level1">$30</span></p>
+                    </div>
+                    <p class="program-count">Students: <span class="program-count-value">0</span></p>
+                    <p class="program-rating">⭐ <span class="program-rating-value">4.9</span></p>
+                    <button class="glass-btn btn-primary upload-btn" data-level="beginner">Add Resources</button>
+                    <input type="file" class="file-input" data-level="beginner"
+                           accept=".png,.jpg,.jpeg,.tiff,.pdf,.docx,.xlsx,.pptx" multiple hidden>
+                </div>
+
+                <!-- Intermediate -->
+                <div class="program-box" data-level="intermediate">
+                    <div class="program-title-row">
+                        <h2>Intermediate Class</h2>
+                        <p class="program-price"><span class="admin-program-price-value" data-level="level2">$35</span></p>
+                    </div>
+                    <p class="program-count">Students: <span class="program-count-value">0</span></p>
+                    <p class="program-rating">⭐ <span class="program-rating-value">4.9</span></p>
+                    <button class="glass-btn btn-primary upload-btn" data-level="intermediate">Add Resources</button>
+                    <input type="file" class="file-input" data-level="intermediate"
+                           accept=".png,.jpg,.jpeg,.tiff,.pdf,.docx,.xlsx,.pptx" multiple hidden>
+                </div>
+
+                <!-- Advanced -->
+                <div class="program-box" data-level="advanced">
+                    <div class="program-title-row">
+                        <h2>Advanced Class</h2>
+                        <p class="program-price"><span class="admin-program-price-value" data-level="level3">$40</span></p>
+                    </div>
+                    <p class="program-count">Students: <span class="program-count-value">0</span></p>
+                    <p class="program-rating">⭐ <span class="program-rating-value">4.9</span></p>
+                    <button class="glass-btn btn-primary upload-btn" data-level="advanced">Add Resources</button>
+                    <input type="file" class="file-input" data-level="advanced"
+                           accept=".png,.jpg,.jpeg,.tiff,.pdf,.docx,.xlsx,.pptx" multiple hidden>
+                </div>
+
+                <!-- After School Tutorial -->
+                <div class="program-box" data-level="afterschool">
+                    <div class="program-title-row">
+                        <h2>AST Program</h2>
+                        <p class="program-price"><span class="admin-program-price-value" data-level="level4">$25</span></p>
+                    </div>
+                    <p class="program-count">Students: <span class="program-count-value">0</span></p>
+                    <p class="program-rating">⭐ <span class="program-rating-value">4.9</span></p>
+                    <button class="glass-btn btn-primary upload-btn" data-level="afterschool">Add Resources</button>
+                    <input type="file" class="file-input" data-level="afterschool"
+                           accept=".png,.jpg,.jpeg,.tiff,.pdf,.docx,.xlsx,.pptx" multiple hidden>
+                </div>
+
+                <!-- Religious Study -->
+                <div class="program-box" data-level="religious">
+                    <div class="program-title-row">
+                        <h2>Religious Study</h2>
+                        <p class="program-price"><span class="admin-program-price-value" data-level="level5">$20</span></p>
+                    </div>
+                    <p class="program-count">Students: <span class="program-count-value">0</span></p>
+                    <p class="program-rating">⭐ <span class="program-rating-value">4.9</span></p>
+                    <button class="glass-btn btn-primary upload-btn" data-level="religious">Add Resources</button>
+                    <input type="file" class="file-input" data-level="religious"
+                           accept=".png,.jpg,.jpeg,.tiff,.pdf,.docx,.xlsx,.pptx" multiple hidden>
+                </div>
+
+                <!-- Resource Cards -->
+                <section class="program-resources-card" data-level="beginner">
+                    <h2>Beginner Class – Uploaded Resources</h2>
+                    <div class="resource-list" id="resources-beginner"></div>
+                </section>
+
+                <section class="program-resources-card" data-level="intermediate">
+                    <h2>Intermediate Class – Uploaded Resources</h2>
+                    <div class="resource-list" id="resources-intermediate"></div>
+                </section>
+
+                <section class="program-resources-card" data-level="advanced">
+                    <h2>Advanced Class – Uploaded Resources</h2>
+                    <div class="resource-list" id="resources-advanced"></div>
+                </section>
+
+                <section class="program-resources-card" data-level="afterschool">
+                    <h2>AST Program – Uploaded Resources</h2>
+                    <div class="resource-list" id="resources-afterschool"></div>
+                </section>
+
+                <section class="program-resources-card" data-level="religious">
+                    <h2>Religious Study – Uploaded Resources</h2>
+                    <div class="resource-list" id="resources-religious"></div>
+                </section>
+
+            </div>
+        </section>
+
+        <!-- NEW APPLICANTS PAGE -->
+        <section id="newApplicantsPage" class="admin-page">
+            <h1 class="page-title">New Applicants</h1>
+
+            <div class="filter-bar">
+                <select id="filterYearNew">
+                    <option value="">Year</option>
+                </select>
+                <input type="text" id="filterFirstNameNew" placeholder="First Name">
+                <input type="text" id="filterGuardianNew" placeholder="Guardian Name">
+
+                <button class="glass-btn btn-primary" id="deleteNewApplicants">Delete</button>
+                <button class="glass-btn btn-primary" id="exportNewApplicants">Export</button>
+
+                <select id="pageSizeNew">
+                    <option value="5">5</option>
+                    <option value="10">10</option>
+                    <option value="15">15</option>
+                    <option value="all">All</option>
+                </select>
+            </div>
+
+            <div class="table-section">
+                <table class="data-grid" id="newApplicantsTable"></table>
+                <div id="newPagination" class="pagination-footer"></div>
+            </div>
+        </section>
+
+        <!-- ADMITTED STUDENTS PAGE -->
+        <section id="admittedStudentsPage" class="admin-page">
+            <h1 class="page-title">Admitted Students</h1>
+
+            <div class="filter-bar">
+                <select id="filterYearAd">
+                    <option value="">Year</option>
+                </select>
+
+                <select id="filterStatusAd">
+                    <option value="">Status</option>
+                    <option value="ongoing">Ongoing</option>
+                    <option value="suspended">Suspended</option>
+                    <option value="terminated">Terminated</option>
+                    <option value="completed">Completed</option>
+                </select>
+
+                <!-- FIXED: Correct grade filter -->
+                <select id="filterGradeAd">
+                    <option value="">Grade level</option>
+                    <option value="Beginner Class">Beginner Class</option>
+                    <option value="Intermediate Class">Intermediate Class</option>
+                    <option value="Advanced Class">Advanced Class</option>
+                    <option value="After School Assistance">After School Assistance</option>
+                </select>
+
+                <input type="text" id="filterFirstNameAd" placeholder="First Name">
+                <input type="text" id="filterGuardianAd" placeholder="Guardian Name">
+
+                <button class="glass-btn btn-primary" id="deleteAdmitted">Delete</button>
+                <button class="glass-btn btn-primary" id="exportAdmitted">Export</button>
+                <button class="glass-btn btn-primary" id="printAdmitted">Print</button>
+
+                <div class="column-dropdown">
+                    <button id="columnDropdownBtn" class="glass-btn btn-primary">Columns ▼</button>
+                    <div id="columnDropdownMenu" class="dropdown-menu"></div>
+                </div>
+
+                <select id="pageSizeAd">
+                    <option value="5">5</option>
+                    <option value="10">10</option>
+                    <option value="15">15</option>
+                    <option value="all">All</option>
+                </select>
+            </div>
+
+            <div class="table-section">
+                <table class="data-grid" id="admittedStudentsTable"></table>
+                <div id="admittedPagination" class="pagination-footer"></div>
+            </div>
+        </section>
+
+        <!-- ADMIN SUPPORT PAGE -->
+        <section id="adminSupportPage" class="admin-page">
+            <h1 class="page-title">Admin Support</h1>
+
+            <div class="maintenance-toggle-corner">
+                <div class="backup-top-row">
+                    <label class="maintenance-toggle-label" for="maintenanceModeToggle">
+                        <input type="checkbox" id="maintenanceModeToggle">
+                    </label>
+                    <span id="maintenanceModeStatus" class="maintenance-mode-status">Maintenance: OFF</span>
+                    <select id="backupSchedulePlan" class="backup-schedule-select" title="Backup schedule">
+                        <option value="">No Schedule</option>
+                        <option value="3days">Every 3 Days</option>
+                        <option value="weekly">Weekly</option>
+                        <option value="monthly">Monthly</option>
+                    </select>
+                    <button type="button" class="glass-btn backup-restore-btn" id="backupScheduleToggle">Enable Schedule</button>
+                    <span id="backupScheduleInfo" class="backup-schedule-info"></span>
+                </div>
+
+                <div class="backup-actions-row">
+                    <button type="button" class="glass-btn btn-primary backup-restore-btn" id="backupDbBtn">💾 Backup</button>
+                    <button type="button" class="glass-btn btn-secondary backup-restore-btn" id="restoreDbBtn">♻️ Restore</button>
+                </div>
+                <input type="file" id="restoreFileInput" accept=".json" style="display:none">
+
+                <span id="backupRestoreStatus" class="backup-restore-status"></span>
+            </div>
+
+            <div class="admin-support-grid">
+                <div class="glass-card support-card support-card-credentials">
+                    <h2>Reset User Login Credentials</h2>
+                    <p>Set a temporary password for a specific student (ID/name).</p>
+                    <div class="support-form">
+                        <select id="resetStudentTarget">
+                            <option value="">Select Student (Name / ID)</option>
+                        </select>
+                        <input type="text" id="resetPassword" placeholder="New Temporary Password">
+                        <button class="glass-btn btn-primary" id="saveCredentialReset">Save Reset</button>
+                        <button class="glass-btn btn-primary" id="clearCredentialReset">Clear Reset</button>
+                    </div>
+                    <p id="resetCurrentPasswordPreview" class="support-status">Current password: —</p>
+                    <p id="resetPasswordAlertInfo" class="support-status"></p>
+                    <p id="resetCredentialStatus" class="support-status"></p>
+                </div>
+
+                <div class="glass-card support-card support-card-portal-link">
+                    <h2>Portal Help Link</h2>
+                    <p>Share this with users who are stuck submitting assignments.</p>
+                    <div class="support-form">
+                        <input type="text" id="portalLinkField" readonly>
+                        <button class="glass-btn btn-primary" id="copyPortalLink">Copy Portal Link</button>
+                        <button class="glass-btn btn-primary" id="openPortalLink">Open Portal</button>
+                    </div>
+                    <p id="portalLinkStatus" class="support-status"></p>
+                </div>
+
+                <div class="glass-card support-card support-card-wide support-card-customer-messages">
+                    <h2>Customer Suggestions & Questions</h2>
+                    <div class="support-actions">
+                        <button class="glass-btn btn-primary" id="refreshContactMessages">Refresh Messages</button>
+                        <button class="glass-btn btn-primary" id="clearContactMessages">Clear All</button>
+                    </div>
+                    <div id="contactMessagesList" class="messages-list"></div>
+                </div>
+
+                <div class="glass-card support-card support-card-reminder">
+                    <h2>Publish Reminder</h2>
+                    <p>Friendly payment reminders for selected families.</p>
+                    <form id="publishReminderForm" class="support-form" data-form="publish-reminder">
+                        <div class="support-actions">
+                            <button type="button" class="glass-btn btn-primary" id="reminderSelectAllGuardians">Select All</button>
+                            <button type="button" class="glass-btn" id="reminderClearGuardians">Clear</button>
+                        </div>
+                        <div id="reminderGuardianPicker" class="guardian-picker" aria-label="Select guardians"></div>
+                        <input type="text" id="reminderTitle" placeholder="Reminder Title" required>
+                        <input type="date" id="reminderDueDate" required>
+                        <textarea id="reminderMessage" rows="4" placeholder="Reminder message" required></textarea>
+                        <input type="file" id="reminderAttachmentFile" accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,image/*" multiple>
+                        <button type="submit" class="glass-btn btn-primary">Publish Reminder to Selected Guardians</button>
+                    </form>
+                    <p id="reminderPublishStatus" class="support-status"></p>
+                </div>
+
+                <div class="glass-card support-card support-card-announcement">
+                    <h2>Publish Announcement</h2>
+                    <p>Teacher messages and class updates for member portal.</p>
+                    <form id="publishAnnouncementForm" class="support-form" data-form="publish-announcement">
+                        <select id="announcementProgramLevel" required>
+                            <option value="">Program Level</option>
+                            <option value="beginner">Beginner</option>
+                            <option value="intermediate">Intermediate</option>
+                            <option value="advanced">Advanced</option>
+                            <option value="afterschool">AST Program</option>
+                            <option value="religious">Religious Study</option>
+                        </select>
+                        <input type="text" id="announcementTitle" placeholder="Announcement Title" required>
+                        <textarea id="announcementMessage" rows="4" placeholder="Message" required></textarea>
+                        <button type="submit" class="glass-btn btn-primary">Publish Announcement</button>
+                    </form>
+                    <p id="announcementPublishStatus" class="support-status"></p>
+                </div>
+
+
+            </div>
+        </section>
+
+        <section id="allPostsMediaPage" class="admin-page">
+            <h1 class="page-title">Uploading All Posts</h1>
+            <div class="support-actions" style="margin-bottom: 12px;">
+                <button type="button" class="glass-btn btn-primary" id="clearAllPostsUploads">Clear All Uploaded Posts</button>
+            </div>
+            <div class="admin-support-grid">
+                <div class="glass-card support-card">
+                    <h2>Uploading Latest posts</h2>
+                    <p>Feeds the 1st panel in index page (Latest Posts slideshow).</p>
+                    <div class="support-form">
+                        <input type="file" id="uploadIndexLatestInput" accept="image/*" multiple>
+                    </div>
+                    <div class="support-actions">
+                        <button type="button" class="glass-btn btn-primary" id="clearUploadIndexLatest">Clear All</button>
+                    </div>
+                    <div id="uploadIndexLatestList" class="messages-list"></div>
+                </div>
+
+                <div class="glass-card support-card">
+                    <h2>Uploading Traditional Practices</h2>
+                    <p>Feeds the 2nd panel in index page (Traditional Practices slideshow).</p>
+                    <div class="support-form">
+                        <input type="file" id="uploadIndexTraditionalInput" accept="image/*" multiple>
+                    </div>
+                    <div class="support-actions">
+                        <button type="button" class="glass-btn btn-primary" id="clearUploadIndexTraditional">Clear All</button>
+                    </div>
+                    <div id="uploadIndexTraditionalList" class="messages-list"></div>
+                </div>
+
+                <div class="glass-card support-card">
+                    <h2>Uploading Graduations and Class Events</h2>
+                    <p>Feeds the 3rd panel in index page (video panel).</p>
+                    <div class="support-form">
+                        <input type="file" id="uploadIndexGraduationVideosInput" accept="video/*" multiple>
+                    </div>
+                    <div class="support-actions">
+                        <button type="button" class="glass-btn btn-primary" id="clearUploadIndexGraduationVideos">Clear All</button>
+                    </div>
+                    <div id="uploadIndexGraduationVideosList" class="messages-list"></div>
+                </div>
+
+                <div class="glass-card support-card">
+                    <h2>Uploading Tribes &amp; Their Practices</h2>
+                    <p>Feeds the 4th panel in index page (Tribes slideshow).</p>
+                    <div class="support-form">
+                        <input type="file" id="uploadIndexTribesInput" accept="image/*" multiple>
+                    </div>
+                    <div class="support-actions">
+                        <button type="button" class="glass-btn btn-primary" id="clearUploadIndexTribes">Clear All</button>
+                    </div>
+                    <div id="uploadIndexTribesList" class="messages-list"></div>
+                </div>
+
+                <div class="glass-card support-card">
+                    <h2>Uploading Member login Page slides</h2>
+                    <p>Feeds the slideshow panel in member page.</p>
+                    <div class="support-form">
+                        <input type="file" id="uploadMemberSlidesInput" accept="image/*" multiple>
+                    </div>
+                    <div class="support-actions">
+                        <button type="button" class="glass-btn btn-primary" id="clearUploadMemberSlides">Clear All</button>
+                    </div>
+                    <div id="uploadMemberSlidesList" class="messages-list"></div>
+                </div>
+
+                <div class="glass-card support-card">
+                    <h2>Uploading Registration page slides</h2>
+                    <p>Feeds the slideshow panel in register page.</p>
+                    <div class="support-form">
+                        <input type="file" id="uploadRegisterSlidesInput" accept="image/*" multiple>
+                    </div>
+                    <div class="support-actions">
+                        <button type="button" class="glass-btn btn-primary" id="clearUploadRegisterSlides">Clear All</button>
+                    </div>
+                    <div id="uploadRegisterSlidesList" class="messages-list"></div>
+                </div>
+
+                <div class="glass-card support-card graduation-figure-upload-card">
+                    <h2>Uploading Graduation Figure (Home Right Panel)</h2>
+                    <p>Feeds the Graduation figure panel in index page.</p>
+                    <div class="support-form">
+                        <input type="file" id="uploadIndexGraduationFigureInput" accept="image/*" multiple>
+                    </div>
+                    <div class="support-actions">
+                        <button type="button" class="glass-btn btn-primary" id="clearUploadIndexGraduationFigure">Clear All</button>
+                    </div>
+                    <div id="uploadIndexGraduationFigureList" class="messages-list"></div>
+                </div>
+
+                <div class="glass-card support-card support-card-wide">
+                    <h2>Upload Lesson Plan Documents</h2>
+                    <p>Upload files by class, week, and day. Files appear as download icons in Teachers Task lesson boxes.</p>
+                    <div class="lesson-doc-upload-controls">
+                        <select id="lessonDocsProgramSelect">
+                            <option value="Basic Class">Basic Class</option>
+                            <option value="Intermediate">Intermediate</option>
+                            <option value="Advanced">Advanced</option>
+                            <option value="After School Tutorial">AST Program</option>
+                            <option value="Religious Study">Religious Study</option>
+                        </select>
+                        <select id="lessonDocsWeekSelect">
+                            <option value="Week-1">Week-1</option>
+                            <option value="Week-2">Week-2</option>
+                            <option value="Week-3">Week-3</option>
+                            <option value="Week-4">Week-4</option>
+                            <option value="Week-5">Week-5</option>
+                            <option value="Week-6">Week-6</option>
+                            <option value="Week-7">Week-7</option>
+                            <option value="Week-8">Week-8</option>
+                            <option value="Week-9">Week-9</option>
+                            <option value="Week-10">Week-10</option>
+                            <option value="Week-11">Week-11</option>
+                        </select>
+                        <select id="lessonDocsDaySelect">
+                            <option value="Wednesday">Wednesday</option>
+                            <option value="Saturday">Saturday</option>
+                        </select>
+                        <input type="file" id="lessonDocsFileInput" accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,image/*" multiple>
+                        <button type="button" class="glass-btn btn-primary" id="lessonDocsUploadBtn">Upload</button>
+                        <button type="button" class="glass-btn" id="clearLessonDocsBtn">Clear All</button>
+                    </div>
+                    <p id="lessonDocsUploadStatus" class="support-status"></p>
+                    <div id="lessonDocsUploadList" class="messages-list"></div>
+                </div>
+            </div>
+        </section>
+
+        <section id="priceSettingsPage" class="admin-page">
+            <h1 class="page-title">Price Settings</h1>
+            <div class="admin-support-grid">
+                <div class="glass-card support-card price-settings-left-panel">
+                    <h2>Program Prices</h2>
+                    <p>Update each program price. Saved values automatically apply to the Programs page.</p>
+
+                    <div class="support-form">
+                        <div class="price-setting-row">
+                            <label for="admin-price-level1">Beginner Class</label>
+                            <input type="number" id="admin-price-level1" min="0" step="1" placeholder="30">
+                            <button class="glass-btn btn-primary save-program-price" data-level="level1">Save</button>
+                        </div>
+
+                        <div class="price-setting-row">
+                            <label for="admin-price-level2">Intermediate Class</label>
+                            <input type="number" id="admin-price-level2" min="0" step="1" placeholder="35">
+                            <button class="glass-btn btn-primary save-program-price" data-level="level2">Save</button>
+                        </div>
+
+                        <div class="price-setting-row">
+                            <label for="admin-price-level3">Advanced Class</label>
+                            <input type="number" id="admin-price-level3" min="0" step="1" placeholder="40">
+                            <button class="glass-btn btn-primary save-program-price" data-level="level3">Save</button>
+                        </div>
+
+                        <div class="price-setting-row">
+                            <label for="admin-price-level4">AST Program</label>
+                            <input type="number" id="admin-price-level4" min="0" step="1" placeholder="25">
+                            <button class="glass-btn btn-primary save-program-price" data-level="level4">Save</button>
+                        </div>
+
+                        <div class="price-setting-row">
+                            <label for="admin-price-level5">Religious Study</label>
+                            <input type="number" id="admin-price-level5" min="0" step="1" placeholder="20">
+                            <button class="glass-btn btn-primary save-program-price" data-level="level5">Save</button>
+                        </div>
+                    </div>
+
+                    <p id="priceSettingsStatus" class="support-status"></p>
+                </div>
+
+                <div class="glass-card support-card price-settings-right-panel">
+                    <h2>Special Offer for Families</h2>
+                    <p>Set temporary offer pricing for a specific guardian.</p>
+                    <form id="specialOfferForm" class="support-form" data-form="special-offer">
+                        <input type="number" id="specialOfferPrice" min="0" step="1" placeholder="Offer price" required>
+                        <select id="specialOfferGuardianEmail" required>
+                            <option value="">Select guardian</option>
+                        </select>
+                        <div class="date-range-row">
+                            <input type="date" id="specialOfferStartDate" required>
+                            <input type="date" id="specialOfferEndDate" required>
+                        </div>
+                        <select id="specialOfferReason" required>
+                            <option value="">Reason</option>
+                            <option value="Christmas">Christmas</option>
+                            <option value="New year">New year</option>
+                            <option value="Comission">Comission</option>
+                            <option value="Family crisis">Family crisis</option>
+                            <option value="Company Assistance">Company Assistance</option>
+                        </select>
+                        <button type="submit" class="glass-btn btn-primary">Save Offer</button>
+                    </form>
+                    <p id="specialOfferStatus" class="support-status"></p>
+                </div>
+            </div>
+        </section>
+
+        <section id="classTeachersTaskPage" class="admin-page">
+            <h1 class="page-title">Teachers Task</h1>
+            <div class="teachers-task-grid">
+                <div class="glass-card support-card teachers-task-panel teachers-task-lesson-panel">
+                    <h2>Lesson Plan</h2>
+                    <div class="teachers-task-class-select-row">
+                        <label for="lessonPlanClassSelect">Class Level</label>
+                        <select id="lessonPlanClassSelect">
+                            <option value="Basic Class">Basic Class</option>
+                            <option value="Intermediate">Intermediate</option>
+                            <option value="Advanced">Advanced</option>
+                            <option value="After School Tutorial">AST Program</option>
+                            <option value="Religious Study">Religious Study</option>
+                        </select>
+                    </div>
+                    <div id="lessonPlanWeeksContainer" class="lesson-plan-weeks"></div>
+                </div>
+
+                <div class="glass-card support-card teachers-task-panel teachers-task-attendance-panel">
+                    <h2>Attendance</h2>
+                    <div class="attendance-controls-row">
+                        <select id="attendanceProgramSelect">
+                            <option value="All class list">All class list</option>
+                            <option value="Basic Class">Basic Class</option>
+                            <option value="Intermediate">Intermediate</option>
+                            <option value="Advanced">Advanced</option>
+                            <option value="After School Tutorial">AST Program</option>
+                            <option value="Religious Study">Religious Study</option>    
+                        </select>
+                        <select id="attendanceYearSelect"></select>
+                        <select id="attendanceMonthSelect">
+                            <option value="January">January</option>
+                            <option value="February">February</option>
+                            <option value="March">March</option>
+                            <option value="April">April</option>
+                            <option value="May">May</option>
+                            <option value="June">June</option>
+                            <option value="July">July</option>
+                            <option value="August">August</option>
+                            <option value="September">September</option>
+                            <option value="October">October</option>
+                            <option value="November">November</option>
+                            <option value="December">December</option>
+                        </select>
+                        <select id="attendanceGuardianSelect">
+                            <option value="">All guardians</option>
+                        </select>
+                        <button id="attendanceEditBtn" type="button" class="glass-btn btn-secondary">Edit</button>
+                        <button id="attendanceSaveBtn" type="button" class="glass-btn btn-primary" disabled>Save</button>
+                        <button id="attendancePrintBtn" type="button" class="glass-btn btn-primary">Print</button>
+                    </div>
+                    <p id="attendanceStatus" class="support-status"></p>
+                    <div id="attendanceSheetWrap" class="attendance-sheet-wrap"></div>
+                </div>
+
+                <div class="glass-card support-card teachers-task-panel teachers-task-schedules-panel">
+                    <h2>Class Schedules</h2>
+                    <div id="classSchedulesPaper" class="teachers-white-paper" contenteditable="true" spellcheck="true"></div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+</div>
+
+<footer class="glass-footer">
+    <ul class="footer-links">
+        <li>© 2026 Daero Filitet. All Rights Reserved.</li>
+        <li><a href="../admin-pages/info.html">Web Design by Eyob Kidane</a></li>
+    </ul>
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdn.jsdelivr.net/npm/tus-js-client@4.1.0/dist/tus.min.js"></script>
+<script src="js/supabase-client.js"></script>
+<script src="js/db.js"></script>
+<script src="js/admin-dashboard.js"></script>
+
+</body>
+</html>
