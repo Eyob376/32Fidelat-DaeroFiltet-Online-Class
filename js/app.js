@@ -1223,7 +1223,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     const mainButtons = Array.from(board.querySelectorAll(".geez-glyph-btn[data-letter-id]"));
     const childRows = Array.from(childRowsWrap.querySelectorAll(".geez-child-row[data-child-row]"));
-    const geezAudioBasePath = "assets/geez-audio/";
+    const geezAudioBasePath = "geez-audio/";
     const secondRowAudioByLetterId = {
         L01: "be.mp3",
         L02: "se1.mp3",
