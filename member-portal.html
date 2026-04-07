@@ -11,7 +11,7 @@
 
 <header class="navbar glass-nav">
     <div class="logo-container">
-        <img src="assets/logo.png" class="logo-img" alt="Daero Filitet Logo">
+        <img src="assets/logo.jpeg" class="logo-img" alt="Daero Filitet Logo">
     </div>
     <nav class="main-nav">
         <ul>
@@ -173,6 +173,29 @@
         <li><a href="info.html">Web Design by Eyob Kidane</a></li>
     </ul>
 </footer>
+
+<div class="help-floating-btn" id="helpFloatingBtn">
+    Need Help?
+</div>
+
+<!-- LIVE CHAT MODAL -->
+<div class="live-chat-modal" id="liveChatModal">
+    <div class="live-chat-container">
+        <div class="live-chat-header">
+            <h3>Live Chat with Teachers</h3>
+            <button class="live-chat-close" id="closeChatBtn">&times;</button>
+        </div>
+        <div class="live-chat-messages" id="chatMessages">
+            <div class="chat-message system-message">
+                <p>Welcome! Teachers have been notified that you need help. Please wait for a response.</p>
+            </div>
+        </div>
+        <div class="live-chat-input-area">
+            <input type="text" id="chatInput" placeholder="Type your message..." class="chat-input">
+            <button id="sendChatBtn" class="chat-send-btn">Send</button>
+        </div>
+    </div>
+</div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="js/supabase-client.js"></script>
