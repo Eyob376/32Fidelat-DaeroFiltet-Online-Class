@@ -805,6 +805,16 @@ const db = {
             "studentUploads.getByEmail"
         ),
 
+        getByStudentId: (studentId) => _query(
+            () => sb().from("student_uploads").select("*").eq("student_id", studentId).order("uploaded_at", { ascending: false }),
+            "studentUploads.getByStudentId"
+        ),
+
+        deleteById: (uploadId) => _query(
+            () => sb().from("student_uploads").delete().eq("id", uploadId),
+            "studentUploads.deleteById"
+        ),
+
         add: (email, studentId, file) => _query(
             () => sb().from("student_uploads").insert({
                 guardian_email: email.toLowerCase().trim(),
