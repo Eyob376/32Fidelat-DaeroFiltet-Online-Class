@@ -378,9 +378,10 @@
             };
         });
 
-        // Load student uploads
-        const { data: uploadsData } = await db.studentUploads.getByEmail(guardianEmail);
+        // Load student uploads - fetch by student ID for data isolation
+        const { data: uploadsData } = await db.studentUploads.getByStudentId(student.id || null);
         portalState.uploads = (uploadsData || []).map(r => ({
+            uploadId: r.id,
             title: r.context || r.file_name || '',
             fileName: r.file_name || '',
             fileUrl: r.file_url || '',
@@ -834,13 +835,57 @@
         listEl.innerHTML = rows
             .slice()
             .reverse()
-            .map(r => `<li><strong>${r.title}</strong> • ${r.fileName} • ${new Date(r.createdAt).toLocaleString()}</li>`)
+            .map(r => `<li>
+                <div style="display: flex; justify-content: space-between; align-items: center; gap: 10px;">
+                    <div style="flex: 1;">
+                        <strong>${r.title}</strong> • ${r.fileName} • ${new Date(r.createdAt).toLocaleString()}
+                    </div>
+                    <button class="upload-delete-btn" data-upload-id="${r.uploadId}" type="button" style="background: #ff4444; color: white; border: none; padding: 5px 10px; border-radius: 4px; cursor: pointer; font-size: 12px;">Delete</button>
+                </div>
+            </li>`)
             .join('');
+
+        // Attach delete event listeners
+        listEl.querySelectorAll('.upload-delete-btn').forEach(btn => {
+            btn.addEventListener('click', async (e) => {
+                e.preventDefault();
+                const uploadId = btn.dataset.uploadId;
+                if (confirm('Are you sure you want to delete this upload?')) {
+                    await deleteUpload(uploadId);
+                }
+            });
+        });
     }
 
     function getUploadRowsForStudent() {
         if (!student) return [];
         return portalState.uploads || [];
+    }
+
+    async function deleteUpload(uploadId) {
+        if (!student || typeof db === 'undefined' || !db.studentUploads?.deleteById) {
+            alert('Cannot delete upload at this time.');
+            return;
+        }
+
+        const { error } = await db.studentUploads.deleteById(uploadId);
+        if (error) {
+            alert('Could not delete upload: ' + (error.message || 'Unknown error'));
+            return;
+        }
+
+        // Refresh uploads after deletion
+        const { data: uploadsData } = await db.studentUploads.getByStudentId(student.id || null);
+        portalState.uploads = (uploadsData || []).map(r => ({
+            uploadId: r.id,
+            title: r.context || r.file_name || '',
+            fileName: r.file_name || '',
+            fileUrl: r.file_url || '',
+            createdAt: r.uploaded_at || ''
+        }));
+
+        renderUploadHistory();
+        renderProgress();
     }
 
     function initAssignmentUpload() {
@@ -881,9 +926,10 @@
                 return;
             }
 
-            // Refresh uploads in portalState
-            const { data: uploadsData } = await db.studentUploads.getByEmail(guardianEmail);
+            // Refresh uploads in portalState - fetch by student ID for data isolation
+            const { data: uploadsData } = await db.studentUploads.getByStudentId(student.id || null);
             portalState.uploads = (uploadsData || []).map(r => ({
+                uploadId: r.id,
                 title: r.context || r.file_name || '',
                 fileName: r.file_name || '',
                 fileUrl: r.file_url || '',
