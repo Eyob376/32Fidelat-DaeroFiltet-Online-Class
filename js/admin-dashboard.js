@@ -717,12 +717,28 @@ function printSelectedAdmitted() {
         return;
     }
 
+    // Determine filter for print title
+    let filterTitle = "";
+    const gradeVal = document.getElementById("filterGradeAd")?.value.trim();
+    const yearVal = document.getElementById("filterYearAd")?.value.trim();
+    const statusVal = document.getElementById("filterStatusAd")?.value.trim();
+    if (gradeVal) {
+        filterTitle = `Student List In ${gradeVal}`;
+    } else if (yearVal) {
+        filterTitle = `Student List In Year ${yearVal}`;
+    } else if (statusVal) {
+        // Capitalize first letter
+        filterTitle = `Student List In ${statusVal.charAt(0).toUpperCase() + statusVal.slice(1)}`;
+    } else {
+        filterTitle = "Admitted Students";
+    }
+
     popup.document.write(`
         <!doctype html>
         <html>
         <head>
             <meta charset="utf-8" />
-            <title>Admitted Students</title>
+            <title>${filterTitle}</title>
             <style>
                 body { font-family: Arial, sans-serif; margin: 24px; color: #111; }
                 h1 { text-align: center; margin: 0 0 18px; font-size: 28px; }
@@ -736,7 +752,7 @@ function printSelectedAdmitted() {
             </style>
         </head>
         <body>
-            <h1>Admitted Students</h1>
+            <h1>${filterTitle}</h1>
             <table>
                 <thead>
                     <tr>
@@ -1573,6 +1589,129 @@ async function renderUploadList(listId, storageKey) {
     });
 }
 
+function initAdditionalAssignmentsUpload() {
+    const input = document.getElementById("uploadAdditionalAssignmentsInput");
+    const classTypeSelect = document.getElementById("uploadAdditionalAssignmentsClassType");
+    const clearBtn = document.getElementById("clearUploadAdditionalAssignments");
+    const listEl = document.getElementById("uploadAdditionalAssignmentsList");
+    if (!input || !listEl || !classTypeSelect) return;
+
+    // Helper to render uploaded files from additional_assignments
+    async function renderAdditionalAssignmentsList() {
+        const selectedClassType = classTypeSelect.value || "beginner";
+        if (!db.additionalAssignments?.getByClassType) {
+            listEl.innerHTML = '<div class="message-item">Supabase integration not available.</div>';
+            return;
+        }
+        const { data: rows, error } = await db.additionalAssignments.getByClassType(selectedClassType);
+        if (error || !rows?.length) {
+            listEl.innerHTML = '<div class="message-item">No additional assignments uploaded yet.</div>';
+            return;
+        }
+        listEl.innerHTML = rows.reverse().map((row) => {
+            const href = row.file_url || row.file_data || "";
+            const when = row.uploaded_at ? new Date(row.uploaded_at).toLocaleString() : "";
+            return `<div class="message-item">
+                <div><strong>${row.file_name || "Assignment"}</strong> <span class='assignment-class-type'>Class: ${selectedClassType}</span></div>
+                <div class="message-time">${when}</div>
+                <div class="support-actions">
+                    <a href="${href}" download="${row.file_name || "resource"}" target="_blank" rel="noopener">Download</a>
+                    <button class="glass-btn btn-primary delete-assignment-item" data-row-id="${row.id}">Delete</button>
+                </div>
+            </div>`;
+        }).join("");
+
+        // Attach delete handlers
+        listEl.querySelectorAll(".delete-assignment-item").forEach((btn) => {
+            btn.addEventListener("click", async () => {
+                const rowId = btn.dataset.rowId;
+                if (!rowId || !db.additionalAssignments?.delete) return;
+                await db.additionalAssignments.delete(rowId);
+                renderAdditionalAssignmentsList();
+            });
+        });
+    }
+
+    input.addEventListener("change", async (e) => {
+        const files = Array.from(e.target.files || []);
+        console.log('[AdditionalAssignments] Files selected:', files);
+        if (!files.length) {
+            console.log('[AdditionalAssignments] No files selected.');
+            return;
+        }
+        const selectedClassType = classTypeSelect.value || "beginner";
+        let successCount = 0;
+        let failedMessages = [];
+        let skippedFiles = [];
+        // Fetch current files for this class type to check for duplicates
+        let existingRows = [];
+        if (db.additionalAssignments?.getByClassType) {
+            const { data: rows, error } = await db.additionalAssignments.getByClassType(selectedClassType);
+            console.log('[AdditionalAssignments] Existing rows:', rows, 'Error:', error);
+            existingRows = Array.isArray(rows) ? rows : [];
+        }
+        const existingNames = new Set(existingRows.map(row => (row.file_name || "").toLowerCase()));
+        listEl.innerHTML = `<div class=\"message-item\">Uploading ${files.length} file(s)...</div>`;
+        for (const file of files) {
+            if (existingNames.has((file.name || "").toLowerCase())) {
+                console.log(`[AdditionalAssignments] Skipping duplicate file: ${file.name}`);
+                skippedFiles.push(file.name);
+                continue;
+            }
+            listEl.innerHTML = `<div class=\"message-item\">Uploading ${file.name}...</div>`;
+            let uploadRes;
+            let publicUrl = null;
+            if (String(file.type || "").toLowerCase().startsWith("video/")) {
+                uploadRes = await uploadMediaWithTus(selectedClassType, file, (percent) => {
+                    listEl.innerHTML = `<div class=\\\"message-item\\\">Uploading ${file.name}… ${percent}%</div>`;
+                });
+                publicUrl = uploadRes?.publicUrl;
+                console.log(`[AdditionalAssignments] Video upload result for ${file.name}:`, uploadRes);
+            } else {
+                uploadRes = await db.mediaUploads.uploadToStorage(selectedClassType, file);
+                publicUrl = uploadRes?.data?.publicUrl;
+                console.log(`[AdditionalAssignments] Non-video upload result for ${file.name}:`, uploadRes);
+            }
+            if (uploadRes.error || !publicUrl) {
+                console.log(`[AdditionalAssignments] Upload failed for ${file.name}:`, uploadRes.error, 'Public URL:', publicUrl);
+                failedMessages.push(`${file.name}: ${uploadRes.error ? uploadRes.error.message : 'No public URL returned'}`);
+            } else {
+                // Insert metadata into additional_assignments table with explicit fields
+                const addRes = await db.additionalAssignments.add(selectedClassType, {
+                    name: file.name,
+                    type: file.type,
+                    url: publicUrl
+                });
+                console.log(`[AdditionalAssignments] Insert result for ${file.name}:`, addRes);
+                if (addRes.error) {
+                    failedMessages.push(`${file.name}: ${addRes.error.message}`);
+                } else {
+                    successCount++;
+                }
+            }
+        }
+        let statusMsg = "";
+        if (successCount > 0) statusMsg += `${successCount} file(s) uploaded successfully.<br>`;
+        if (skippedFiles.length) statusMsg += `Skipped (already uploaded): ${skippedFiles.join(", ")}<br>`;
+        if (failedMessages.length) statusMsg += `Some uploads failed:<br>${failedMessages.join("<br>")}`;
+        if (!statusMsg) statusMsg = "No files uploaded.";
+        listEl.innerHTML = `<div class=\"message-item\">${statusMsg}</div>`;
+        await renderAdditionalAssignmentsList();
+        input.value = "";
+    });
+
+    clearBtn?.addEventListener("click", async () => {
+        if (!confirm("Clear all additional assignments for this class?")) return;
+        const selectedClassType = classTypeSelect.value || "beginner";
+        if (!db.additionalAssignments?.clearByClassType) return;
+        await db.additionalAssignments.clearByClassType(selectedClassType);
+        await renderAdditionalAssignmentsList();
+    });
+
+    classTypeSelect.addEventListener("change", renderAdditionalAssignmentsList);
+    renderAdditionalAssignmentsList();
+}
+
 function initUploadInput(inputId, listId, storageKey) {
     const input = document.getElementById(inputId);
     if (!input) return;
@@ -1745,6 +1884,7 @@ function initSidebarUploadSystems() {
     initUploadInput("uploadMemberSlidesInput", "uploadMemberSlidesList", "adminUploadsMemberLoginSlides");
     initUploadInput("uploadRegisterSlidesInput", "uploadRegisterSlidesList", "adminUploadsRegisterSlides");
     initUploadInput("uploadIndexGraduationFigureInput", "uploadIndexGraduationFigureList", "adminUploadsIndexGraduationFigure");
+    initAdditionalAssignmentsUpload();
 
     initClearUploadButton("clearUploadIndexLatest", "uploadIndexLatestList", "adminUploadsIndexLatestSlides", "Uploading Latest posts");
     initClearUploadButton("clearUploadIndexTraditional", "uploadIndexTraditionalList", "adminUploadsIndexTraditionalSlides", "Uploading Traditional Practices");
@@ -1894,7 +2034,8 @@ async function renderLessonDocumentUploadList() {
         return;
     }
 
-    listEl.innerHTML = [...docs].map((row) => {
+    // Show ALL files, regardless of class/week/day selection
+    listEl.innerHTML = docs.map((row) => {
         const when = row.uploaded_at ? new Date(row.uploaded_at).toLocaleString() : "";
         const href = row.file_url || row.file_data || "";
         const hasDownload = !!href;
@@ -2103,6 +2244,15 @@ function createLessonWeekCard(level, weekNumber, plansByWeek) {
             saveBtn.disabled = false;
             editBtn.disabled = true;
             editors[0].focus();
+            // Highlight edit mode for yellow/orange boxes
+            editors.forEach(editor => {
+                if (editor.closest('.lesson-day-wednesday')) {
+                    editor.closest('.lesson-day-wednesday').classList.add('edit-mode');
+                }
+                if (editor.closest('.lesson-day-saturday')) {
+                    editor.closest('.lesson-day-saturday').classList.add('edit-mode');
+                }
+            });
         });
 
         saveBtn.addEventListener("click", async () => {
@@ -2114,6 +2264,15 @@ function createLessonWeekCard(level, weekNumber, plansByWeek) {
             editors.forEach(editor => editor.setAttribute("readonly", "readonly"));
             saveBtn.disabled = true;
             editBtn.disabled = false;
+            // Remove edit mode highlight
+            editors.forEach(editor => {
+                if (editor.closest('.lesson-day-wednesday')) {
+                    editor.closest('.lesson-day-wednesday').classList.remove('edit-mode');
+                }
+                if (editor.closest('.lesson-day-saturday')) {
+                    editor.closest('.lesson-day-saturday').classList.remove('edit-mode');
+                }
+            });
         });
     }
 
@@ -3125,4 +3284,364 @@ document.addEventListener('DOMContentLoaded', () => {
   if (!anyVisible) {
     showAdminPage('newApplicantsPage');
   }
+
+  // Initialize admin teacher dashboard
+  initAdminTeacherDashboard();
 });
+
+/* =========================================================
+   ADMIN TEACHER DASHBOARD — LIVE CHAT MANAGEMENT
+========================================================= */
+
+let currentSelectedSessionId = null;
+
+async function initAdminTeacherDashboard() {
+    // Load initial chat sessions
+    await loadChatSessions();
+    
+    // Set up event listeners
+    const refreshBtn = document.getElementById('refreshChatSessionsBtn');
+    if (refreshBtn) {
+        refreshBtn.addEventListener('click', () => loadChatSessions());
+    }
+
+    const backBtn = document.getElementById('backToChatListBtn');
+    if (backBtn) {
+        backBtn.addEventListener('click', backToChatList);
+    }
+
+    const sendReplyBtn = document.getElementById('adminSendReplyBtn');
+    if (sendReplyBtn) {
+        sendReplyBtn.addEventListener('click', sendTeacherReply);
+    }
+
+    // Subscribe to new chat sessions
+    subscribeToNewChatSessions();
+}
+
+async function loadChatSessions() {
+    if (typeof db === 'undefined' || !db.liveChat) return;
+
+    try {
+        const { data: sessions, error } = await db.liveChat.getActiveSessions();
+        
+        if (error) {
+            console.error('[admin] Error loading sessions:', error);
+            return;
+        }
+        
+        if (!sessions || sessions.length === 0) {
+            const listEl = document.getElementById('adminChatSessionsList');
+            if (listEl) {
+                listEl.innerHTML = '<p class="empty-state">No active chat sessions</p>';
+            }
+            return;
+        }
+
+        // Fetch unread count for each session
+        const sessionsWithDetails = await Promise.all((sessions || []).map(async (session) => {
+            const { data: messages } = await db.liveChat.getMessagesByStudent(session.student_email);
+            const unreadCount = (messages || []).filter(msg => !msg.is_read && msg.sender_type === 'student').length;
+            return {
+                ...session,
+                messageCount: messages?.length || 0,
+                unreadCount: unreadCount,
+                lastMessage: messages?.length > 0 ? messages[messages.length - 1] : null
+            };
+        }));
+
+        renderChatSessionsList(sessionsWithDetails);
+    } catch (error) {
+        console.error('[admin] loadChatSessions error:', error);
+    }
+}
+
+function renderChatSessionsList(sessions) {
+    const listEl = document.getElementById('adminChatSessionsList');
+    if (!listEl) return;
+
+    if (!sessions || sessions.length === 0) {
+        listEl.innerHTML = '<p class="empty-state">No active chat sessions</p>';
+        return;
+    }
+
+    listEl.innerHTML = sessions.map(session => {
+        const timestamp = session.created_at ? new Date(session.created_at).toLocaleTimeString() : 'Unknown time';
+        return `
+            <div class="admin-chat-session-item" data-session-email="${session.student_email}">
+                <div class="admin-chat-session-info">
+                    <p class="admin-chat-session-name">${session.student_name || 'Unknown Student'}</p>
+                    <p class="admin-chat-session-time">${session.student_email || 'No email'} • ${timestamp}</p>
+                </div>
+                ${session.unreadCount > 0 ? `<span class="admin-chat-unread-badge">${session.unreadCount}</span>` : ''}
+            </div>
+        `;
+    }).join('');
+
+    // Add click listeners to session items
+    listEl.querySelectorAll('.admin-chat-session-item').forEach(item => {
+        item.addEventListener('click', async () => {
+            const studentEmail = item.dataset.sessionEmail;
+            await openChatSession(studentEmail);
+        });
+    });
+}
+
+async function openChatSession(studentEmail) {
+    currentSelectedSessionId = studentEmail;
+
+    const sessionsList = document.getElementById('adminChatSessionsList');
+    const detailPanel = document.getElementById('adminChatDetailPanel');
+    
+    if (sessionsList) sessionsList.style.display = 'none';
+    if (detailPanel) detailPanel.style.display = 'flex';
+
+    try {
+        // Fetch session details
+        const { data: sessionData, error } = await db.supabase
+            .from('live_chat_sessions')
+            .select('*')
+            .eq('student_email', studentEmail)
+            .single();
+
+        if (error) throw error;
+
+        // Update header with student name
+        const nameEl = document.getElementById('adminChatStudentName');
+        if (nameEl) {
+            nameEl.textContent = sessionData.student_name || 'Student';
+        }
+
+        // Fetch and display messages
+        await displayChatMessages(studentEmail);
+
+        // Mark messages as read
+        const { data: messages } = await db.liveChat.getMessagesByStudent(studentEmail);
+        for (const msg of (messages || [])) {
+            if (msg.sender_type === 'student' && !msg.is_read) {
+                await db.supabase
+                    .from('live_chat_messages')
+                    .update({ is_read: true })
+                    .eq('id', msg.id);
+            }
+        }
+
+        // Subscribe to new messages for this session
+        subscribeToSessionMessages(studentEmail);
+    } catch (error) {
+        console.error('[admin] openChatSession error:', error);
+    }
+}
+
+async function displayChatMessages(studentEmail) {
+    const historyEl = document.getElementById('adminChatMessageHistory');
+    if (!historyEl) return;
+
+    try {
+        const { data: messages } = await db.liveChat.getMessagesByStudent(studentEmail);
+        
+        if (!messages || messages.length === 0) {
+            historyEl.innerHTML = '<p class="empty-state">No messages yet</p>';
+            return;
+        }
+
+        historyEl.innerHTML = messages.map(msg => {
+            const senderClass = msg.sender_type === 'student' ? 'student' : 'teacher';
+            const time = new Date(msg.sent_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+            // Add delete button for each message
+            return `
+                <div class="admin-chat-message ${senderClass}" data-message-id="${msg.id}">
+                    <div style="display: flex; align-items: center; justify-content: space-between; gap: 8px;">
+                        <span>${msg.message}</span>
+                        <button class="chat-delete-btn" title="Delete message" style="background: none; border: none; color: #ff4757; cursor: pointer; font-size: 1.1em; padding: 0 4px;">🗑️</button>
+                    </div>
+                    <small style="opacity: 0.7;">${time}</small>
+                </div>
+            `;
+        }).join('');
+
+        // Add event listeners for delete buttons
+        historyEl.querySelectorAll('.chat-delete-btn').forEach(btn => {
+            btn.addEventListener('click', async (e) => {
+                e.stopPropagation();
+                const messageDiv = btn.closest('.admin-chat-message');
+                const messageId = messageDiv.getAttribute('data-message-id');
+                if (messageId && confirm('Delete this message?')) {
+                    try {
+                        // Delete from Supabase
+                        await db.supabase.from('live_chat_messages').delete().eq('id', messageId);
+                        // Refresh messages
+                        await displayChatMessages(studentEmail);
+                    } catch (err) {
+                        alert('Failed to delete message.');
+                    }
+                }
+            });
+        });
+
+        // Scroll to bottom
+        historyEl.scrollTop = historyEl.scrollHeight;
+    } catch (error) {
+        console.error('[admin] displayChatMessages error:', error);
+    }
+}
+
+async function sendTeacherReply() {
+    if (!currentSelectedSessionId) return;
+
+    const inputEl = document.getElementById('adminChatReplyInput');
+    if (!inputEl) return;
+
+    const message = inputEl.value.trim();
+    if (!message) return;
+
+    try {
+        // Get session details for sender info
+        const { data: sessionData } = await db.supabase
+            .from('live_chat_sessions')
+            .select('*')
+            .eq('student_email', currentSelectedSessionId)
+            .single();
+
+        // Save message to database
+        const { error } = await db.liveChat.saveChatMessage(
+            currentSelectedSessionId,
+            sessionData?.student_name || 'Student',
+            message,
+            'teacher',
+            'Teacher'
+        );
+
+        if (error) throw error;
+
+        inputEl.value = '';
+        
+        // Refresh message display
+        await displayChatMessages(currentSelectedSessionId);
+    } catch (error) {
+        console.error('[admin] sendTeacherReply error:', error);
+    }
+}
+
+function backToChatList() {
+    currentSelectedSessionId = null;
+
+    const sessionsList = document.getElementById('adminChatSessionsList');
+    const detailPanel = document.getElementById('adminChatDetailPanel');
+    
+    if (sessionsList) sessionsList.style.display = 'flex';
+    if (detailPanel) detailPanel.style.display = 'none';
+
+    // Clear input
+    const inputEl = document.getElementById('adminChatReplyInput');
+    if (inputEl) inputEl.value = '';
+
+    // Reload sessions to refresh unread badges
+    loadChatSessions();
+}
+
+function subscribeToNewChatSessions() {
+    if (typeof db === 'undefined' || !db.supabase) return;
+
+    db.supabase
+        .channel('public:live_chat_sessions')
+        .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'live_chat_sessions' }, (payload) => {
+            console.log('[admin] New chat session:', payload.new);
+            showChatRequestPopup(payload.new);
+            showHeaderHelpNotification(payload.new);
+            loadChatSessions();
+        })
+        .subscribe();
+}
+
+function subscribeToSessionMessages(studentEmail) {
+    if (typeof db === 'undefined' || !db.supabase) return;
+
+    db.supabase
+        .channel(`public:live_chat_messages:${studentEmail}`)
+        .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'live_chat_messages', filter: `student_email=eq.${studentEmail}` }, (payload) => {
+            console.log('[admin] New message in current session:', payload.new);
+            displayChatMessages(studentEmail);
+        })
+        .subscribe();
+}
+
+function showChatRequestPopup(session) {
+    const popup = document.getElementById('chatRequestPopup');
+    if (!popup) return;
+
+    const msgEl = document.getElementById('chatRequestPopupMessage');
+    if (msgEl) {
+        msgEl.textContent = `New help request from ${session.student_name || 'a student'}!`;
+    }
+
+    popup.style.display = 'block';
+
+    const goToChatBtn = document.getElementById('goToChatBtn');
+    if (goToChatBtn) {
+        goToChatBtn.onclick = async () => {
+            // Switch to Teachers Task page
+            showAdminPage('classTeachersTaskPage');
+            
+            // Open the chat session
+            await openChatSession(session.student_email);
+            
+            // Hide popup
+            popup.style.display = 'none';
+        };
+    }
+
+    // Auto-hide after 10 seconds
+    setTimeout(() => {
+        popup.style.display = 'none';
+    }, 10000);
+
+    // Show header notification
+    showHeaderHelpNotification(session);
+}
+
+function showHeaderHelpNotification(session) {
+    const headerNotif = document.getElementById('headerHelpNotification');
+    const headerNotifText = document.getElementById('headerNotificationText');
+    const headerNotifBtn = document.getElementById('headerNotificationBtn');
+
+    if (!headerNotif || !headerNotifText || !headerNotifBtn) return;
+
+    // Extract first name from student_name or determine if it's a visitor
+    let displayName = 'a student';
+    if (session.student_name) {
+        if (session.student_email.includes('@daero.local')) {
+            // New visitor/guest (format: guest-{timestamp}-{hash}@daero.local)
+            displayName = 'a new visitor';
+        } else if (session.student_name === 'Guest User') {
+            displayName = 'a new visitor';
+        } else {
+            // Registered student - extract first name
+            const nameArray = session.student_name.trim().split(' ');
+            displayName = nameArray[0] || 'a student';
+        }
+    }
+
+    // Update notification text
+    headerNotifText.textContent = `New message from ${displayName}`;
+
+    // Set up button click handler
+    headerNotifBtn.onclick = async () => {
+        // Switch to Teachers Task page
+        showAdminPage('classTeachersTaskPage');
+        
+        // Open the chat session
+        await openChatSession(session.student_email);
+        
+        // Hide header notification
+        headerNotif.style.display = 'none';
+    };
+
+    // Show notification
+    headerNotif.style.display = 'flex';
+
+    // Auto-hide after 15 seconds
+    setTimeout(() => {
+        headerNotif.style.display = 'none';
+    }, 15000);
+}

@@ -30,11 +30,11 @@
             <div class="social-overlay"></div>
         </a></li>
         <li><a href="#" class="glass-social-icon">
-            <img src="assets/Youtube.jpg" alt="YouTube">
+            <img src="assets/youtube.jpg" alt="YouTube">
             <div class="social-overlay"></div>
         </a></li>
         <li><a href="#" class="glass-social-icon">
-            <img src="assets/X-logo.jpg" alt="X-News">
+            <img src="assets/x-logo.jpg" alt="X-News">
             <div class="social-overlay"></div>
         </a></li>
     </ul>
@@ -43,7 +43,7 @@
 <!-- NAVIGATION BAR -->
 <header class="navbar member-header">
     <div class="logo-container">
-        <img src="assets/logo.png" class="logo-img" alt="Daero Filitet Logo">
+        <img src="assets/logo.jpeg" class="logo-img" alt="Daero Filitet Logo">
     </div>
 
         <nav class="main-nav">
@@ -63,6 +63,8 @@
 <section class="member-wrapper">
 
     <h1 class="member-title">Member Login</h1>
+
+    <h1 class="member-title">Sign in page</h1>
 
     <div class="member-layout">
 
@@ -146,6 +148,29 @@
         <li><a href="info.html">Web Design by Eyob Kidane</a></li>
     </ul>
 </footer>
+<div class="help-floating-btn" id="helpFloatingBtn">
+    Need Help?
+</div>
+
+<!-- LIVE CHAT MODAL -->
+<div class="live-chat-modal" id="liveChatModal">
+    <div class="live-chat-container">
+        <div class="live-chat-header">
+            <h3>Live Chat with Teachers</h3>
+            <button class="live-chat-close" id="closeChatBtn">&times;</button>
+        </div>
+        <div class="live-chat-messages" id="chatMessages">
+            <div class="chat-message system-message">
+                <p>Welcome! Teachers have been notified that you need help. Please wait for a response.</p>
+            </div>
+        </div>
+        <div class="live-chat-input-area">
+            <input type="text" id="chatInput" placeholder="Type your message..." class="chat-input">
+            <button id="sendChatBtn" class="chat-send-btn">Send</button>
+        </div>
+    </div>
+</div>
+
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="js/supabase-client.js"></script>
 <script src="js/db.js"></script>

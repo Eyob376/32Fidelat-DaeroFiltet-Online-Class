@@ -1,3 +1,4 @@
+
 /* =============================================================
    db.js  —  Daero Filitet Data Access Layer
    Wraps all Supabase table operations with the same domain
@@ -32,13 +33,40 @@ async function _query(fn, context) {
 // Short alias
 const sb = () => supabaseClient;
 
-
-/* =============================================================
-   db.applicants
-   Maps to the 'applicants' table.
-   Legacy localStorage keys: applicant-{id}  (group records)
-   ============================================================= */
 const db = {
+    /* =============================================================
+       db.additionalAssignments
+       Maps to the 'additional_assignments' table.
+       ============================================================= */
+    additionalAssignments: {
+        // Get all files for a class type
+        getByClassType: (classType) => _query(
+            () => sb().from("additional_assignments").select("*").eq("class_type", classType).order("uploaded_at", { ascending: true }),
+            "additionalAssignments.getByClassType"
+        ),
+        // Add a new assignment file
+        add: (classType, file) => _query(
+            () => sb().from("additional_assignments").insert({
+                class_type: classType,
+                file_name: file.name || file.fileName || "",
+                file_type: file.type || file.fileType || "",
+                file_url: file.url || file.fileUrl || null,
+                file_data: file.dataUrl || file.fileData || null,
+                uploaded_at: new Date().toISOString()
+            }),
+            "additionalAssignments.add"
+        ),
+        // Delete by id
+        delete: (id) => _query(
+            () => sb().from("additional_assignments").delete().eq("id", id),
+            "additionalAssignments.delete"
+        ),
+        // Clear all for a class type
+        clearByClassType: (classType) => _query(
+            () => sb().from("additional_assignments").delete().eq("class_type", classType),
+            "additionalAssignments.clearByClassType"
+        )
+    },
 
     applicants: {
 
@@ -48,7 +76,7 @@ const db = {
             "applicants.getAll"
         ),
 
-        /** Fetch one applicant by id. */
+
         getById: (id) => _query(
             () => sb().from("applicants").select("*").eq("id", id).single(),
             "applicants.getById"
@@ -127,6 +155,8 @@ const db = {
                 start_date:     student.startDate     || null,
                 program_choice: student.programChoice || "",
                 grade_level:    student.gradeLevel    || student.programChoice || "",
+                learning_goal:  student.learningGoal  || "",
+                schedule:       student.schedule      || null,
                 status:         student.status        || "new",
                 course_status:  student.courseStatus  || "ongoing",
                 year:           student.year          || null,
@@ -819,9 +849,111 @@ const db = {
             }),
             "payments.add"
         )
+    },
+
+    /* =============================================================
+       db.liveChat
+       Maps to the 'live_chat_messages' and 'live_chat_sessions' tables.
+       Manages real-time student-teacher chat interactions.
+       ============================================================= */
+    liveChat: {
+
+        /** Create or get a chat session for a student. Uses student_email as UNIQUE key. */
+        createChatSession: (studentEmail, studentName) => _query(
+            () => sb().from("live_chat_sessions").upsert({
+                student_email: studentEmail?.toLowerCase().trim() || "anonymous",
+                student_name: studentName || "Anonymous",
+                status: "waiting",
+                updated_at: new Date().toISOString()
+            }, { onConflict: "student_email" }).select().single(),
+            "liveChat.createChatSession"
+        ),
+
+        /** Save a chat message for a student. Uses student_email to track conversation. */
+        saveChatMessage: (studentEmail, studentName, message, senderType, senderName) => _query(
+            () => sb().from("live_chat_messages").insert({
+                student_email: studentEmail?.toLowerCase().trim() || "anonymous",
+                student_name: studentName || "Anonymous",
+                message: message || "",
+                sender_type: senderType || "student",
+                sender_name: senderName || null,
+                sent_at: new Date().toISOString()
+            }).select().single(),
+            "liveChat.saveChatMessage"
+        ),
+
+        /** Fetch all messages for a specific student. */
+        getMessagesByStudent: (studentEmail) => _query(
+            () => sb().from("live_chat_messages")
+                .select("*")
+                .eq("student_email", studentEmail?.toLowerCase().trim())
+                .order("sent_at", { ascending: true }),
+            "liveChat.getMessagesByStudent"
+        ),
+
+        /** Fetch all active chat sessions (for teacher dashboard). */
+        getActiveSessions: () => _query(
+            () => sb().from("live_chat_sessions")
+                .select("*")
+                .neq("status", "ended")
+                .order("created_at", { ascending: false }),
+            "liveChat.getActiveSessions"
+        ),
+
+        /** Update session status (e.g., waiting -> active, active -> ended). */
+        updateSessionStatus: (sessionId, status) => _query(
+            () => sb().from("live_chat_sessions")
+                .update({ status, updated_at: new Date().toISOString() })
+                .eq("id", sessionId),
+            "liveChat.updateSessionStatus"
+        ),
+
+        /** Update session status by student email. */
+        updateSessionStatusByEmail: (studentEmail, status) => _query(
+            () => sb().from("live_chat_sessions")
+                .update({ status, updated_at: new Date().toISOString() })
+                .eq("student_email", studentEmail?.toLowerCase().trim()),
+            "liveChat.updateSessionStatusByEmail"
+        ),
+
+        /**
+         * Subscribe to new teacher messages for a specific student email (real-time updates).
+         * Calls the callback with the new message object when a new teacher message arrives.
+         * Returns the channel subscription so it can be unsubscribed if needed.
+         */
+        onNewMessage: function(studentEmail, callback) {
+            if (!supabaseClient || !studentEmail) return null;
+            // Unsubscribe previous channel if needed (caller responsibility)
+            const channel = supabaseClient
+                .channel('live_chat_messages_' + studentEmail)
+                .on(
+                    'postgres_changes',
+                    {
+                        event: 'INSERT',
+                        schema: 'public',
+                        table: 'live_chat_messages',
+                        filter: `student_email=eq.${studentEmail.toLowerCase().trim()}`
+                    },
+                    (payload) => {
+                        if (payload?.new?.sender_type === 'teacher') {
+                            callback(payload.new);
+                        }
+                    }
+                )
+                .subscribe();
+            return channel;
+        }
     }
 
-};  // end db
+};
+
+// Expose the Supabase client for direct queries if needed
+db.supabase = supabaseClient;
+
+// end db
+
+// Ensure db is globally available
+window.db = db;
 
 /* =============================================================
    MIGRATION HELPERS

@@ -11,7 +11,7 @@
 <body class="admin-body">
 <header class="navbar glass-nav">
     <div class="logo-container">
-        <img src="assets/logo.png" class="logo-img" alt="Daero Filitet Logo">
+        <img src="assets/logo.jpeg" class="logo-img" alt="Daero Filitet Logo">
     </div>
 
     <nav class="main-nav">
@@ -23,6 +23,12 @@
            <li><a href="help.html" data-page="help">Help</a></li>
         </ul>
     </nav>
+
+    <!-- HEADER NOTIFICATION BADGE FOR HELP REQUESTS -->
+    <div id="headerHelpNotification" class="header-help-notification" style="display: none;">
+        <span id="headerNotificationText">New help request!</span>
+        <button id="headerNotificationBtn" class="header-notification-btn">View</button>
+    </div>
 </header>
 
 <div class="admin-layout">
@@ -435,6 +441,24 @@
                     <div id="uploadIndexGraduationFigureList" class="messages-list"></div>
                 </div>
 
+                <div class="glass-card support-card">
+                    <h2>Uploading Additional Assignments</h2>
+                    <p>Upload assignment files and resources for students. Select class type before uploading.</p>
+                    <div class="lesson-doc-upload-controls assignment-upload-controls">
+                        <select id="uploadAdditionalAssignmentsClassType">
+                            <option value="beginner">Beginner Class</option>
+                            <option value="intermediate">Intermediate</option>
+                            <option value="advanced">Advanced</option>
+                            <option value="ast">AST Program</option>
+                            <option value="religious">Religious Study</option>
+                        </select>
+                        <input type="file" id="uploadAdditionalAssignmentsInput" accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,image/*" multiple>
+                        <div style="flex:1 1 auto;"></div>
+                        <button type="button" class="glass-btn btn-secondary upload-btn-wide" id="clearUploadAdditionalAssignments">Clear All</button>
+                    </div>
+                    <div id="uploadAdditionalAssignmentsList" class="messages-list"></div>
+                </div>
+
                 <div class="glass-card support-card support-card-wide">
                     <h2>Upload Lesson Plan Documents</h2>
                     <p>Upload files by class, week, and day. Files appear as download icons in Teachers Task lesson boxes.</p>
@@ -545,6 +569,7 @@
         <section id="classTeachersTaskPage" class="admin-page">
             <h1 class="page-title">Teachers Task</h1>
             <div class="teachers-task-grid">
+                <!-- LEFT COLUMN: Lesson Plan -->
                 <div class="glass-card support-card teachers-task-panel teachers-task-lesson-panel">
                     <h2>Lesson Plan</h2>
                     <div class="teachers-task-class-select-row">
@@ -560,7 +585,33 @@
                     <div id="lessonPlanWeeksContainer" class="lesson-plan-weeks"></div>
                 </div>
 
-                <div class="glass-card support-card teachers-task-panel teachers-task-attendance-panel">
+                <!-- RIGHT COLUMN: Admin Teacher Dashboard (Expanded) -->
+                <div class="glass-card support-card teachers-task-panel teachers-task-admin-dashboard-panel">
+                    <h2>Teacher Chat Dashboard</h2>
+                    
+                    <div class="admin-chat-controls">
+                        <button type="button" class="glass-btn btn-primary" id="refreshChatSessionsBtn">Refresh Chats</button>
+                    </div>
+
+                    <div id="adminChatSessionsList" class="admin-chat-sessions-list">
+                        <p class="empty-state">No active chat sessions</p>
+                    </div>
+
+                    <div id="adminChatDetailPanel" class="admin-chat-detail-panel" style="display: none;">
+                        <div class="admin-chat-header">
+                            <button type="button" class="glass-btn btn-secondary" id="backToChatListBtn">← Back</button>
+                            <h3 id="adminChatStudentName">Student Name</h3>
+                        </div>
+                        <div id="adminChatMessageHistory" class="admin-chat-message-history"></div>
+                        <div class="admin-chat-reply-section">
+                            <textarea id="adminChatReplyInput" placeholder="Type your response..." class="admin-chat-reply-input"></textarea>
+                            <button type="button" class="glass-btn btn-primary" id="adminSendReplyBtn">Send Reply</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ATTENDANCE PANEL (Full Width Below) -->
+                <div class="glass-card support-card teachers-task-panel teachers-task-attendance-panel teachers-task-attendance-full">
                     <h2>Attendance</h2>
                     <div class="attendance-controls-row">
                         <select id="attendanceProgramSelect">
@@ -596,13 +647,16 @@
                     <p id="attendanceStatus" class="support-status"></p>
                     <div id="attendanceSheetWrap" class="attendance-sheet-wrap"></div>
                 </div>
-
-                <div class="glass-card support-card teachers-task-panel teachers-task-schedules-panel">
-                    <h2>Class Schedules</h2>
-                    <div id="classSchedulesPaper" class="teachers-white-paper" contenteditable="true" spellcheck="true"></div>
-                </div>
             </div>
         </section>
+
+        <!-- Chat Request Popup Notification -->
+        <div id="chatRequestPopup" class="chat-request-popup" style="display: none;">
+            <div class="chat-request-popup-content">
+                <span id="chatRequestPopupMessage">New help request from a student!</span>
+                <button type="button" class="glass-btn btn-primary" id="goToChatBtn">View Chat</button>
+            </div>
+        </div>
 
     </main>
 </div>
@@ -610,7 +664,7 @@
 <footer class="glass-footer">
     <ul class="footer-links">
         <li>© 2026 Daero Filitet. All Rights Reserved.</li>
-        <li><a href="../admin-pages/info.html">Web Design by Eyob Kidane</a></li>
+        <li><a href="info.html">Web Design by Eyob Kidane</a></li>
     </ul>
 </footer>
 

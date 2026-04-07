@@ -19,6 +19,7 @@ let loadedApplicantId = null;  // Supabase applicants.id
 // -------------------------------
 // DOM references
 // -------------------------------
+
 const guardianNameInput   = document.getElementById("guardianName");
 const guardianEmailInput  = document.getElementById("guardianEmail");
 const guardianPhoneInput  = document.getElementById("guardianPhone");
@@ -59,6 +60,7 @@ async function init() {
         students = Array.isArray(sibs) ? sibs : [];
     }
 
+
     // Fill guardian fields
     guardianNameInput.value  = applicant.guardian_name  || "";
     guardianEmailInput.value = applicant.guardian_email || "";
@@ -66,11 +68,13 @@ async function init() {
     countryInput.value       = applicant.country        || "";
     cityInput.value          = applicant.city           || "";
 
+
     renderStudents();
 }
 
 // Build a display-friendly student object for createStudentBlock
 function toStudentDisplay(row) {
+    const schedule = row.schedule || {};
     return {
         id: row.id || null,
         firstName: row.first_name || "",
@@ -81,9 +85,12 @@ function toStudentDisplay(row) {
         status: row.course_status
             ? (row.course_status.charAt(0).toUpperCase() + row.course_status.slice(1))
             : "Ongoing",
-        morningStart: "", morningEnd: "",
-        afternoonStart: "", afternoonEnd: "",
-        eveningStart: "", eveningEnd: ""
+        morningStart: schedule.morningStart || "",
+        morningEnd: schedule.morningEnd || "",
+        afternoonStart: schedule.afternoonStart || "",
+        afternoonEnd: schedule.afternoonEnd || "",
+        eveningStart: schedule.eveningStart || "",
+        eveningEnd: schedule.eveningEnd || ""
     };
 }
 
@@ -251,7 +258,6 @@ saveBtn.addEventListener("click", async () => {
     const guardianPhone = guardianPhoneInput.value.trim();
     const country       = countryInput.value.trim();
     const city          = cityInput.value.trim();
-
     // Save guardian (applicant) record
     const { error: appErr } = await db.applicants.save({
         id: loadedApplicantId,
@@ -260,8 +266,7 @@ saveBtn.addEventListener("click", async () => {
         guardianEmail,
         guardianPhone,
         country,
-        city,
-        learningGoal: applicant.learning_goal || ''
+        city
     });
     if (appErr) {
         alert('Could not save guardian: ' + (appErr.message || 'Unknown error'));
@@ -278,6 +283,24 @@ saveBtn.addEventListener("click", async () => {
         const learningGoal  = document.getElementById(`goal_${index}`)?.value || "";
         const status        = (document.getElementById(`status_${index}`)?.value || "Ongoing").toLowerCase();
 
+        // Collect schedule fields
+        const morningStart    = document.getElementById(`mStart_${index}`)?.value || "";
+        const morningEnd      = document.getElementById(`mEnd_${index}`)?.value || "";
+        const afternoonStart  = document.getElementById(`aStart_${index}`)?.value || "";
+        const afternoonEnd    = document.getElementById(`aEnd_${index}`)?.value || "";
+        const eveningStart    = document.getElementById(`eStart_${index}`)?.value || "";
+        const eveningEnd      = document.getElementById(`eEnd_${index}`)?.value || "";
+
+        // Build schedule object for JSONB
+        const schedule = {
+            morningStart,
+            morningEnd,
+            afternoonStart,
+            afternoonEnd,
+            eveningStart,
+            eveningEnd
+        };
+
         const { error: stuErr } = await db.students.save({
             id: row.id || null,
             sid: row.sid || (index + 1),
@@ -287,6 +310,7 @@ saveBtn.addEventListener("click", async () => {
             programChoice,
             gradeLevel: programChoice,
             learningGoal,
+            schedule,
             status: applicant.status || 'admitted',
             courseStatus: status
         }, loadedApplicantId);
@@ -318,8 +342,12 @@ saveBtn.addEventListener("click", async () => {
 // CANCEL BUTTON
 // -------------------------------
 cancelBtn.addEventListener("click", () => {
-
     // Bootstrap
     init();
     window.close();
+});
+
+// Ensure data loads on page open
+document.addEventListener("DOMContentLoaded", () => {
+    init();
 });

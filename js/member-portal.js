@@ -7,6 +7,7 @@
         assignmentsByProgram: 'portalAssignmentsByProgram',
         optionalAssignments: 'portalOptionalAssignmentsByEmail',
         optionalAssignmentsByProgram: 'portalOptionalAssignmentsByProgram',
+        adminAdditionalAssignments: 'adminAdditionalAssignmentsForAllStudents',
         uploads: 'portalUploadsByEmail',
         progress: 'portalProgressByEmail',
         announcements: 'portalAnnouncementsByProgram',
@@ -733,16 +734,16 @@
         }).join('');
     }
 
-    function getOptionalAssignmentsForStudent() {
+    async function getOptionalAssignmentsForStudent() {
         if (!student) return [];
 
         const programKey = assignmentProgramKey(student.programChoice);
-
+        // Always use lowercase for class_type to match Supabase storage
+        const normalizedClassType = mapProgramLevel(student.programChoice).toLowerCase(); // e.g., 'beginner', 'intermediate', etc.
         const byEmail = safeParse(storage.optionalAssignments, {});
         const byProgram = safeParse(storage.optionalAssignmentsByProgram, {});
         const directOptional = Array.isArray(byEmail[student.guardianEmail]) ? byEmail[student.guardianEmail] : [];
         const sharedOptional = Array.isArray(byProgram[programKey]) ? byProgram[programKey] : [];
-
         const baseByEmail = safeParse(storage.assignments, {});
         const baseByProgram = safeParse(storage.assignmentsByProgram, {});
         const optionalFromMainEmail = (Array.isArray(baseByEmail[student.guardianEmail]) ? baseByEmail[student.guardianEmail] : [])
@@ -750,9 +751,25 @@
         const optionalFromMainProgram = (Array.isArray(baseByProgram[programKey]) ? baseByProgram[programKey] : [])
             .filter(a => a && a.optional === true);
 
-        const merged = [...directOptional, ...sharedOptional, ...optionalFromMainEmail, ...optionalFromMainProgram];
-        const seen = new Set();
+        console.log('[StudentPortal] Fetching additional assignments for class type:', normalizedClassType);
+        // Fetch additional assignments from Supabase for this class type
+        let additionalAssignments = [];
+        if (db.additionalAssignments?.getByClassType) {
+            const { data: addData, error } = await db.additionalAssignments.getByClassType(normalizedClassType);
+            console.log('[StudentPortal] Supabase additional_assignments result:', addData, 'Error:', error);
+            if (Array.isArray(addData)) {
+                additionalAssignments = addData.map(row => ({
+                    id: row.id,
+                    title: row.file_name || 'Optional Assignment',
+                    dueDate: '',
+                    downloadUrl: row.file_url || row.file_data || '',
+                    postedAt: row.uploaded_at || ''
+                }));
+            }
+        }
 
+        const merged = [...directOptional, ...sharedOptional, ...optionalFromMainEmail, ...optionalFromMainProgram, ...additionalAssignments];
+        const seen = new Set();
         return merged.filter(item => {
             const key = String(item?.id || `${item?.title || ''}|${item?.downloadUrl || ''}|${item?.postedAt || ''}`);
             if (seen.has(key)) return false;
@@ -765,20 +782,22 @@
         const listEl = document.getElementById('optionalAssignmentList');
         if (!listEl) return;
 
-        const assignments = getOptionalAssignmentsForStudent();
-        if (!assignments.length) {
-            listEl.innerHTML = '<li>No optional additional assignments yet.</li>';
-            return;
-        }
+        // Async fetch and render
+        getOptionalAssignmentsForStudent().then(assignments => {
+            if (!assignments.length) {
+                listEl.innerHTML = '<li>No optional additional assignments yet.</li>';
+                return;
+            }
 
-        listEl.innerHTML = assignments.map(a => {
-            const due = a.dueDate ? `Due: ${a.dueDate}` : 'Due: TBA';
-            const downloadUrl = a.downloadUrl || a.fileUrl || '';
-            const download = downloadUrl
-                ? `<a href="${downloadUrl}" target="_blank" rel="noopener">Download</a>`
-                : '<span>Download unavailable</span>';
-            return `<li><strong>${a.title || 'Optional Assignment'}</strong> • ${due} • ${download}</li>`;
-        }).join('');
+            listEl.innerHTML = assignments.map(a => {
+                const due = a.dueDate ? `Due: ${a.dueDate}` : 'Due: TBA';
+                const downloadUrl = a.downloadUrl || a.fileUrl || '';
+                const download = downloadUrl
+                    ? `<a href="${downloadUrl}" target="_blank" rel="noopener">Download</a>`
+                    : '<span>Download unavailable</span>';
+                return `<li><strong>${a.title || 'Optional Assignment'}</strong> • ${due} • ${download}</li>`;
+            }).join('');
+        });
     }
 
     async function uploadToSupabaseIfConfigured(file, metadata) {
@@ -1151,6 +1170,13 @@
         initAssignmentUpload();
         initProfileEdit();
         initPasswordChange();
+
+        // Listen for admin additional assignments updates from other tabs/windows
+        window.addEventListener('storage', (e) => {
+            if (e.key === storage.adminAdditionalAssignments) {
+                renderOptionalAssignments();
+            }
+        });
     }
 
     init();

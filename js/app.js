@@ -1,4 +1,4 @@
-
+﻿
 console.log("APP VERSION CHECK");
 (async () => {
     if (typeof db === "undefined" || !db.appSettings?.getMaintenanceMode) return;
@@ -23,6 +23,63 @@ console.log("APP VERSION CHECK");
     }
 })();
 
+/* =========================================================
+// GEEZ CHILD BUTTONS SOUND (Programs Page)
+// Only run on programs.html
+if (window.location.pathname.endsWith('programs.html')) {
+    // Mapping: letter => audio file
+    const geezAudioMap = {
+        'ዘ': 'geez-audio/ze.mp3',
+        'ዙ': 'geez-audio/zu.mp3',
+        'ዚ': 'geez-audio/zi.mp3',
+        'ዛ': 'geez-audio/za.mp3',
+        'ዜ': 'geez-audio/zie.mp3',
+        'ዝ': 'geez-audio/z.mp3',
+        'ዞ': 'geez-audio/zo.mp3',
+        'ዠ': 'geez-audio/zze.mp3',
+        'ዡ': 'geez-audio/zzu.mp3',
+        'ዢ': 'geez-audio/zzi.mp3',
+        'ዣ': 'geez-audio/zza.mp3',
+        'ዤ': 'geez-audio/zzie.mp3',
+        'ዥ': 'geez-audio/zz.mp3',
+        'ዦ': 'geez-audio/zzo.mp3',
+        'አ': 'geez-audio/a.mp3',
+        'ኡ': 'geez-audio/au.mp3',
+        'ኢ': 'geez-audio/ee.mp3',
+        'ኣ': 'geez-audio/aa.mp3',
+        'ኤ': 'geez-audio/aie.mp3',
+        'እ': 'geez-audio/e.mp3',
+        'ኦ': 'geez-audio/o.mp3',
+        'ለ': 'geez-audio/le.mp3',
+        'ሉ': 'geez-audio/lu.mp3',
+        'ሊ': 'geez-audio/li.mp3',
+        'ላ': 'geez-audio/la.mp3',
+        'ሌ': 'geez-audio/lie.mp3',
+        'ል': 'geez-audio/l.mp3',
+        'ሎ': 'geez-audio/lo.mp3',
+        'ሠ': 'geez-audio/se.mp3',
+        'ሡ': 'geez-audio/su.mp3',
+        'ሢ': 'geez-audio/si.mp3',
+        'ሣ': 'geez-audio/sa.mp3',
+        'ሤ': 'geez-audio/sie.mp3',
+        'ሥ': 'geez-audio/s.mp3',
+        'ሦ': 'geez-audio/so.mp3',
+    };
+
+    document.addEventListener('DOMContentLoaded', function () {
+        // Only target child buttons in the right panel
+        const childBtns = document.querySelectorAll('.geez-child-btn');
+        childBtns.forEach(btn => {
+            const letter = btn.textContent.trim();
+            if (geezAudioMap[letter]) {
+                btn.addEventListener('click', function () {
+                    const audio = new Audio(geezAudioMap[letter]);
+                    audio.play();
+                });
+            }
+        });
+    });
+}
 /* =========================================================
    1. LOAD POSTS (Homepage only, safe-guarded)
 ========================================================= */
@@ -1075,7 +1132,11 @@ document.addEventListener("DOMContentLoaded", () => {
             if (normalizeText(password) === expectedPassword) {
                 sessionStorage.setItem("daeroUserRole", "member");
                 sessionStorage.setItem("daeroMemberEmail", normalizeText(email));
+                sessionStorage.setItem("daeroUserEmail", normalizeText(email));
                 sessionStorage.setItem("daeroMemberStudentId", String(student.id));
+                // Save student name for notifications in help chat
+                const studentName = `${student.first_name || ""} ${student.last_name || ""}`.trim() || "Student";
+                sessionStorage.setItem("daeroUserName", studentName);
                 window.location.href = `member-portal.html?studentId=${encodeURIComponent(student.id)}`;
                 return;
             }
@@ -1223,7 +1284,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     const mainButtons = Array.from(board.querySelectorAll(".geez-glyph-btn[data-letter-id]"));
     const childRows = Array.from(childRowsWrap.querySelectorAll(".geez-child-row[data-child-row]"));
-    const geezAudioBasePath = "geez-audio/";
+    const geezAudioBasePath = "assets/geez-audio/";
     const secondRowAudioByLetterId = {
         L01: "be.mp3",
         L02: "se1.mp3",
@@ -1317,11 +1378,11 @@ document.addEventListener("DOMContentLoaded", () => {
         "ብ": "b.mp3",
         "ቦ": "bo.mp3",
         "አ": "a.mp3",
-        "ኡ": "u.mp3",
+        "ኡ": "au.mp3",
         "ኢ": "ee.mp3",
-        "ኣ": "aaa.mp3",
-        "ኤ": "aae.mp3",
-        "እ": "ei.mp3",
+        "ኣ": "aa.mp3",
+        "ኤ": "aie.mp3",
+        "እ": "e.mp3",
         "ኦ": "o.mp3",
         "ጸ": "xe.mp3",
         "ጹ": "xu.mp3",
@@ -1378,7 +1439,28 @@ document.addEventListener("DOMContentLoaded", () => {
         "ኻ": "kka.mp3",
         "ኼ": "kkie.mp3",
         "ኽ": "kk.mp3",
-        "ኾ": "kko.mp3"
+        "ኾ": "kko.mp3",
+        "ለ": "le.mp3",
+        "ሉ": "lu.mp3",
+        "ሊ": "li.mp3",
+        "ላ": "la.mp3",
+        "ሌ": "lie.mp3",
+        "ል": "l.mp3",
+        "ሎ": "lo.mp3",
+        "ዘ": "ze.mp3",
+        "ዙ": "zu.mp3",
+        "ዚ": "zi.mp3",
+        "ዛ": "za.mp3",
+        "ዜ": "zie.mp3",
+        "ዝ": "z.mp3",
+        "ዞ": "zo.mp3",
+        "ዠ": "zze.mp3",
+        "ዡ": "zzu.mp3",
+        "ዢ": "zzi.mp3",
+        "ዣ": "zza.mp3",
+        "ዤ": "zzie.mp3",
+        "ዥ": "zz.mp3",
+        "ዦ": "zzo.mp3",
     };
     const childButtonPreviewCatalog = {
         "በ": [
@@ -1710,4 +1792,143 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     renderEmptyPreview("Select a Geez letter to view its child letters.");
+});
+
+/* =========================================================
+   LIVE CHAT WITH TEACHERS - REAL-TIME MESSAGING
+========================================================= */
+
+document.addEventListener("DOMContentLoaded", () => {
+    const helpBtn = document.getElementById("helpFloatingBtn");
+    const liveChatModal = document.getElementById("liveChatModal");
+    const closeChatBtn = document.getElementById("closeChatBtn");
+    const chatInput = document.getElementById("chatInput");
+    const sendChatBtn = document.getElementById("sendChatBtn");
+    const chatMessages = document.getElementById("chatMessages");
+
+    if (!helpBtn || !liveChatModal) return;
+
+    // Open chat when "Need Help?" is clicked
+    helpBtn.addEventListener("click", () => {
+        liveChatModal.classList.add("active");
+        chatInput?.focus();
+        
+        // Notify teachers about new chat request
+        notifyTeachersAboutNewChat();
+    });
+
+    // Close chat when close button is clicked or modal is clicked (outside)
+    closeChatBtn?.addEventListener("click", () => {
+        liveChatModal.classList.remove("active");
+    });
+
+    // Close when clicking outside the chat box
+    liveChatModal?.addEventListener("click", (e) => {
+        if (e.target === liveChatModal) {
+            liveChatModal.classList.remove("active");
+        }
+    });
+
+    // Send message on button click
+    sendChatBtn?.addEventListener("click", () => {
+        sendChatMessage();
+    });
+
+    // Send message on Enter key
+    chatInput?.addEventListener("keypress", (e) => {
+        if (e.key === "Enter" && !e.shiftKey) {
+            e.preventDefault();
+            sendChatMessage();
+        }
+    });
+
+    // Function to send a chat message
+    function sendChatMessage() {
+        const message = chatInput.value.trim();
+        if (!message) return;
+
+        // Add user message to chat
+        addMessageToChat(message, "user");
+        chatInput.value = "";
+
+        // Save to Supabase if database is available
+        if (typeof db !== "undefined" && db.liveChat?.saveChatMessage) {
+            let studentEmail = sessionStorage.getItem("daeroUserEmail") || "";
+            
+            // If no email, generate a unique one
+            if (!studentEmail || studentEmail === "") {
+                const timestamp = Date.now();
+                const randomSuffix = Math.random().toString(36).substring(2, 8);
+                studentEmail = `guest-${timestamp}-${randomSuffix}@daero.local`;
+                sessionStorage.setItem("daeroUserEmail", studentEmail);
+            }
+            
+            const studentName = sessionStorage.getItem("daeroUserName") || "Anonymous Visitor";
+            
+            db.liveChat.saveChatMessage(
+                studentEmail,
+                studentName,
+                message,
+                "student"
+            ).catch(err => console.error("Error saving message:", err));
+        }
+    }
+
+    // Function to add message to chat display
+    function addMessageToChat(message, sender) {
+        const messageDiv = document.createElement("div");
+        messageDiv.className = `chat-message ${sender}`;
+        
+        const pTag = document.createElement("p");
+        pTag.textContent = message;
+        
+        messageDiv.appendChild(pTag);
+        chatMessages.appendChild(messageDiv);
+        
+        // Auto-scroll to bottom
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+    }
+
+    // Function to notify teachers about new chat request
+    function notifyTeachersAboutNewChat() {
+        if (typeof db !== "undefined" && db.liveChat?.createChatSession) {
+            let studentEmail = sessionStorage.getItem("daeroUserEmail") || "";
+            
+            // If no email, generate a unique anonymous session ID
+            if (!studentEmail || studentEmail === "") {
+                const timestamp = Date.now();
+                const randomSuffix = Math.random().toString(36).substring(2, 8);
+                studentEmail = `guest-${timestamp}-${randomSuffix}@daero.local`;
+                sessionStorage.setItem("daeroUserEmail", studentEmail);
+            }
+            
+            const studentName = sessionStorage.getItem("daeroUserName") || "Anonymous Visitor";
+            
+            db.liveChat.createChatSession(
+                studentEmail,
+                studentName
+            ).catch(err => {
+                console.error("Error creating chat session:", err);
+            });
+        }
+    }
+
+   // Listen for new messages from teachers (real-time updates for this student)
+if (typeof db !== "undefined" && db.liveChat?.onNewMessage) {
+    let studentEmail = sessionStorage.getItem("daeroUserEmail");
+    if (!studentEmail) {
+        // Only generate ONCE, never on every page load!
+        const timestamp = Date.now();
+        const randomSuffix = Math.random().toString(36).substring(2, 8);
+        studentEmail = `guest-${timestamp}-${randomSuffix}@daero.local`;
+        sessionStorage.setItem("daeroUserEmail", studentEmail);
+    }
+    console.log("[Realtime] Subscribing for studentEmail:", studentEmail);
+    db.liveChat.onNewMessage(studentEmail, (message) => {
+        console.log("[Realtime] New message received:", message);
+        if (message.sender_type === "teacher") {
+            addMessageToChat(message.message, "teacher");
+        }
+    });
+}
 });
