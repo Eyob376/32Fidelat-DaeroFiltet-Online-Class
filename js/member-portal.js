@@ -385,6 +385,7 @@
             title: r.context || r.file_name || '',
             fileName: r.file_name || '',
             fileUrl: r.file_url || '',
+            fileData: r.file_data || '',
             createdAt: r.uploaded_at || ''
         }));
 
@@ -838,12 +839,21 @@
             .map(r => `<li>
                 <div style="display: flex; justify-content: space-between; align-items: center; gap: 10px;">
                     <div style="flex: 1;">
+                        <button class="upload-view-btn" data-upload-id="${r.uploadId}" type="button" title="Open assignment" style="background: transparent; border: 1px solid #7e8fa5; color: #1c2f45; padding: 4px 8px; border-radius: 6px; cursor: pointer; margin-right: 8px;">&#128065;</button>
                         <strong>${r.title}</strong> • ${r.fileName} • ${new Date(r.createdAt).toLocaleString()}
                     </div>
                     <button class="upload-delete-btn" data-upload-id="${r.uploadId}" type="button" style="background: #ff4444; color: white; border: none; padding: 5px 10px; border-radius: 4px; cursor: pointer; font-size: 12px;">Delete</button>
                 </div>
             </li>`)
             .join('');
+
+        listEl.querySelectorAll('.upload-view-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                e.preventDefault();
+                const uploadId = btn.dataset.uploadId;
+                openUploadFile(uploadId);
+            });
+        });
 
         // Attach delete event listeners
         listEl.querySelectorAll('.upload-delete-btn').forEach(btn => {
@@ -881,11 +891,48 @@
             title: r.context || r.file_name || '',
             fileName: r.file_name || '',
             fileUrl: r.file_url || '',
+            fileData: r.file_data || '',
             createdAt: r.uploaded_at || ''
         }));
 
         renderUploadHistory();
         renderProgress();
+    }
+
+    function openUploadFile(uploadId) {
+        const row = (portalState.uploads || []).find(item => String(item.uploadId) === String(uploadId));
+        if (!row) {
+            alert('Assignment file not found.');
+            return;
+        }
+
+        // Use Supabase Storage URL if available
+        if (row.fileUrl) {
+            window.open(row.fileUrl, '_blank', 'noopener,noreferrer');
+            return;
+        }
+
+        // Fall back to base64 data: create a blob URL for in-browser viewing
+        if (row.fileData) {
+            try {
+                const [header, base64] = row.fileData.split(',');
+                const mimeMatch = header.match(/data:([^;]+)/);
+                const mime = mimeMatch ? mimeMatch[1] : 'application/octet-stream';
+                const bytes = atob(base64);
+                const arr = new Uint8Array(bytes.length);
+                for (let i = 0; i < bytes.length; i++) arr[i] = bytes.charCodeAt(i);
+                const blob = new Blob([arr], { type: mime });
+                const blobUrl = URL.createObjectURL(blob);
+                window.open(blobUrl, '_blank', 'noopener,noreferrer');
+                // Release the blob URL after the browser has had time to open it
+                setTimeout(() => URL.revokeObjectURL(blobUrl), 15000);
+            } catch (err) {
+                alert('Could not open this file. Please ask the student to re-upload it.');
+            }
+            return;
+        }
+
+        alert('This assignment was uploaded before file storage was enabled. Please ask the student to re-upload it.');
     }
 
     function initAssignmentUpload() {
@@ -909,6 +956,18 @@
             const supa = await uploadToSupabaseIfConfigured(file, { guardianEmail });
             const fileUrl = supa.url || '';
 
+            // When Supabase Storage is not configured, read the file as base64
+            // so it can still be opened later via the eye button
+            let fileDataUrl = '';
+            if (!fileUrl) {
+                fileDataUrl = await new Promise((resolve) => {
+                    const reader = new FileReader();
+                    reader.onload = (e) => resolve(e.target?.result || '');
+                    reader.onerror = () => resolve('');
+                    reader.readAsDataURL(file);
+                });
+            }
+
             if (typeof db === 'undefined' || !db.studentUploads?.add) {
                 alert('Supabase uploads are not configured.');
                 return;
@@ -918,6 +977,7 @@
                 fileName: file.name,
                 fileType: file.type,
                 fileUrl,
+                fileData: fileDataUrl,
                 context: `[${dueDate}] ${title}`
             });
 
@@ -933,6 +993,7 @@
                 title: r.context || r.file_name || '',
                 fileName: r.file_name || '',
                 fileUrl: r.file_url || '',
+                fileData: r.file_data || '',
                 createdAt: r.uploaded_at || ''
             }));
 
