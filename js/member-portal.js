@@ -166,10 +166,9 @@
         const safeName = sanitizeFileName(fileName || 'file');
         const encodedUrl = encodeAttr(href);
         const encodedName = encodeAttr(safeName);
-        const s = 'color:#1a73e8;text-decoration:underline;cursor:pointer;';
         return [
-            `<a href="${href}" class="file-open-link" data-file-url="${encodedUrl}" rel="noopener noreferrer" style="${s}">Open</a>`,
-            `<a href="${href}" class="file-download-link" data-file-url="${encodedUrl}" data-file-name="${encodedName}" rel="noopener" style="${s}">Download</a>`
+            `<button type="button" class="file-action-link file-open-link" data-file-url="${encodedUrl}">Open</button>`,
+            `<button type="button" class="file-action-link file-download-link" data-file-url="${encodedUrl}" data-file-name="${encodedName}">Download</button>`
         ].join(' | ');
     }
 
