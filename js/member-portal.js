@@ -63,6 +63,116 @@
         return String(value || '').trim().toLowerCase();
     }
 
+    function sanitizeFileName(name) {
+        return String(name || 'file').replace(/[\\/:*?"<>|]+/g, '_').trim() || 'file';
+    }
+
+    function encodeAttr(value) {
+        return encodeURIComponent(String(value || ''));
+    }
+
+    function decodeAttr(value) {
+        try {
+            return decodeURIComponent(String(value || ''));
+        } catch (e) {
+            return String(value || '');
+        }
+    }
+
+    function openUrlInBrowser(url) {
+        const href = String(url || '').trim();
+        if (!href) {
+            alert('File open link is unavailable.');
+            return;
+        }
+
+        const opened = window.open(href, '_blank', 'noopener,noreferrer');
+        if (!opened) {
+            window.location.href = href;
+        }
+    }
+
+    async function fetchAndOpen(url) {
+        const href = String(url || '').trim();
+        if (!href) { alert('File is unavailable.'); return; }
+        try {
+            const resp = await fetch(href);
+            if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+            const blob = await resp.blob();
+            const blobUrl = URL.createObjectURL(blob);
+            const opened = window.open(blobUrl, '_blank');
+            if (!opened) window.location.href = blobUrl;
+            setTimeout(() => URL.revokeObjectURL(blobUrl), 30000);
+        } catch (_err) {
+            const opened = window.open(href, '_blank', 'noopener,noreferrer');
+            if (!opened) window.location.href = href;
+        }
+    }
+
+    async function fetchAndDownload(url, fileName) {
+        const href = String(url || '').trim();
+        if (!href) { alert('Download is unavailable.'); return; }
+        const safeName = sanitizeFileName(fileName || 'file');
+        try {
+            const resp = await fetch(href);
+            if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+            const blob = await resp.blob();
+            const blobUrl = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = blobUrl;
+            link.download = safeName;
+            document.body.appendChild(link);
+            link.click();
+            link.remove();
+            setTimeout(() => URL.revokeObjectURL(blobUrl), 10000);
+        } catch (_err) {
+            const link = document.createElement('a');
+            link.href = href;
+            link.download = safeName;
+            link.rel = 'noopener';
+            document.body.appendChild(link);
+            link.click();
+            link.remove();
+        }
+    }
+
+    function bindFileLinks(scopeEl) {
+        if (!scopeEl) return;
+        scopeEl.querySelectorAll('.file-open-link:not([data-bound="open"])').forEach((link) => {
+            link.dataset.bound = 'open';
+            link.addEventListener('click', (e) => {
+                e.preventDefault();
+                const url = decodeAttr(link.getAttribute('data-file-url') || '');
+                if (!url) { alert('File is unavailable.'); return; }
+                fetchAndOpen(url);
+            });
+        });
+        scopeEl.querySelectorAll('.file-download-link:not([data-bound="dl"])').forEach((link) => {
+            link.dataset.bound = 'dl';
+            link.addEventListener('click', (e) => {
+                e.preventDefault();
+                const url = decodeAttr(link.getAttribute('data-file-url') || '');
+                const name = decodeAttr(link.getAttribute('data-file-name') || '');
+                if (!url) { alert('Download is unavailable.'); return; }
+                fetchAndDownload(url, name);
+            });
+        });
+    }
+
+    function buildFileActionLinks(fileUrl, fileName) {
+        const href = String(fileUrl || '').trim();
+        if (!href) return '<span>File unavailable</span>';
+
+        const safeName = sanitizeFileName(fileName || 'file');
+        const encodedUrl = encodeAttr(href);
+        const encodedName = encodeAttr(safeName);
+        const s = 'color:#1a73e8;text-decoration:underline;cursor:pointer;';
+        return [
+            `<a href="${href}" class="file-open-link" data-file-url="${encodedUrl}" rel="noopener noreferrer" style="${s}">Open</a>`,
+            `<a href="${href}" class="file-download-link" data-file-url="${encodedUrl}" data-file-name="${encodedName}" rel="noopener" style="${s}">Download</a>`
+        ].join(' | ');
+    }
+
     function getByEmail(mapObj, email) {
         const key = normalizeEmail(email);
         if (!key || !mapObj || typeof mapObj !== 'object') return null;
@@ -700,9 +810,8 @@
                     .map(file => {
                         const href = file?.downloadUrl || file?.dataUrl || file?.fileUrl || '';
                         const name = file?.name || 'Attachment';
-                        return href
-                            ? `<a href="${href}" download="${name}" target="_blank" rel="noopener">${name}</a>`
-                            : `<span>${name} (Download unavailable)</span>`;
+                        const actions = buildFileActionLinks(href, name);
+                        return `<span>${name}: ${actions}</span>`;
                     })
                     .join(' | ');
 
@@ -710,6 +819,8 @@
                 return `<li><strong>${r.title || 'Friendly Reminder'}</strong> • Due: ${r.dueDate || 'TBA'} • ${r.message || ''}${attachmentHtml}</li>`;
             })
             .join('');
+
+            bindFileLinks(listEl);
     }
 
     function getAssignmentsForStudent() {
@@ -729,11 +840,11 @@
 
         listEl.innerHTML = assignments.map(a => {
             const due = a.dueDate ? `Due: ${a.dueDate}` : 'Due: TBA';
-            const download = a.downloadUrl
-                ? `<a href="${a.downloadUrl}" target="_blank" rel="noopener">Download</a>`
-                : '<span>Download unavailable</span>';
-            return `<li><strong>${a.title || 'Assignment'}</strong> • ${due} • ${download}</li>`;
+            const actions = buildFileActionLinks(a.downloadUrl, a.title || 'Assignment');
+            return `<li><strong>${a.title || 'Assignment'}</strong> • ${due} • ${actions}</li>`;
         }).join('');
+
+        bindFileLinks(listEl);
     }
 
     async function getOptionalAssignmentsForStudent() {
@@ -794,11 +905,11 @@
             listEl.innerHTML = assignments.map(a => {
                 const due = a.dueDate ? `Due: ${a.dueDate}` : 'Due: TBA';
                 const downloadUrl = a.downloadUrl || a.fileUrl || '';
-                const download = downloadUrl
-                    ? `<a href="${downloadUrl}" target="_blank" rel="noopener">Download</a>`
-                    : '<span>Download unavailable</span>';
-                return `<li><strong>${a.title || 'Optional Assignment'}</strong> • ${due} • ${download}</li>`;
+                const actions = buildFileActionLinks(downloadUrl, a.title || 'Optional Assignment');
+                return `<li><strong>${a.title || 'Optional Assignment'}</strong> • ${due} • ${actions}</li>`;
             }).join('');
+
+            bindFileLinks(listEl);
         });
     }
 
@@ -840,6 +951,7 @@
                 <div style="display: flex; justify-content: space-between; align-items: center; gap: 10px;">
                     <div style="flex: 1;">
                         <button class="upload-view-btn" data-upload-id="${r.uploadId}" type="button" title="Open assignment" style="background: transparent; border: 1px solid #7e8fa5; color: #1c2f45; padding: 4px 8px; border-radius: 6px; cursor: pointer; margin-right: 8px;">&#128065;</button>
+                        <button class="upload-download-btn" data-upload-id="${r.uploadId}" type="button" title="Download assignment" style="background: transparent; border: 1px solid #7e8fa5; color: #1c2f45; padding: 4px 8px; border-radius: 6px; cursor: pointer; margin-right: 8px;">&#128229;</button>
                         <strong>${r.title}</strong> • ${r.fileName} • ${new Date(r.createdAt).toLocaleString()}
                     </div>
                     <button class="upload-delete-btn" data-upload-id="${r.uploadId}" type="button" style="background: #ff4444; color: white; border: none; padding: 5px 10px; border-radius: 4px; cursor: pointer; font-size: 12px;">Delete</button>
@@ -852,6 +964,14 @@
                 e.preventDefault();
                 const uploadId = btn.dataset.uploadId;
                 openUploadFile(uploadId);
+            });
+        });
+
+        listEl.querySelectorAll('.upload-download-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                e.preventDefault();
+                const uploadId = btn.dataset.uploadId;
+                downloadUploadFile(uploadId);
             });
         });
 
@@ -933,6 +1053,28 @@
         }
 
         alert('This assignment was uploaded before file storage was enabled. Please ask the student to re-upload it.');
+    }
+
+    function downloadUploadFile(uploadId) {
+        const row = (portalState.uploads || []).find(item => String(item.uploadId) === String(uploadId));
+        if (!row) {
+            alert('Assignment file not found.');
+            return;
+        }
+
+        const href = row.fileUrl || row.fileData || '';
+        if (!href) {
+            alert('Download unavailable for this file.');
+            return;
+        }
+
+        const link = document.createElement('a');
+        link.href = href;
+        link.download = sanitizeFileName(row.fileName || row.title || 'assignment');
+        link.rel = 'noopener';
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
     }
 
     function initAssignmentUpload() {
