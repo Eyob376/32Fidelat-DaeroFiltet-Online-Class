@@ -718,10 +718,18 @@ const db = {
        ============================================================= */
     lessonPlanDocs: {
 
-        getAll: () => _query(
-            () => sb().from("lesson_plan_docs").select("*").order("uploaded_at", { ascending: false }),
-            "lessonPlanDocs.getAll"
-        ),
+        getAll: async () => {
+            const primary = await _query(
+                () => sb().from("lesson_plan_docs").select("*").order("uploaded_at", { ascending: false }),
+                "lessonPlanDocs.getAll.uploaded_at"
+            );
+            if (!primary.error) return primary;
+
+            return _query(
+                () => sb().from("lesson_plan_docs").select("*").order("updated_at", { ascending: false }),
+                "lessonPlanDocs.getAll.updated_at"
+            );
+        },
 
         getByClassWeekDay: (classLevel, week, day) => _query(
             () => sb().from("lesson_plan_docs").select("*")
