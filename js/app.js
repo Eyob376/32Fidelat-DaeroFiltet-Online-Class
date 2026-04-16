@@ -1,4 +1,4 @@
-﻿
+
 console.log("APP VERSION CHECK");
 (async () => {
     if (typeof db === "undefined" || !db.appSettings?.getMaintenanceMode) return;
@@ -734,6 +734,47 @@ async function injectImageSlides(selector, storageKey, className) {
 const slideshowTimers = new Map();
 let indexVideoAdvanceTimer = null;
 
+function bindAutoHeightToSlideshow(containerSelector, itemSelector, minHeight = 0) {
+    const container = document.querySelector(containerSelector);
+    if (!container) return;
+
+    const applyHeight = () => {
+        const active = container.querySelector(`${itemSelector}.active`) || container.querySelector(itemSelector);
+        if (!active) return;
+
+        const naturalWidth = Number(active.naturalWidth || 0);
+        const naturalHeight = Number(active.naturalHeight || 0);
+        const containerWidth = Number(container.clientWidth || 0);
+        if (!naturalWidth || !naturalHeight || !containerWidth) return;
+
+        const nextHeight = Math.max(minHeight, Math.round((containerWidth * naturalHeight) / naturalWidth));
+        container.style.height = `${nextHeight}px`;
+    };
+
+    const slides = Array.from(container.querySelectorAll(itemSelector));
+    slides.forEach((slide) => {
+        if (slide.complete) applyHeight();
+        slide.addEventListener("load", applyHeight);
+    });
+
+    const observer = new MutationObserver((mutations) => {
+        for (const mutation of mutations) {
+            if (mutation.type === "attributes" && mutation.attributeName === "class") {
+                applyHeight();
+                break;
+            }
+        }
+    });
+    observer.observe(container, {
+        subtree: true,
+        attributes: true,
+        attributeFilter: ["class"]
+    });
+
+    window.addEventListener("resize", applyHeight);
+    applyHeight();
+}
+
 function startManagedSlideshow(containerSelector, itemSelector, intervalMs = 3000) {
     const container = document.querySelector(containerSelector);
     if (!container) return;
@@ -772,6 +813,9 @@ function initAllAutoSlideshows() {
     startManagedSlideshow("#graduation-slideshow .graduation-frame", ".graduation-slide", 3000);
     startManagedSlideshow(".member-slideshow", ".member-slide", 3000);
     startManagedSlideshow(".right-slideshow", ".slide-img", 3000);
+
+    // Keep Latest Posts gallery tall enough for portrait uploads.
+    bindAutoHeightToSlideshow(".gallery-wrapper", ".gallery-img", 550);
 }
 
 function initIndexVideoPanelControls() {
@@ -1461,6 +1505,14 @@ document.addEventListener("DOMContentLoaded", () => {
         "ዤ": "zzie.mp3",
         "ዥ": "zz.mp3",
         "ዦ": "zzo.mp3",
+        "ፀ": "xe.mp3",
+        "ፁ": "xu.mp3",
+        "ፂ": "xi.mp3",
+        "ፃ": "xa.mp3",
+        "ፄ": "xie.mp3",
+        "ፅ": "x.mp3",
+        "ፆ": "xo.mp3",
+
     };
     const childButtonPreviewCatalog = {
         "በ": [
