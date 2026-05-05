@@ -137,27 +137,42 @@
 
                 <!-- Resource Cards -->
                 <section class="program-resources-card" data-level="beginner">
-                    <h2>Beginner Class – Uploaded Resources</h2>
+                    <div class="support-actions">
+                        <h2>Beginner Class – Uploaded Resources</h2>
+                        <button type="button" class="glass-btn refresh-program-resources-btn" data-level="beginner">Refresh Resources</button>
+                    </div>
                     <div class="resource-list" id="resources-beginner"></div>
                 </section>
 
                 <section class="program-resources-card" data-level="intermediate">
-                    <h2>Intermediate Class – Uploaded Resources</h2>
+                    <div class="support-actions">
+                        <h2>Intermediate Class – Uploaded Resources</h2>
+                        <button type="button" class="glass-btn refresh-program-resources-btn" data-level="intermediate">Refresh Resources</button>
+                    </div>
                     <div class="resource-list" id="resources-intermediate"></div>
                 </section>
 
                 <section class="program-resources-card" data-level="advanced">
-                    <h2>Advanced Class – Uploaded Resources</h2>
+                    <div class="support-actions">
+                        <h2>Advanced Class – Uploaded Resources</h2>
+                        <button type="button" class="glass-btn refresh-program-resources-btn" data-level="advanced">Refresh Resources</button>
+                    </div>
                     <div class="resource-list" id="resources-advanced"></div>
                 </section>
 
                 <section class="program-resources-card" data-level="afterschool">
-                    <h2>AST Program – Uploaded Resources</h2>
+                    <div class="support-actions">
+                        <h2>AST Program – Uploaded Resources</h2>
+                        <button type="button" class="glass-btn refresh-program-resources-btn" data-level="afterschool">Refresh Resources</button>
+                    </div>
                     <div class="resource-list" id="resources-afterschool"></div>
                 </section>
 
                 <section class="program-resources-card" data-level="religious">
-                    <h2>Religious Study – Uploaded Resources</h2>
+                    <div class="support-actions">
+                        <h2>Religious Study – Uploaded Resources</h2>
+                        <button type="button" class="glass-btn refresh-program-resources-btn" data-level="religious">Refresh Resources</button>
+                    </div>
                     <div class="resource-list" id="resources-religious"></div>
                 </section>
 
@@ -326,6 +341,12 @@
                         <button type="submit" class="glass-btn btn-primary">Publish Reminder to Selected Guardians</button>
                     </form>
                     <p id="reminderPublishStatus" class="support-status"></p>
+                    <div class="support-actions">
+                        <button type="button" class="glass-btn btn-primary" id="refreshReminderList">Refresh Published Reminders</button>
+                        <button type="button" class="glass-btn" id="toggleZoomReminderFilter">Show Zoom Links Only</button>
+                    </div>
+                    <p id="reminderManagerStatus" class="support-status"></p>
+                    <div id="publishedReminderList" class="messages-list"></div>
                 </div>
 
                 <div class="glass-card support-card support-card-announcement">
@@ -471,6 +492,7 @@
                             <option value="Religious Study">Religious Study</option>
                         </select>
                         <select id="lessonDocsWeekSelect">
+                            <option value="">All Weeks</option>
                             <option value="Week-1">Week-1</option>
                             <option value="Week-2">Week-2</option>
                             <option value="Week-3">Week-3</option>
@@ -484,12 +506,13 @@
                             <option value="Week-11">Week-11</option>
                         </select>
                         <select id="lessonDocsDaySelect">
+                            <option value="">All Days</option>
                             <option value="Wednesday">Wednesday</option>
                             <option value="Saturday">Saturday</option>
                         </select>
                         <input type="file" id="lessonDocsFileInput" accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,image/*" multiple>
                         <button type="button" class="glass-btn btn-primary" id="lessonDocsUploadBtn">Upload</button>
-                        <button type="button" class="glass-btn" id="clearLessonDocsBtn">Clear All</button>
+                        <button type="button" class="glass-btn" id="refreshLessonDocsBtn">Refresh Documents</button>
                     </div>
                     <p id="lessonDocsUploadStatus" class="support-status"></p>
                     <div id="lessonDocsUploadList" class="messages-list"></div>
