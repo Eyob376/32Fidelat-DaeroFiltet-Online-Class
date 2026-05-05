@@ -1085,6 +1085,38 @@ function populateGuardianSelect(selectEl, placeholderLabel = "Select Guardian") 
     });
 }
 
+function escapeAdminHtml(value) {
+    return String(value || "")
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#39;");
+}
+
+function extractUrlsFromText(value) {
+    const matches = String(value || "").match(/https?:\/\/[^\s<]+/gi) || [];
+    return matches.map((url) => url.replace(/[).,!?:;]+$/g, ""));
+}
+
+function extractZoomLinksFromReminder(reminder) {
+    const urls = new Set();
+    extractUrlsFromText(reminder?.message || "")
+        .filter((url) => /zoom\.(us|com)\//i.test(url))
+        .forEach((url) => urls.add(url));
+
+    const attachments = Array.isArray(reminder?.attachments) ? reminder.attachments : [];
+    attachments.forEach((item) => {
+        [item?.downloadUrl, item?.dataUrl, item?.fileUrl, item?.url]
+            .filter(Boolean)
+            .forEach((url) => {
+                if (/zoom\.(us|com)\//i.test(String(url))) urls.add(String(url));
+            });
+    });
+
+    return Array.from(urls);
+}
+
 function initAdminSupportPage() {
     const maintenanceToggle = document.getElementById("maintenanceModeToggle");
     const maintenanceStatus = document.getElementById("maintenanceModeStatus");
@@ -1129,6 +1161,11 @@ function initAdminSupportPage() {
     const reminderMessage = document.getElementById("reminderMessage");
     const reminderAttachmentFile = document.getElementById("reminderAttachmentFile");
     const reminderPublishStatus = document.getElementById("reminderPublishStatus");
+    const refreshReminderList = document.getElementById("refreshReminderList");
+    const toggleZoomReminderFilter = document.getElementById("toggleZoomReminderFilter");
+    const reminderManagerStatus = document.getElementById("reminderManagerStatus");
+    const publishedReminderList = document.getElementById("publishedReminderList");
+    let zoomReminderFilterEnabled = false;
 
     const collectSelectedReminderGuardianEmails = () => {
         if (!reminderGuardianPicker) return [];
@@ -1158,6 +1195,82 @@ function initAdminSupportPage() {
                 </label>
             `;
         }).join("");
+    };
+
+    const renderPublishedReminders = async () => {
+        if (!publishedReminderList) return;
+
+        if (typeof db === "undefined" || !db.reminders?.getAll) {
+            publishedReminderList.innerHTML = '<div class="message-item">Supabase is not configured for reminders.</div>';
+            if (reminderManagerStatus) reminderManagerStatus.textContent = "Reminder manager is unavailable.";
+            return;
+        }
+
+        const { data, error } = await db.reminders.getAll();
+        if (error) {
+            publishedReminderList.innerHTML = '<div class="message-item">Could not load reminders.</div>';
+            if (reminderManagerStatus) reminderManagerStatus.textContent = `Could not load reminders: ${error.message}`;
+            return;
+        }
+
+        const allRows = Array.isArray(data) ? data : [];
+        const rows = zoomReminderFilterEnabled
+            ? allRows.filter((row) => extractZoomLinksFromReminder(row).length > 0)
+            : allRows;
+
+        if (toggleZoomReminderFilter) {
+            toggleZoomReminderFilter.textContent = zoomReminderFilterEnabled ? "Show All Reminders" : "Show Zoom Links Only";
+        }
+
+        if (reminderManagerStatus) {
+            const zoomCount = allRows.filter((row) => extractZoomLinksFromReminder(row).length > 0).length;
+            reminderManagerStatus.textContent = `${rows.length} reminder${rows.length === 1 ? "" : "s"} shown. ${zoomCount} reminder${zoomCount === 1 ? "" : "s"} contain Zoom links.`;
+        }
+
+        if (!rows.length) {
+            publishedReminderList.innerHTML = `<div class="message-item">${zoomReminderFilterEnabled ? "No reminders with Zoom links were found." : "No reminders published yet."}</div>`;
+            return;
+        }
+
+        publishedReminderList.innerHTML = rows.map((row) => {
+            const when = row.posted_at ? new Date(row.posted_at).toLocaleString() : "";
+            const links = extractZoomLinksFromReminder(row);
+            const linkHtml = links.length
+                ? links.map((url) => `<a href="${escapeAdminHtml(url)}" target="_blank" rel="noopener">${escapeAdminHtml(url)}</a>`).join("<br>")
+                : '<span>No Zoom links in this reminder.</span>';
+
+            return `
+                <div class="message-item">
+                    <div><strong>${escapeAdminHtml(row.title || "Friendly Reminder")}</strong> (${escapeAdminHtml(row.guardian_email || "No guardian email")})</div>
+                    <div>Due: ${escapeAdminHtml(row.due_date || "TBA")}</div>
+                    <div>${escapeAdminHtml(row.message || "")}</div>
+                    <div class="message-time">${escapeAdminHtml(when)}</div>
+                    <div><strong>Zoom links:</strong><br>${linkHtml}</div>
+                    <div class="support-actions">
+                        <button type="button" class="glass-btn delete-reminder-item" data-reminder-id="${escapeAdminHtml(row.id || "")}" data-reminder-title="${escapeAdminHtml(row.title || "Friendly Reminder")}">Delete Reminder</button>
+                    </div>
+                </div>
+            `;
+        }).join("");
+
+        publishedReminderList.querySelectorAll(".delete-reminder-item").forEach((btn) => {
+            btn.addEventListener("click", async () => {
+                const reminderId = String(btn.dataset.reminderId || "").trim();
+                const reminderLabel = String(btn.dataset.reminderTitle || "this reminder").trim();
+                if (!reminderId) return;
+                if (!confirm(`Delete ${reminderLabel}?`)) return;
+                if (!db.reminders?.delete) return;
+
+                const { error: deleteError } = await db.reminders.delete(reminderId);
+                if (deleteError) {
+                    if (reminderManagerStatus) reminderManagerStatus.textContent = `Could not delete reminder: ${deleteError.message}`;
+                    return;
+                }
+
+                if (reminderManagerStatus) reminderManagerStatus.textContent = `Reminder deleted.`;
+                await renderPublishedReminders();
+            });
+        });
     };
 
     const syncMaintenanceStatus = () => {
@@ -1458,6 +1571,15 @@ function initAdminSupportPage() {
         });
     });
 
+    refreshReminderList?.addEventListener("click", () => {
+        renderPublishedReminders();
+    });
+
+    toggleZoomReminderFilter?.addEventListener("click", () => {
+        zoomReminderFilterEnabled = !zoomReminderFilterEnabled;
+        renderPublishedReminders();
+    });
+
     publishReminderForm?.addEventListener("submit", async (e) => {
         e.preventDefault();
 
@@ -1512,9 +1634,11 @@ function initAdminSupportPage() {
         }
         publishReminderForm.reset();
         renderReminderGuardianPicker();
+        await renderPublishedReminders();
     });
 
     renderReminderGuardianPicker();
+    renderPublishedReminders();
 
     renderContactMessages();
     if (window.__daeroContactMessagesAutoRefreshTimer) {
@@ -1901,19 +2025,57 @@ function initSidebarUploadSystems() {
 
 const PROGRAM_RESOURCE_LEVELS = ["beginner", "intermediate", "advanced", "afterschool", "religious"];
 
+function normalizeProgramResourceLevel(value) {
+    const normalized = String(value || "")
+        .trim()
+        .toLowerCase()
+        .replace(/^program-resources-/, "")
+        .replace(/[_\s]+/g, "-")
+        .replace(/-+/g, "-");
+
+    if (!normalized) return "";
+    if (normalized.includes("beginner") || normalized.includes("basic")) return "beginner";
+    if (normalized.includes("intermediate")) return "intermediate";
+    if (normalized.includes("advanced")) return "advanced";
+    if (normalized.includes("after-school") || normalized.includes("afterschool") || normalized.includes("ast") || normalized.includes("tutorial")) return "afterschool";
+    if (normalized.includes("religious")) return "religious";
+    return normalized;
+}
+
 function getProgramResourceCategory(level) {
-    return `program-resources-${String(level || "").trim().toLowerCase()}`;
+    return `program-resources-${normalizeProgramResourceLevel(level)}`;
+}
+
+async function getProgramResourceRows(level) {
+    const safeLevel = normalizeProgramResourceLevel(level);
+    const category = getProgramResourceCategory(safeLevel);
+    const exactResult = await db.mediaUploads.getByCategory(category);
+
+    if (exactResult.error) return exactResult;
+    if ((exactResult.data || []).length) return exactResult;
+
+    const allResult = await db.mediaUploads.getAll();
+    if (allResult.error) return allResult;
+
+    return {
+        data: (allResult.data || []).filter((row) => normalizeProgramResourceLevel(row?.category || "") === safeLevel),
+        error: null
+    };
 }
 
 async function renderProgramResourceList(level) {
-    const safeLevel = String(level || "").trim().toLowerCase();
+    const safeLevel = normalizeProgramResourceLevel(level);
     const listEl = document.getElementById(`resources-${safeLevel}`);
     if (!listEl) return;
 
-    const category = getProgramResourceCategory(safeLevel);
-    const { data: rows, error } = await db.mediaUploads.getByCategory(category);
+    const { data: rows, error } = await getProgramResourceRows(safeLevel);
 
-    if (error || !rows?.length) {
+    if (error) {
+        listEl.innerHTML = `<div class="message-item">Could not load resources: ${error.message || "Unknown error"}</div>`;
+        return;
+    }
+
+    if (!rows?.length) {
         listEl.innerHTML = `<div class="message-item">No resources uploaded yet.</div>`;
         return;
     }
@@ -1955,13 +2117,14 @@ async function renderProgramResourceList(level) {
 function initProgramResourceUploadSystems() {
     const uploadButtons = document.querySelectorAll(".upload-btn[data-level]");
     const fileInputs = document.querySelectorAll(".file-input[data-level]");
+    const refreshButtons = document.querySelectorAll(".refresh-program-resources-btn[data-level]");
 
     uploadButtons.forEach((btn) => {
         if (btn.dataset.bound === "1") return;
         btn.dataset.bound = "1";
 
         btn.addEventListener("click", () => {
-            const level = String(btn.getAttribute("data-level") || "").trim().toLowerCase();
+            const level = normalizeProgramResourceLevel(btn.getAttribute("data-level") || "");
             if (!level) return;
             const input = document.querySelector(`.file-input[data-level="${level}"]`);
             input?.click();
@@ -1973,7 +2136,7 @@ function initProgramResourceUploadSystems() {
         input.dataset.bound = "1";
 
         input.addEventListener("change", async () => {
-            const level = String(input.getAttribute("data-level") || "").trim().toLowerCase();
+            const level = normalizeProgramResourceLevel(input.getAttribute("data-level") || "");
             if (!level) return;
 
             const files = Array.from(input.files || []);
@@ -1994,13 +2157,24 @@ function initProgramResourceUploadSystems() {
         });
     });
 
+    refreshButtons.forEach((btn) => {
+        if (btn.dataset.bound === "1") return;
+        btn.dataset.bound = "1";
+
+        btn.addEventListener("click", async () => {
+            const level = normalizeProgramResourceLevel(btn.getAttribute("data-level") || "");
+            if (!level) return;
+            await renderProgramResourceList(level);
+        });
+    });
+
     PROGRAM_RESOURCE_LEVELS.forEach((level) => {
         renderProgramResourceList(level);
     });
 }
 
 
-const TEACHERS_TASK_LEVELS = ["Basic Class", "Intermediate", "Advanced", "Cultural"];
+const TEACHERS_TASK_LEVELS = ["Basic Class", "Intermediate", "Advanced", "After School Tutorial", "Religious Study"];
 const TEACHERS_TASK_ATTENDANCE_SLOTS = [
     "week1Wed", "week1Sat",
     "week2Wed", "week2Sat",
@@ -2010,6 +2184,38 @@ const TEACHERS_TASK_ATTENDANCE_SLOTS = [
 
 let lessonPlanDocsCache = [];
 
+function normalizeTeachersTaskLevel(level) {
+    const raw = String(level || "").trim();
+    const value = raw.toLowerCase();
+    if (!value) return "";
+
+    if (value.includes("basic") || value.includes("beginner")) return "Basic Class";
+    if (value.includes("intermediate")) return "Intermediate";
+    if (value.includes("advanced")) return "Advanced";
+    if (value.includes("after school") || value.includes("ast") || value.includes("cultural")) return "After School Tutorial";
+    if (value.includes("religious")) return "Religious Study";
+    return raw;
+}
+
+function normalizeLessonDocWeek(week) {
+    const raw = String(week || "").trim();
+    if (!raw) return "";
+    const value = raw.toLowerCase();
+    const match = value.match(/week\s*-?\s*(\d{1,2})/) || value.match(/^(\d{1,2})$/);
+    if (match) return `Week-${match[1]}`;
+    return raw;
+}
+
+function normalizeLessonDocDay(day) {
+    const raw = String(day || "").trim();
+    if (!raw) return "";
+    const value = raw.toLowerCase();
+    if (!value) return raw;
+    if (value === "wednesday" || value === "wed" || value === "class-1" || value === "class 1") return "Wednesday";
+    if (value === "saturday" || value === "sat" || value === "class-2" || value === "class 2") return "Saturday";
+    return raw;
+}
+
 async function refreshLessonPlanDocs() {
     const { data } = await db.lessonPlanDocs.getAll();
     lessonPlanDocsCache = data || [];
@@ -2018,7 +2224,8 @@ async function refreshLessonPlanDocs() {
 function refreshCurrentLessonPlanPanel() {
     const levelSelect = document.getElementById("lessonPlanClassSelect");
     if (!levelSelect) return;
-    const selected = TEACHERS_TASK_LEVELS.includes(levelSelect.value) ? levelSelect.value : "Basic Class";
+    const selectedValue = normalizeTeachersTaskLevel(levelSelect.value);
+    const selected = TEACHERS_TASK_LEVELS.includes(selectedValue) ? selectedValue : "Basic Class";
     renderTeachersTaskLessonPlan(selected);
 }
 
@@ -2026,23 +2233,44 @@ async function renderLessonDocumentUploadList() {
     const listEl = document.getElementById("lessonDocsUploadList");
     if (!listEl) return;
 
+    const programSelect = document.getElementById("lessonDocsProgramSelect");
+    const weekSelect = document.getElementById("lessonDocsWeekSelect");
+    const daySelect = document.getElementById("lessonDocsDaySelect");
+
     await refreshLessonPlanDocs();
     const docs = lessonPlanDocsCache;
 
-    if (!docs.length) {
-        listEl.innerHTML = `<div class="message-item">No lesson documents uploaded yet.</div>`;
+    const selectedProgram = normalizeTeachersTaskLevel(programSelect?.value || "");
+    const selectedWeek = normalizeLessonDocWeek(weekSelect?.value || "");
+    const selectedDay = normalizeLessonDocDay(daySelect?.value || "");
+
+    const filteredDocs = docs.filter((row) => {
+        const rowProgram = normalizeTeachersTaskLevel(row?.class_level || "");
+        const rowWeek = normalizeLessonDocWeek(row?.week || "");
+        const rowDay = normalizeLessonDocDay(row?.day || "");
+
+        return (!selectedProgram || rowProgram === selectedProgram) &&
+            (!selectedWeek || rowWeek === selectedWeek) &&
+            (!selectedDay || rowDay === selectedDay);
+    });
+
+    if (!filteredDocs.length) {
+        listEl.innerHTML = `<div class="message-item">No lesson documents uploaded for the selected class/week/day.</div>`;
         return;
     }
 
-    // Show ALL files, regardless of class/week/day selection
-    listEl.innerHTML = docs.map((row) => {
-        const when = row.uploaded_at ? new Date(row.uploaded_at).toLocaleString() : "";
+    listEl.innerHTML = filteredDocs.map((row) => {
+        const whenSource = row.uploaded_at || row.updated_at || "";
+        const when = whenSource ? new Date(whenSource).toLocaleString() : "";
         const href = row.file_url || row.file_data || "";
         const hasDownload = !!href;
+        const classLabel = normalizeTeachersTaskLevel(row.class_level || "") || row.class_level || "";
+        const weekLabel = normalizeLessonDocWeek(row.week || "") || row.week || "";
+        const dayLabel = normalizeLessonDocDay(row.day || "") || row.day || "";
         return `
             <div class="message-item">
                 <div><strong>${row.file_name || "Unnamed file"}</strong> (${formatUploadSize(row.file_size || 0)})</div>
-                <div>${row.class_level || ""} / ${row.week || ""} / ${row.day || ""}</div>
+                <div>${classLabel} / ${weekLabel} / ${dayLabel}</div>
                 <div class="message-time">${when}</div>
                 <div class="support-actions">
                     ${hasDownload ? `<a href="${href}" download="${row.file_name || "file"}" target="_blank" rel="noopener">Download</a>` : `<span class="legacy-file-badge">Legacy file</span>`}
@@ -2064,13 +2292,13 @@ async function renderLessonDocumentUploadList() {
 }
 
 function getLessonDocumentsBySlot(program, week, day) {
-    const p = String(program || "").trim().toLowerCase();
-    const w = String(week || "").trim().toLowerCase();
-    const d = String(day || "").trim().toLowerCase();
+    const p = normalizeTeachersTaskLevel(program).toLowerCase();
+    const w = normalizeLessonDocWeek(week).toLowerCase();
+    const d = normalizeLessonDocDay(day).toLowerCase();
     return lessonPlanDocsCache.filter(row =>
-        String(row.class_level || "").trim().toLowerCase() === p &&
-        String(row.week || "").trim().toLowerCase() === w &&
-        String(row.day || "").trim().toLowerCase() === d
+        normalizeTeachersTaskLevel(row.class_level || "").toLowerCase() === p &&
+        normalizeLessonDocWeek(row.week || "").toLowerCase() === w &&
+        normalizeLessonDocDay(row.day || "").toLowerCase() === d
     );
 }
 
@@ -2098,17 +2326,21 @@ function initLessonPlanDocumentUploader() {
     const daySelect = document.getElementById("lessonDocsDaySelect");
     const fileInput = document.getElementById("lessonDocsFileInput");
     const uploadBtn = document.getElementById("lessonDocsUploadBtn");
-    const clearBtn = document.getElementById("clearLessonDocsBtn");
+    const refreshBtn = document.getElementById("refreshLessonDocsBtn");
     const statusEl = document.getElementById("lessonDocsUploadStatus");
 
-    if (!programSelect || !weekSelect || !daySelect || !fileInput || !uploadBtn || !clearBtn) return;
+    if (!programSelect || !weekSelect || !daySelect || !fileInput || !uploadBtn || !refreshBtn) return;
 
     renderLessonDocumentUploadList();
 
+    programSelect.addEventListener("change", renderLessonDocumentUploadList);
+    weekSelect.addEventListener("change", renderLessonDocumentUploadList);
+    daySelect.addEventListener("change", renderLessonDocumentUploadList);
+
     uploadBtn.addEventListener("click", async () => {
-        const program = programSelect.value;
-        const week = weekSelect.value;
-        const day = daySelect.value;
+        const program = normalizeTeachersTaskLevel(programSelect.value);
+        const week = normalizeLessonDocWeek(weekSelect.value);
+        const day = normalizeLessonDocDay(daySelect.value);
         const files = Array.from(fileInput.files || []);
 
         if (!program || !week || !day) {
@@ -2140,12 +2372,9 @@ function initLessonPlanDocumentUploader() {
         if (statusEl) statusEl.textContent = "Lesson document uploaded.";
     });
 
-    clearBtn.addEventListener("click", async () => {
-        if (!confirm("Clear all uploaded lesson documents?")) return;
-        await db.lessonPlanDocs.clearAll();
+    refreshBtn.addEventListener("click", async () => {
         await renderLessonDocumentUploadList();
-        refreshCurrentLessonPlanPanel();
-        if (statusEl) statusEl.textContent = "All lesson documents cleared.";
+        if (statusEl) statusEl.textContent = "Lesson documents refreshed.";
     });
 }
 
@@ -2631,6 +2860,7 @@ function initTeachersTaskPage() {
     const lessonContainer = document.getElementById("lessonPlanWeeksContainer");
     if (!levelSelect || !lessonContainer) return;
 
+    levelSelect.value = normalizeTeachersTaskLevel(levelSelect.value);
     if (!TEACHERS_TASK_LEVELS.includes(levelSelect.value)) {
         levelSelect.value = "Basic Class";
     }
@@ -2638,8 +2868,9 @@ function initTeachersTaskPage() {
     renderTeachersTaskLessonPlan(levelSelect.value);
 
     levelSelect.addEventListener("change", () => {
-        const selected = TEACHERS_TASK_LEVELS.includes(levelSelect.value)
-            ? levelSelect.value
+        const selectedValue = normalizeTeachersTaskLevel(levelSelect.value);
+        const selected = TEACHERS_TASK_LEVELS.includes(selectedValue)
+            ? selectedValue
             : "Basic Class";
         renderTeachersTaskLessonPlan(selected);
     });
