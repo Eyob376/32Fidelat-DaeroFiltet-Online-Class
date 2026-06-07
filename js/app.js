@@ -21,7 +21,9 @@ console.log("APP VERSION CHECK");
     if (!allowDuringMaintenance.has(page)) {
         window.location.replace("MNT-Page.html");
     }
-})();
+})().catch(error => {
+    console.error("Failed to initialize app startup state.", error);
+});
 
 /* =========================================================
 // GEEZ CHILD BUTTONS SOUND (Programs Page)
@@ -161,6 +163,13 @@ document.addEventListener("DOMContentLoaded", async () => {
         return String(value || "").trim().toLowerCase();
     }
 
+    function normalizeAssignedTeacher(value) {
+        const raw = String(value || "").trim().toLowerCase();
+        if (raw === "asier") return "Asier";
+        if (raw === "eyob") return "Eyob";
+        return "";
+    }
+
     function getProgramOptionsMarkup() {
         return `
             <option value="">Select</option>
@@ -274,7 +283,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     next1.addEventListener("click", () => {
         clearErrors();
 
-        const guardianFields = ["guardianName", "guardianEmail", "guardianPhone", "country", "city", "studentCount"];
+        const guardianFields = ["guardianName", "guardianEmail", "guardianPhone", "country", "city", "assignedTeacher", "studentCount"];
         for (const id of guardianFields) {
             const field = document.getElementById(id);
             if (!field || !field.value.trim()) {
@@ -411,7 +420,8 @@ document.addEventListener("DOMContentLoaded", async () => {
             guardianPhone: guardianPhone.value.trim(),
             country: country.value.trim(),
             city: city.value.trim(),
-            learningGoal: learningGoal.value.trim()
+            learningGoal: learningGoal.value.trim(),
+            assignedTeacher: normalizeAssignedTeacher(document.getElementById("assignedTeacher")?.value)
         };
 
         for (const [key, value] of Object.entries(guardianData)) {
@@ -425,6 +435,12 @@ document.addEventListener("DOMContentLoaded", async () => {
         if (!validateEmail(guardianData.guardianEmail)) {
             alert("Please enter a valid email format.");
             markError("guardianEmail");
+            return;
+        }
+
+        if (!guardianData.assignedTeacher) {
+            alert("Please select an assigned teacher.");
+            markError("assignedTeacher");
             return;
         }
 
@@ -500,6 +516,7 @@ document.addEventListener("DOMContentLoaded", async () => {
                 startDate: studentData.startDate,
                 programChoice: studentData.programChoice,
                 gradeLevel: studentData.gradeLevel,
+                assignedTeacher: guardianData.assignedTeacher,
                 status: "ongoing",
                 year: studentData.year,
                 years: studentData.years
@@ -530,6 +547,7 @@ document.addEventListener("DOMContentLoaded", async () => {
                     startDate: student.startDate,
                     programChoice: student.programChoice,
                     gradeLevel: student.gradeLevel,
+                    assignedTeacher: guardianData.assignedTeacher,
                     status: "new",
                     year: student.year,
                     years: student.years
@@ -984,6 +1002,12 @@ document.addEventListener("DOMContentLoaded", () => {
     const adminCredentialStatus = document.getElementById("adminCredentialStatus");
 
     const normalizeText = (value) => String(value || "").trim().toLowerCase();
+    const normalizeAssignedTeacher = (value) => {
+        const raw = normalizeText(value);
+        if (raw === "asier") return "Asier";
+        if (raw === "eyob") return "Eyob";
+        return "";
+    };
     const defaultAdminCredentials = {
         email: "daerofiltet@gmail.com",
         password: "password"
@@ -1124,6 +1148,7 @@ document.addEventListener("DOMContentLoaded", () => {
             const isDevUser = user === "it-dev" || user === "itdev" || user === "daerofiltet@gmail.com";
             if (isDevUser && password === "password") {
                 sessionStorage.setItem("daeroUserRole", "itdev");
+                sessionStorage.removeItem("daeroAssignedTeacher");
                 window.location.href = "admin-dashboard.html";
             } else {
                 alert("Invalid IT-Dev credentials.");
@@ -1135,9 +1160,26 @@ document.addEventListener("DOMContentLoaded", () => {
             const adminCred = await getAdminCredentials();
             if (normalizeText(email) === normalizeText(adminCred.email) && password === adminCred.password) {
                 sessionStorage.setItem("daeroUserRole", "admin");
+                sessionStorage.removeItem("daeroAssignedTeacher");
                 window.location.href = "admin-dashboard.html";
             } else {
                 alert("Invalid Admin credentials.");
+            }
+            return;
+        }
+
+        if (role === "asier" || role === "eyob") {
+            const teacherLabel = normalizeAssignedTeacher(role);
+            const expectedEmail = "daerofiltet@gmail.com";
+            const expectedPassword = role === "asier" ? "asiercanada" : "eyobjone";
+            if (normalizeText(email) === expectedEmail && password === expectedPassword) {
+                sessionStorage.setItem("daeroUserRole", "teacher");
+                sessionStorage.setItem("daeroAssignedTeacher", teacherLabel);
+                sessionStorage.setItem("daeroUserName", teacherLabel);
+                sessionStorage.setItem("daeroUserEmail", expectedEmail);
+                window.location.href = "admin-dashboard.html";
+            } else {
+                alert(`Invalid ${teacherLabel || "teacher"} credentials.`);
             }
             return;
         }
@@ -1175,6 +1217,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
             if (normalizeText(password) === expectedPassword) {
                 sessionStorage.setItem("daeroUserRole", "member");
+                sessionStorage.removeItem("daeroAssignedTeacher");
                 sessionStorage.setItem("daeroMemberEmail", normalizeText(email));
                 sessionStorage.setItem("daeroUserEmail", normalizeText(email));
                 sessionStorage.setItem("daeroMemberStudentId", String(student.id));
