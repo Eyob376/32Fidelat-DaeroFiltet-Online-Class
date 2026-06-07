@@ -16,6 +16,12 @@ let applicant = null;    // guardian/applicant record
 let students = [];       // student rows belonging to this applicant
 let loadedApplicantId = null;  // Supabase applicants.id
 
+function normalizeLifecycleStatus(value) {
+    const v = String(value || "").trim().toLowerCase();
+    const allowed = new Set(["new", "admitted", "ongoing", "suspended", "terminated", "completed"]);
+    return allowed.has(v) ? v : "";
+}
+
 // -------------------------------
 // DOM references
 // -------------------------------
@@ -81,6 +87,7 @@ function toStudentDisplay(row) {
         lastName: row.last_name || "",
         startDate: row.start_date || "",
         programChoice: row.program_choice || row.grade_level || "",
+        assignedTeacher: row.assigned_teacher || "",
         learningGoal: row.learning_goal || "",
         status: row.course_status
             ? (row.course_status.charAt(0).toUpperCase() + row.course_status.slice(1))
@@ -152,6 +159,15 @@ function createStudentBlock(student, index) {
         </div>
 
         <div class="field">
+            <label>Assigned Teacher</label>
+            <select id="assignedTeacher_${index}">
+                <option value="">-- Select Teacher --</option>
+                <option value="Asier">Asier</option>
+                <option value="Eyob">Eyob</option>
+            </select>
+        </div>
+
+        <div class="field">
             <label>Status</label>
             <select id="status_${index}">
                 <option value="Ongoing">Ongoing</option>
@@ -190,10 +206,12 @@ function createStudentBlock(student, index) {
     // Set selects after innerHTML
     const programSelect = block.querySelector(`#program_${index}`);
     const goalSelect    = block.querySelector(`#goal_${index}`);
+    const assignedTeacherSelect = block.querySelector(`#assignedTeacher_${index}`);
     const statusSelect  = block.querySelector(`#status_${index}`);
 
     programSelect.value = student.programChoice || "";
     goalSelect.value    = student.learningGoal  || "";
+    assignedTeacherSelect.value = student.assignedTeacher || "";
     statusSelect.value  = student.status        || "Ongoing";
 
     return block;
@@ -224,6 +242,7 @@ addStudentBtn.addEventListener("click", () => {
         lastName: "",
         startDate: "",
         programChoice: "",
+        assignedTeacher: "",
         learningGoal: "",
         status: "Ongoing",
         morningStart: "",
@@ -259,9 +278,10 @@ saveBtn.addEventListener("click", async () => {
     const country       = countryInput.value.trim();
     const city          = cityInput.value.trim();
     // Save guardian (applicant) record
+    const currentApplicantStatus = normalizeLifecycleStatus(applicant?.status) || "admitted";
     const { error: appErr } = await db.applicants.save({
         id: loadedApplicantId,
-        status: applicant.status || 'admitted',
+        status: currentApplicantStatus,
         guardianName,
         guardianEmail,
         guardianPhone,
@@ -281,6 +301,7 @@ saveBtn.addEventListener("click", async () => {
         const startDate     = document.getElementById(`sd_${index}`)?.value || "";
         const programChoice = document.getElementById(`program_${index}`)?.value || "";
         const learningGoal  = document.getElementById(`goal_${index}`)?.value || "";
+        const assignedTeacher = document.getElementById(`assignedTeacher_${index}`)?.value || "";
         const status        = (document.getElementById(`status_${index}`)?.value || "Ongoing").toLowerCase();
 
         // Collect schedule fields
@@ -301,6 +322,8 @@ saveBtn.addEventListener("click", async () => {
             eveningEnd
         };
 
+        const lifecycleStatus = normalizeLifecycleStatus(row?.status) || "admitted";
+
         const { error: stuErr } = await db.students.save({
             id: row.id || null,
             sid: row.sid || (index + 1),
@@ -309,9 +332,11 @@ saveBtn.addEventListener("click", async () => {
             startDate,
             programChoice,
             gradeLevel: programChoice,
+            assignedTeacher,
             learningGoal,
             schedule,
-            status: applicant.status || 'admitted',
+            // Keep lifecycle status from the original row to avoid moving admitted students back to new.
+            status: lifecycleStatus,
             courseStatus: status
         }, loadedApplicantId);
         if (stuErr) {
