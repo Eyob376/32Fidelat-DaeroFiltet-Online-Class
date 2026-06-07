@@ -155,6 +155,7 @@ const db = {
                 start_date:     student.startDate     || null,
                 program_choice: student.programChoice || "",
                 grade_level:    student.gradeLevel    || student.programChoice || "",
+                assigned_teacher: student.assignedTeacher || null,
                 learning_goal:  student.learningGoal  || "",
                 schedule:       student.schedule      || null,
                 status:         student.status        || "new",
@@ -314,6 +315,11 @@ const db = {
        Legacy key: portalRemindersByEmail
        ============================================================= */
     reminders: {
+
+        getAll: () => _query(
+            () => sb().from("reminders").select("*").order("posted_at", { ascending: false }),
+            "reminders.getAll"
+        ),
 
         getByEmail: (email) => _query(
             () => sb().from("reminders").select("*").eq("guardian_email", email.toLowerCase().trim()).order("posted_at", { ascending: false }),
