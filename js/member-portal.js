@@ -63,6 +63,39 @@
         return String(value || '').trim().toLowerCase();
     }
 
+    function normalizeProgramResourceLevel(value) {
+        const normalized = String(value || '')
+            .trim()
+            .toLowerCase()
+            .replace(/^program-resources-/, '')
+            .replace(/[_\s]+/g, '-')
+            .replace(/-+/g, '-');
+
+        if (!normalized) return '';
+        if (normalized.includes('beginner') || normalized.includes('basic')) return 'beginner';
+        if (normalized.includes('intermediate')) return 'intermediate';
+        if (normalized.includes('advanced')) return 'advanced';
+        if (normalized.includes('after-school') || normalized.includes('afterschool') || normalized.includes('ast') || normalized.includes('tutorial')) return 'afterschool';
+        if (normalized.includes('religious')) return 'religious';
+        return normalized;
+    }
+
+    async function getProgramResourceUploads(level) {
+        const safeLevel = normalizeProgramResourceLevel(level);
+        const category = `program-resources-${safeLevel}`;
+        const exactResult = await (db.mediaUploads?.getByCategory ? db.mediaUploads.getByCategory(category) : { data: [], error: null });
+        if (exactResult.error) return exactResult;
+        if ((exactResult.data || []).length) return exactResult;
+
+        const allResult = await (db.mediaUploads?.getAll ? db.mediaUploads.getAll() : { data: [], error: null });
+        if (allResult.error) return allResult;
+
+        return {
+            data: (allResult.data || []).filter((row) => normalizeProgramResourceLevel(row?.category || '') === safeLevel),
+            error: null
+        };
+    }
+
     function sanitizeFileName(name) {
         return String(name || 'file').replace(/[\\/:*?"<>|]+/g, '_').trim() || 'file';
     }
@@ -77,6 +110,49 @@
         } catch (e) {
             return String(value || '');
         }
+    }
+
+    function escapeHtml(value) {
+        return String(value || '')
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#39;');
+    }
+
+    function renderTextWithLinks(value) {
+        const text = String(value || '');
+        if (!text) return '';
+
+        const urlPattern = /(https?:\/\/[^\s<]+)/gi;
+        const parts = [];
+        let lastIndex = 0;
+
+        text.replace(urlPattern, (match, _group, offset) => {
+            if (offset > lastIndex) {
+                parts.push(escapeHtml(text.slice(lastIndex, offset)));
+            }
+
+            const trimmedUrl = match.replace(/[).,!?:;]+$/g, '');
+            const trailing = match.slice(trimmedUrl.length);
+            const safeUrl = escapeHtml(trimmedUrl);
+
+            parts.push(`<a href="${safeUrl}" target="_blank" rel="noopener noreferrer">${safeUrl}</a>`);
+
+            if (trailing) {
+                parts.push(escapeHtml(trailing));
+            }
+
+            lastIndex = offset + match.length;
+            return match;
+        });
+
+        if (lastIndex < text.length) {
+            parts.push(escapeHtml(text.slice(lastIndex)));
+        }
+
+        return parts.join('').replace(/\n/g, '<br>');
     }
 
     function openUrlInBrowser(url) {
@@ -420,11 +496,10 @@
         const guardianEmail = normalizeEmail(student.guardianEmail);
         const program = assignmentProgramKey(student.programChoice);
 
-        const resourceCategory = `program-resources-${program}`;
         const [directAsgRes, sharedAsgRes, programResourceRes, announcementRes, reminderRes, offerRes, paymentRes, priceRes] = await Promise.all([
             db.assignments?.getByEmail ? db.assignments.getByEmail(guardianEmail) : { data: [], error: null },
             db.assignments?.getByProgram ? db.assignments.getByProgram(program) : { data: [], error: null },
-            db.mediaUploads?.getByCategory ? db.mediaUploads.getByCategory(resourceCategory) : { data: [], error: null },
+            getProgramResourceUploads(program),
             db.announcements?.getByProgram ? db.announcements.getByProgram(program) : { data: [], error: null },
             db.reminders?.getByEmail ? db.reminders.getByEmail(guardianEmail) : { data: [], error: null },
             db.familyOffers?.getByEmail ? db.familyOffers.getByEmail(guardianEmail) : { data: null, error: null },
@@ -805,17 +880,20 @@
             .reverse()
             .map(r => {
                 const attachments = Array.isArray(r.attachments) ? r.attachments : [];
+                const title = escapeHtml(r.title || 'Friendly Reminder');
+                const dueDate = escapeHtml(r.dueDate || 'TBA');
+                const messageHtml = renderTextWithLinks(r.message || '');
                 const attachmentLinks = attachments
                     .map(file => {
                         const href = file?.downloadUrl || file?.dataUrl || file?.fileUrl || '';
                         const name = file?.name || 'Attachment';
                         const actions = buildFileActionLinks(href, name);
-                        return `<span>${name}: ${actions}</span>`;
+                        return `<span>${escapeHtml(name)}: ${actions}</span>`;
                     })
                     .join(' | ');
 
                 const attachmentHtml = attachmentLinks ? ` • ${attachmentLinks}` : '';
-                return `<li><strong>${r.title || 'Friendly Reminder'}</strong> • Due: ${r.dueDate || 'TBA'} • ${r.message || ''}${attachmentHtml}</li>`;
+                return `<li><strong>${title}</strong> • Due: ${dueDate} • ${messageHtml}${attachmentHtml}</li>`;
             })
             .join('');
 
