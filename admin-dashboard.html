@@ -54,6 +54,7 @@
             <h3>Settings</h3>
             <a href="#" class="admin-link" data-target="priceSettingsPage">Price Settings</a>
             <a href="#" class="admin-link" data-target="classTeachersTaskPage">Teachers Task</a>
+            <a href="#" class="admin-link" data-target="controlPanelPage">Control Panel</a>
         </div>
 
         <div class="admin-footer">
@@ -372,6 +373,27 @@
             </div>
         </section>
 
+        <section id="controlPanelPage" class="admin-page">
+            <h1 class="page-title">Control Panel</h1>
+            <div class="glass-card support-card support-card-wide">
+                <h2>User Permission Manager</h2>
+                <p>Choose a user, then enable or disable access to each dashboard page.</p>
+                <div class="support-form">
+                    <select id="permissionUserSelect">
+                        <option value="asier">Asier</option>
+                        <option value="eyob">Eyob</option>
+                        <option value="itdev">IT-Dev</option>
+                        <option value="admin">Admin</option>
+                    </select>
+                    <button type="button" class="glass-btn btn-primary" id="permissionSelectAllBtn">Enable All</button>
+                    <button type="button" class="glass-btn" id="permissionClearAllBtn">Disable All</button>
+                    <button type="button" class="glass-btn btn-primary" id="permissionReloadBtn">Reload</button>
+                </div>
+                <p id="permissionStatus" class="support-status"></p>
+                <div id="permissionList" class="messages-list"></div>
+            </div>
+        </section>
+
         <section id="allPostsMediaPage" class="admin-page">
             <h1 class="page-title">Uploading All Posts</h1>
             <div class="support-actions" style="margin-bottom: 12px;">
@@ -686,7 +708,7 @@
 
 <footer class="glass-footer">
     <ul class="footer-links">
-        <li>© 2026 Daero Filitet. All Rights Reserved.</li>
+        <li>© 2026 Daero Filtet. All Rights Reserved.</li>
         <li><a href="info.html">Web Design by Eyob Kidane</a></li>
     </ul>
 </footer>
