@@ -1,3878 +1,5812 @@
-/* =========================================================
-   ADMIN DASHBOARD — CORE HELPERS
-   One row per student (flattened model)
-========================================================= */
-function getAllApplicants() {
-    // Synchronous wrapper — returns the pre-loaded cache.
-    // Call refreshApplicantsCache() (async) to reload from Supabase.
-    return allApplicantsCache;
+.assignment-upload-controls #clearUploadAdditionalAssignments {
+    min-width: 60px !important;
+    width: auto;
+    padding-left: 16px;
+    padding-right: 16px;
+}
+/* Ensure Upload and Clear All buttons in Additional Assignments have the same width */
+.assignment-upload-controls .glass-btn {
+    min-width: 90px;
+}
+/* Match Additional Assignments buttons to Lesson Plan Upload button width */
+
+
+/* Align buttons to the right and expand file input */
+.assignment-upload-controls {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+    justify-content: flex-end;
+}
+.assignment-upload-controls input[type="file"] {
+    flex: 1 1 0%;
+    min-width: 320px;
+    max-width: 100%;
+    margin-right: auto;
 }
 
-async function refreshApplicantsCache() {
-    if (typeof db === 'undefined') return;
-    const { data, error } = await db.students.getAll();
-    if (error) {
-        console.error('[admin] refreshApplicantsCache error:', error.message);
-        return;
+/* Expand file input in Additional Assignments panel */
+.assignment-upload-controls {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+}
+.assignment-upload-controls input[type="file"] {
+    flex: 1 1 100%;
+    min-width: 0;
+    max-width: 100%;
+    width: 100%;
+}
+/* =========================================================
+   1. RESET & GLOBAL VARIABLES
+========================================================= */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+:root {
+    --font-sans: -apple-system, BlinkMacSystemFont, "SF Pro Display", system-ui, sans-serif;
+    --font-serif: Georgia, "Times New Roman", serif;
+
+    --color-bg: #e8eef5;
+    --color-bg-alt: #f7f9fc;
+    --color-text-dark: #1a1a1a;
+    --color-text-muted: #333333;
+    --color-text-light: #ffffff;
+    --color-primary: #007aff;
+    --color-accent: #e5d027;
+    --color-danger: #e63946;
+
+    --glass-bg: rgba(255, 255, 255, 0.35);
+    --glass-bg-soft: rgba(255, 255, 255, 0.25);
+    --glass-border: rgba(255, 255, 255, 0.25);
+    --glass-border-strong: rgba(255, 255, 255, 0.35);
+    --glass-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+
+    --radius-sm: 12px;
+    --radius-md: 18px;
+    --radius-lg: 22px;
+    --radius-pill: 999px;
+
+    --space-1: 8px;
+    --space-2: 12px;
+    --space-3: 16px;
+    --space-4: 24px;
+    --space-5: 32px;
+    --space-6: 48px;
+    --space-7: 64px;
+}
+
+/* =========================================================
+   2. BASE STYLES
+========================================================= */
+
+body {
+    font-family: var(--font-sans);
+    /*background: linear-gradient(135deg, var(--color-bg), var(--color-bg-alt));*/
+    color: var(--color-text-dark);
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+}
+
+body.locked-chrome {
+    height: 100vh;
+    overflow: hidden;
+}
+
+.navbar.fixed-chrome {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 2100;
+}
+
+.glass-footer.fixed-chrome {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 2100;
+}
+
+.page-scroll-container {
+    position: fixed;
+    left: 0;
+    right: 0;
+    top: var(--fixed-header-offset, 80px);
+    bottom: var(--fixed-footer-offset, 0px);
+    overflow-y: auto;
+    overflow-x: hidden;
+    -webkit-overflow-scrolling: touch;
+}
+
+h1, h2, h3, h4 {
+    font-family: var(--font-serif);
+    line-height: 1.2;
+}
+
+h2, h3 {
+    color: var(--color-text-light);
+}
+
+h4 {
+    color: #030711;
+    font-size: 1.2em;
+    text-align: center;
+}
+
+/* =========================================================
+   3. GLASS SYSTEM
+========================================================= */
+
+
+.glass-title {
+    background: #9F9C92;
+}
+
+.glass-footer {
+    background-color: #5e8cb0;
+    background-image: 
+        radial-gradient(at 47% 33%, hsl(180.00, 22%, 89%) 0, transparent 59%), 
+        radial-gradient(at 82% 65%, hsl(208.81, 95%, 42%) 0, transparent 55%);
+}
+/* Generic card */
+.glass-card {
+    padding: var(--space-3);
+}
+
+/* =========================================================
+   4. NAVIGATION
+========================================================= */
+.navbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 14px 40px;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    z-index: 20;
+    backdrop-filter: blur(18px) saturate(180%);
+    -webkit-backdrop-filter: blur(18px) saturate(180%);
+    background: var(--glass-bg);
+    border-bottom: 1px solid var(--glass-border);
+}
+
+.logo-img {
+    height: 60px;
+    width: 60px;
+    border-radius: 50%;
+    object-fit: cover;
+}
+
+/* Desktop nav */
+.glass-nav {
+    position: relative;
+    z-index: 1;
+}
+
+.glass-nav ul {
+    list-style: none;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+}
+
+.glass-nav a {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0.4rem 0.75rem;
+    border-radius: var(--radius-pill);
+    text-decoration: none;
+    color: var(--color-text-dark);
+    font-size: 0.9rem;
+    background: rgba(255, 255, 255, 0.25);
+    border: 1px solid rgba(255, 255, 255, 0.35);
+    transition: background 0.2s ease, border-color 0.2s ease, transform 0.1s ease, color 0.2s ease;
+}
+
+.glass-nav a:hover {
+    background: rgba(255, 182, 193, 0.35);
+    border-color: rgba(255, 182, 193, 0.55);
+    color: var(--color-primary);
+    transform: translateY(-1px);
+}
+
+.glass-nav a.active {
+    background: rgba(255, 182, 193, 0.45);
+    border-color: rgba(255, 182, 193, 0.75);
+    color: var(--color-primary);
+}
+
+.register-btn {
+    padding: 8px 18px;
+    background: rgba(0, 122, 255, 0.25);
+    color: var(--color-primary);
+    border-radius: 12px;
+    border: 1px solid rgba(0, 122, 255, 0.35);
+}
+
+/* =========================================================
+   HEADER HELP NOTIFICATION BADGE
+========================================================= */
+.header-help-notification {
+    position: fixed;
+    top: 14px;
+    right: 40px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 16px;
+    background: linear-gradient(135deg, rgba(255, 107, 107, 0.95), rgba(255, 153, 0, 0.95));
+    border: 1px solid rgba(255, 153, 153, 0.6);
+    border-radius: 12px;
+    box-shadow: 0 8px 24px rgba(255, 107, 107, 0.3);
+    z-index: 30;
+    animation: slideInRight 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+    font-weight: 600;
+    color: white;
+    font-size: 0.95rem;
+}
+
+.header-notification-btn {
+    padding: 6px 14px;
+    background: rgba(255, 255, 255, 0.25);
+    color: white;
+    border: 1px solid rgba(255, 255, 255, 0.5);
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: 600;
+    font-size: 0.85rem;
+    transition: all 0.2s ease;
+}
+
+.header-notification-btn:hover {
+    background: rgba(255, 255, 255, 0.4);
+    border-color: rgba(255, 255, 255, 0.7);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+@keyframes slideInRight {
+    from {
+        opacity: 0;
+        transform: translateX(100px);
     }
-    allApplicantsCache = (data || []).map(row => {
-        const app = row.applicants || {};
-        const y = row.start_date ? new Date(row.start_date).getFullYear() : new Date().getFullYear();
-        const yr = isNaN(y) ? new Date().getFullYear() : y;
-        return {
-            id: row.id,
-            status: row.status || 'new',
-            guardianName:  app.guardian_name  || '',
-            guardianEmail: app.guardian_email || '',
-            guardianPhone: app.guardian_phone || '',
-            country: app.country || '',
-            city:    app.city    || '',
-            firstName:     row.first_name     || '',
-            lastName:      row.last_name      || '',
-            startDate:     row.start_date     || '',
-            programChoice: row.program_choice || '',
-            gradeLevel:    row.grade_level    || row.program_choice || '',
-            courseStatus:  row.course_status  || 'ongoing',
-            year:  yr,
-            years: [yr]
-        };
-    });
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
 }
 
-function runOneTimeApplicantDataRepair() {
-    // No-op: data is now managed entirely by Supabase.
+/* Mobile bottom nav */
+.glass-nav-mobile {
+    display: none;
+}
+
+@media (max-width: 768px) {
+    .glass-nav-mobile {
+        display: flex;
+        justify-content: space-around;
+        align-items: center;
+        position: fixed;
+        bottom: 20px;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 90%;
+        padding: 12px 18px;
+        border-radius: var(--radius-lg);
+        backdrop-filter: blur(18px) saturate(180%);
+        -webkit-backdrop-filter: blur(18px) saturate(180%);
+        background: var(--glass-bg);
+        border: 1px solid var(--glass-border);
+        box-shadow: var(--glass-shadow);
+        z-index: 100;
+    }
+
+    .glass-nav-mobile a {
+        text-decoration: none;
+        color: var(--color-text-dark);
+        font-weight: 600;
+        font-size: 0.95rem;
+        transition: 0.25s ease;
+    }
+
+    .glass-nav-mobile a:hover {
+        color: var(--color-primary);
+        transform: translateY(-2px);
+    }
 }
 
 /* =========================================================
-   GLOBAL STATE
+   5. HERO (used on other pages)
 ========================================================= */
-
-let allApplicantsCache = [];
-let currentNewPage = 1;
-let currentAdPage = 1;
-let currentNewData = [];
-let currentAdData = [];
-
-function getConfiguredUploadLimitBytes() {
-    const raw = Number(window.DAERO_MEDIA_UPLOAD_MAX_BYTES);
-    return raw > 0 ? raw : (50 * 1024 * 1024);
+.hero {
+    position: relative;
+    height: 100vh;
+    overflow: hidden;
 }
 
-function buildVideoUploadLimitError(file) {
-    const limitBytes = getConfiguredUploadLimitBytes();
-    return new Error(
-        `${file.name} is ${formatUploadSize(file?.size)}, but the current Supabase Storage upload limit is ${formatUploadSize(limitBytes)}. ` +
-        `Increase Storage Settings > Global file size limit in Supabase or upload a smaller video.`
+.hero-overlay {
+    position: absolute;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.25);
+}
+
+.hero-content {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    text-align: center;
+    padding: 40px;
+    max-width: 650px;
+    animation: fadeUp 1.2s ease forwards;
+    opacity: 0;
+}
+
+.hero-content h1 {
+    font-size: 2.6rem;
+    margin-bottom: 15px;
+    color: var(--color-text-light);
+}
+
+.hero-content p {
+    color: #f1f1f1;
+    margin-bottom: 25px;
+}
+
+@keyframes fadeUp {
+    from {
+        transform: translate(-50%, -40%);
+        opacity: 0;
+    }
+    to {
+        transform: translate(-50%, -50%);
+        opacity: 1;
+    }
+}
+
+/* =========================================================
+   6. BUTTONS
+========================================================= */
+.glass-btn {
+    padding: 14px 26px;
+    border-radius: var(--radius-md);
+    text-decoration: none;
+    display: inline-block;
+    margin: 10px;
+    color: var(--color-accent);
+    font-weight: 600;
+    letter-spacing: 0.3px;
+    transition: 0.25s ease;
+    backdrop-filter: blur(20px) saturate(180%);
+    background: rgba(255, 255, 255, 0.18);
+    border: 1px solid rgba(255, 255, 255, 0.25);
+    font-family: var(--font-serif);
+}
+
+.glass-btn:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+}
+
+.btn-primary {
+    background: rgba(29, 53, 87, 0.45);
+    color: var(--color-text-light);
+}
+
+.btn-secondary {
+    background: rgba(230, 57, 70, 0.45);
+    color: var(--color-text-light);
+}
+
+/* =========================================================
+   7. HOME PAGE LAYOUT
+========================================================= */
+.page-wrapper {
+    padding: 120px 40px 60px;
+    background: transparent;
+    margin-top: 80px; /* offset fixed navbar */
+    flex: 1;
+}
+
+.gallery-title {
+    font-size: 2.2rem;
+    font-weight: 800;
+    text-align: center;
+    margin-bottom: 30px;
+    color: var(--color-text-dark);
+    letter-spacing: 0.5px;
+}
+
+.home-layout {
+    display: grid;
+    grid-template-columns: 1fr 2fr 1fr;
+    gap: 20px;
+    width: 100%;
+    margin-top: 40px;
+}
+
+.center-gallery-column {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.side-column {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.side-card {
+    padding: 20px;
+    border-radius: var(--radius-md);
+}
+
+/* Right column figure */
+.Graduations {
+    margin: 8px 0 0;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.graduation-slideshow {
+    align-items: stretch;
+}
+
+.graduation-frame {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 4 / 7;
+    overflow: hidden;
+    border-radius: var(--radius-md);
+}
+
+.graduation-slide {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    object-position: top center;
+    border-radius: var(--radius-md);
+    display: block;
+    opacity: 0;
+    transition: opacity 1.2s ease-in-out;
+}
+
+.graduation-slide.active {
+    opacity: 1;
+}
+
+.Graduations p {
+    margin: 0;
+}
+
+/* =========================================================
+   8. GALLERY
+========================================================= */
+.gallery-wrapper {
+    position: relative;
+    height: 550px;
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+}
+
+.gallery-top-label {
+    text-align: center;
+    font-size: 1.45rem;
+    font-weight: 800;
+    color: var(--color-text-dark);
+    margin: 0;
+}
+
+.gallery-img {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    opacity: 0;
+    transition: opacity 1.8s ease-in-out;
+}
+
+.gallery-img.active {
+    opacity: 1;
+}
+
+/* =========================================================
+   9. LATEST POSTS
+========================================================= */
+.posts {
+    padding: 80px 65px;
+    text-align: center;
+}
+
+.glass-title {
+    font-size: 2rem;
+    font-weight: 800;
+    margin-bottom: 20px;
+    color: var(--color-text-dark);
+}
+
+.posts-rotator {
+    position: relative;
+    width: 90%;
+    max-width: 550px;
+    height: 400px;
+    margin: 40px auto;
+}
+
+.post-card {
+    position: absolute;
+    inset: 0;
+    border-radius: var(--radius-md);
+    overflow: hidden;
+    opacity: 0;
+    transition: opacity 1.2s ease-in-out;
+}
+
+.post-card.active {
+    opacity: 1;
+}
+
+.post-card img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+/* =========================================================
+   10. PROGRAMS PAGE
+========================================================= */
+.page-title {
+    font-size: 2.4rem;
+    font-weight: 800;
+    margin-bottom: 40px;
+    text-align: center;
+}
+
+.programs-section h1{
+	color: #ffff;
+    font-size: 3.2em;
+    text-align: center;
+}
+
+.programs-section {
+    background-image: url("../assets/bg3.png");
+    background-size: cover;
+    background-position: center;
+    padding: 120px 40px;
+    border-radius: var(--radius-lg);
+    margin-top: 40px;
+}
+
+.programs-row {
+    display: flex;
+    justify-content: center;
+    gap: 20px;
+    margin-top: 40px;
+    flex-wrap: wrap;
+}
+
+.programs-row-title {
+    flex-basis: 100%;
+    width: 100%;
+    text-align: center;
+    color: #000;
+    margin-bottom: 0;
+    font-weight: bold;
+}
+
+.program-box {
+    width: 460px;
+    height: 400px;
+    border-radius: var(--radius-lg);
+    position: relative;
+    overflow: hidden;
+    background-image: url("../assets/bg2.png");
+    background-size: cover;
+    background-position: center;
+    backdrop-filter: blur(18px) saturate(180%);
+    -webkit-backdrop-filter: blur(18px) saturate(180%);
+    background-color: rgba(255, 255, 255, 0.15);
+    border: 1px solid var(--glass-border-strong);
+    box-shadow: var(--glass-shadow);
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+}
+
+/* Level label */
+.program-level {
+    position: absolute;
+    top: 16px;
+    right: 16px;
+    padding: 6px 14px;
+    border-radius: 14px;
+    font-size: 0.9rem;
+    font-weight: 700;
+    color: var(--color-text-light);
+    backdrop-filter: blur(12px) saturate(180%);
+    background: rgba(0, 0, 0, 0.35);
+    border: 1px solid rgba(255, 255, 255, 0.25);
+}
+
+/* Title + price row (used in JS layout) */
+.program-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 6px;
+}
+
+.program-meta {
+    margin-left: auto;
+    display: flex;
+    align-items: center;
+}
+
+.program-title {
+    font-size: 1.8rem;
+    font-weight: 800;
+    color: var(--color-text-light);
+    text-shadow: 0 2px 6px rgba(0, 0, 0, 0.4);
+    margin: 0;
+}
+
+.program-price {
+    font-size: 1.3rem;
+    font-weight: 700;
+    color: #ffeb3b;
+    text-shadow: 0 2px 6px rgba(0, 0, 0, 0.4);
+}
+
+.program-rating {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: #ffeb3b;
+    margin: 0 0 10px;
+    text-align: right;
+}
+
+/* Bullet points */
+.program-points {
+    list-style: disc;
+    padding-left: 20px;
+}
+
+.program-points li p {
+    color: var(--color-text-light);
+    font-size: 1rem;
+    margin: 4px 0;
+}
+
+.program-attraction {
+    margin: 8px 0 10px;
+    padding: 8px 10px;
+    border-radius: 10px;
+    background: rgba(241, 227, 154, 0.814);
+    color: #2d2a1f;
+    font-size: 0.86rem;
+    font-weight: 700;
+    line-height: 1.35;
+}
+
+.program-learn-subtitle {
+    margin: 8px 0 4px;
+    font-size: 0.92rem;
+    font-weight: 800;
+    color: #111111;
+}
+
+.program-rating-stars {
+    color: #ffe070;
+    letter-spacing: 1px;
+    font-size: 0.84rem;
+}
+
+.program-rating-value {
+    color: #fff;
+    font-weight: 800;
+}
+
+/* =========================================================
+   11. WHY SECTION
+========================================================= */
+.why-section {
+    background-image: url("../assets/bg3.png");
+    background-size: cover;
+    background-position: center;
+    padding: 120px 40px;
+    border-radius: var(--radius-lg);
+    margin-top: 60px;
+}
+
+.why-title {
+    text-align: center;
+    font-size: 2rem;
+    font-weight: 800;
+    margin-bottom: 30px;
+    color: var(--color-text-light);
+}
+
+.why-row {
+    display: flex;
+    justify-content: center;
+    gap: 20px;
+    flex-wrap: wrap;
+}
+
+.why-box {
+    width: 260px;
+    height: 280px;
+    border-radius: 20px;
+    padding: 20px;
+    text-align: center;
+    background-image: url("../assets/bg.png");
+    background-size: cover;
+    background-position: center;
+    backdrop-filter: blur(18px) saturate(180%);
+    background-color: rgba(255, 255, 255, 0.15);
+    border: 1px solid var(--glass-border-strong);
+    box-shadow: var(--glass-shadow);
+}
+
+.why-icon {
+    width: 60px;
+    height: 60px;
+    margin-bottom: 12px;
+    opacity: 0.9;
+    filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.25));
+}
+
+.why-box h3 {
+    font-size: 1.2rem;
+    font-weight: 700;
+    margin-bottom: 10px;
+}
+
+.why-box p {
+    font-size: 0.9em;
+    color: var(--color-text-light);
+}
+
+/* =========================================================
+   12. CTA SECTION
+========================================================= */
+.cta-section {
+    display: flex;
+    justify-content: center;
+    margin: 60px 0;
+}
+
+.cta-box {
+    width: 900px;
+    max-width: 100%;
+    height: 260px;
+    border-radius: var(--radius-lg);
+    padding: 30px;
+    text-align: center;
+    background-image: url("../assets/bg3.png");
+    background-size: cover;
+    background-position: center;
+    backdrop-filter: blur(18px) saturate(180%);
+    background-color: rgba(255, 255, 255, 0.15);
+    border: 1px solid var(--glass-border-strong);
+    box-shadow: var(--glass-shadow);
+}
+
+.cta-title {
+    font-size: 2rem;
+    font-weight: 800;
+    margin-bottom: 10px;
+    color: var(--color-text-light);
+}
+
+.cta-text,
+.cta-box p {
+    font-size: 0.9em;
+    color: var(--color-text-light);
+    margin-bottom: 20px;
+}
+
+.cta-btn {
+    margin-top: 10px;
+    padding: 12px 24px;
+    font-size: 1.1rem;
+    border-radius: 14px;
+}
+
+/* =========================================================
+   13. FORMS (LOGIN / REGISTER)
+========================================================= */
+.login-card {
+    max-width: 420px;
+    width: 100%;
+    padding: 30px;
+    text-align: left;
+}
+
+.login-card h2 {
+    margin-bottom: 10px;
+}
+
+.login-card p {
+    margin-bottom: 20px;
+}
+
+.form-group {
+    margin-bottom: 16px;
+    display: flex;
+    flex-direction: column;
+}
+
+.form-group label {
+    font-size: 0.9rem;
+    margin-bottom: 4px;
+    color: var(--color-text-muted);
+}
+
+.form-group input {
+    padding: 10px 12px;
+    border-radius: 10px;
+    border: 1px solid rgba(0, 0, 0, 0.08);
+    outline: none;
+}
+
+.small-text {
+    margin-top: 14px;
+    font-size: 0.85rem;
+}
+
+/* Registration form */
+.register-card {
+    max-width: 650px;
+    width: 100%;
+    padding: 30px;
+}
+
+.step-indicator {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 20px;
+    gap: 8px;
+}
+
+.step-indicator .step {
+    flex: 1;
+    text-align: center;
+    padding: 8px;
+    border-radius: 14px;
+    font-size: 0.85rem;
+    background: rgba(255, 255, 255, 0.4);
+    border: 1px solid transparent;
+}
+
+.step-indicator .step.active {
+    border-color: var(--color-primary);
+    color: var(--color-primary);
+}
+
+.step-panel {
+    display: none;
+}
+
+.step-panel.active {
+    display: block;
+}
+
+.step-actions {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 20px;
+}
+
+/* =========================================================
+   14. ADMIN PAGES
+========================================================= */
+/*
+.admin-body {
+    background: linear-gradient(135deg, #dde7f5, #f5f7fb);
+}*/
+
+.admin-layout {
+    display: grid;
+    grid-template-columns: 260px 1fr;
+    min-height: 100vh;
+}
+
+.admin-sidebar {
+    padding: 20px;
+    border-radius: 0;
+    border-right: 1px solid rgba(255, 255, 255, 0.4);
+}
+
+.admin-sidebar h2 {
+    margin-bottom: 20px;
+}
+
+.admin-section {
+    margin-bottom: 20px;
+}
+
+.admin-section h3 {
+    font-size: 0.9rem;
+    text-transform: uppercase;
+    margin-bottom: 6px;
+    color: #555;
+}
+
+.admin-section a {
+    display: block;
+    text-decoration: none;
+    color: #222;
+    margin: 4px 0;
+    font-size: 0.9rem;
+}
+
+.admin-section a:hover {
+    color: var(--color-primary);
+}
+
+.admin-footer {
+    margin-top: 30px;
+    font-size: 0.8rem;
+    color: #555;
+}
+
+.admin-main {
+    padding: 30px;
+}
+
+.admin-cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+    gap: 20px;
+    margin-top: 20px;
+}
+
+.admin-card {
+    padding: 20px;
+}
+
+.portal-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 20px;
+    width: 90%;
+    max-width: 1100px;
+}
+
+/* =========================================================
+   15. ANIMATIONS & SCROLL EFFECTS
+========================================================= */
+.reveal,
+.slide-left,
+.slide-right,
+.blur-in,
+.animate {
+    opacity: 0;
+    transform: translateY(20px);
+    filter: blur(6px);
+    transition: all 0.9s ease;
+}
+
+.reveal.visible,
+.slide-left.visible,
+.slide-right.visible,
+.blur-in.visible,
+.animate.visible {
+    opacity: 1;
+    transform: translateY(0);
+    filter: blur(0);
+}
+
+.slide-left {
+    transform: translateX(-40px);
+}
+
+.slide-right {
+    transform: translateX(40px);
+}
+
+.blur-in {
+    filter: blur(12px);
+}
+
+.stagger-1,
+.delay-1 { transition-delay: 0.1s; }
+.stagger-2,
+.delay-2 { transition-delay: 0.2s; }
+.stagger-3,
+.delay-3 { transition-delay: 0.3s; }
+.stagger-4,
+.delay-4 { transition-delay: 0.4s; }
+.stagger-5,
+.delay-5 { transition-delay: 0.5s; }
+
+/* =========================================================
+   16. FOOTER
+========================================================= */
+.glass-footer {
+    width: 100%;
+    text-align: center;
+    padding: 22px 0;
+    margin-top: 40px;
+    font-weight: 700;
+    font-size: 1rem;
+    backdrop-filter: blur(18px) saturate(180%);
+    -webkit-backdrop-filter: blur(18px) saturate(180%);
+    border-top: 1px solid var(--glass-border);
+    clear: both;
+}
+
+.footer-links {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.footer-links li {
+    margin: 4px 0;
+}
+
+.footer-links a {
+    color: var(--color-primary);
+    font-weight: 700;
+    text-decoration: none;
+    transition: 0.25s ease;
+}
+
+.footer-links a:hover {
+    color: #0051c9;
+    text-decoration: underline;
+}
+
+/* =========================================================
+   17. RESPONSIVE
+========================================================= */
+@media (max-width: 992px) {
+    .home-layout {
+        grid-template-columns: 1fr;
+    }
+
+    .gallery-wrapper {
+        height: 380px;
+    }
+
+    .program-box {
+        width: 100%;
+        height: auto;
+    }
+
+    .cta-box {
+        height: auto;
+    }
+}
+
+@media (max-width: 768px) {
+    .navbar {
+        padding: 10px 20px;
+    }
+
+    .page-wrapper {
+        padding: 100px 20px 40px;
+    }
+
+    .hero-content h1 {
+        font-size: 1.8rem;
+    }
+
+    .hero-content p {
+        font-size: 0.95rem;
+    }
+
+    .posts {
+        padding: 60px 20px;
+    }
+
+    .gallery-wrapper {
+        height: 300px;
+    }
+
+    .posts-rotator {
+        height: 220px;
+    }
+
+    .page-title {
+        font-size: 1.9rem;
+    }
+
+    .programs-section,
+    .why-section {
+        padding: 80px 20px;
+    }
+
+    .cta-section {
+        margin: 40px 0;
+    }
+}
+/* =========================================================
+   REGISTRATION FORM — REDESIGNED
+========================================================= */
+
+/* Progress Bar Container */
+.progress-bar {
+    position: relative;
+    width: 100%;
+    height: 10px;
+    background: rgba(255, 255, 255, 0.25);
+    border-radius: 20px;
+    overflow: hidden;
+    margin-bottom: 30px;
+}
+
+/* Green Fill */
+.progress-fill {
+    height: 100%;
+    width: 0%;
+    background: #4caf50;
+    transition: width 0.4s ease;
+}
+
+/* Step Numbers */
+.progress-steps {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 12px;
+}
+
+.step-number {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.35);
+    border: 1px solid rgba(255,255,255,0.45);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    color: #333;
+    transition: 0.3s ease;
+}
+
+.step-number.active {
+    background: #4caf50;
+    color: white;
+    border-color: #4caf50;
+}
+
+/* Step Panels */
+.step-panel {
+    display: none;
+}
+
+.step-panel.active {
+    display: block;
+    animation: fadeSlide 0.4s ease;
+}
+
+@keyframes fadeSlide {
+    from { opacity: 0; transform: translateY(10px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+
+/* Form Titles */
+.form-title {
+    font-size: 1.6rem;
+    font-weight: 800;
+    margin-bottom: 20px;
+    color: var(--color-text-dark);
+}
+
+.form-subtitle {
+    font-size: 1.2rem;
+    font-weight: 700;
+    margin: 20px 0 10px;
+    color: var(--color-text-dark);
+}
+
+/* Form Groups */
+.form-group {
+    margin-bottom: 18px;
+    display: flex;
+    flex-direction: column;
+}
+
+.form-group label {
+    font-size: 0.95rem;
+    margin-bottom: 6px;
+    font-weight: 600;
+    color: var(--color-text-dark);
+}
+
+.form-group input,
+.form-group select {
+    padding: 12px 14px;
+    border-radius: 12px;
+    border: 1px solid rgba(0,0,0,0.15);
+    background: rgba(255,255,255,0.65);
+    outline: none;
+    font-size: 1rem;
+    transition: 0.25s ease;
+}
+
+.form-group input:focus,
+.form-group select:focus {
+    border-color: var(--color-primary);
+    box-shadow: 0 0 0 3px rgba(0,122,255,0.25);
+}
+
+/* Schedule Blocks */
+.schedule-block {
+    margin-bottom: 20px;
+}
+
+.schedule-block label {
+    font-weight: 700;
+    margin-bottom: 6px;
+    display: block;
+}
+
+.time-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.time-row input[type="time"] {
+    padding: 10px;
+    border-radius: 10px;
+    border: 1px solid rgba(0,0,0,0.15);
+    background: rgba(255,255,255,0.65);
+}
+
+/* Step Buttons */
+.step-actions {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 25px;
+}
+
+.step-actions button {
+    min-width: 120px;
+}
+
+/* Responsive */
+@media (max-width: 600px) {
+    .time-row {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .step-actions {
+        flex-direction: column;
+        gap: 12px;
+    }
+}
+
+/* Registration Card Layout */
+.register-card {
+    width: 100%;
+    max-width: 700px;
+    margin: 0 auto;
+    padding: 30px;
+    border-radius: 20px;
+    display: block;
+    background: rgba(255, 255, 255, 0.35);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+}
+.page-wrapper {
+    padding: 40px 20px;
+}
+
+/*--.register-card { 
+     border: 5px solid red !important; } --*/
+	 
+/* -------------------------------
+       glass‑styled summary container
+    --------------------------------*/ 
+.summary-box {
+    background: rgba(255,255,255,0.55);
+    padding: 20px;
+    border-radius: 15px;
+    margin-bottom: 20px;
+    line-height: 1.6;
+    font-size: 1rem;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+}
+.summary-box strong {
+    font-weight: 700;
+}
+
+.step-actions {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 25px;
+}
+
+/* Two-column layout for registration page */
+.register-layout {
+    display: flex;
+    gap: 40px;
+    align-items: flex-start;
+    justify-content: center;
+    margin-top: 30px;
+}
+
+/* Left image column */
+.register-images {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    width: 280px; /* adjust as needed */
+}
+
+/* Individual images */
+.reg-img {
+    width: 100%;
+    height: 200px; /* same height for all */
+    object-fit: cover;
+    border-radius: 18px;
+    box-shadow: 0 6px 20px rgba(0,0,0,0.15);
+    transition: transform 0.4s ease, box-shadow 0.4s ease;
+}
+
+/* Floating hover effect */
+.reg-img:hover {
+    transform: translateY(-6px);
+    box-shadow: 0 12px 28px rgba(0,0,0,0.25);
+}
+
+/* Responsive layout */
+@media (max-width: 900px) {
+    .register-layout {
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .register-images {
+        flex-direction: row;
+        width: 100%;
+        justify-content: center;
+    }
+
+    .reg-img {
+        height: 150px;
+        width: 30%;
+    }
+}
+
+/* Two-column layout: Form LEFT, Slideshow RIGHT */
+.register-layout {
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+    gap: 40px;
+    margin-top: 30px;
+}
+
+/* LEFT SIDE: Form */
+.left-form {
+    flex: 1;
+    max-width: 650px;
+}
+
+/* RIGHT SIDE: Slideshow Panel */
+.right-slideshow {
+    width: 800px;
+    height: 600px;
+    border-radius: 20px;
+    overflow: hidden;
+    position: relative;
+
+    background: rgba(255,255,255,0.18);
+    backdrop-filter: blur(14px) saturate(160%);
+    -webkit-backdrop-filter: blur(14px) saturate(160%);
+
+    border: 1px solid rgba(255,255,255,0.22);
+    box-shadow: 0 10px 28px rgba(0,0,0,0.15);
+}
+
+/* Slideshow images */
+.slide-img {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    opacity: 0;
+    transition: opacity 1.2s ease-in-out;
+    transform: scale(1);
+}
+
+.slide-img.active {
+    opacity: 1;
+    animation: subtleZoom 3s ease-in-out forwards;
+}
+
+/* Responsive */
+@media (max-width: 900px) {
+    .register-layout {
+        flex-direction: column;
+    }
+
+    .right-slideshow {
+        width: 100%;
+        height: 420px;
+    }
+}
+
+/* =========================================================
+   STUDENT BLOCKS — SOFT GLASS CARDS
+========================================================= */
+
+.student-block {
+    background: rgba(255, 255, 255, 0.28); /* softer glass */
+    backdrop-filter: blur(10px) saturate(160%);
+    -webkit-backdrop-filter: blur(10px) saturate(160%);
+    border: 1px solid rgba(255, 255, 255, 0.22);
+    border-radius: 16px;
+    padding: 20px;
+    margin-bottom: 22px;
+    box-shadow: 0 6px 18px rgba(0,0,0,0.08);
+}
+
+/* Student block title */
+.student-block h3 {
+    font-family: var(--font-serif);
+    font-size: 1.3rem;
+    font-weight: 800;
+    color: var(--color-text-dark);
+    margin-bottom: 6px;
+}
+
+/* Short left-aligned divider */
+.student-divider {
+    width: 80px; /* short line */
+    height: 3px;
+    background: #333; /* Option B */
+    border-radius: 2px;
+    margin-bottom: 16px;
+}
+
+/* Student block form fields */
+.student-block .form-group {
+    margin-bottom: 16px;
+}
+
+.student-block input {
+    background: rgba(255,255,255,0.65);
+    border: 1px solid rgba(0,0,0,0.15);
+    padding: 12px 14px;
+    border-radius: 12px;
+    outline: none;
+    font-size: 1rem;
+}
+
+.student-block input:focus {
+    border-color: var(--color-primary);
+    box-shadow: 0 0 0 3px rgba(0,122,255,0.25);
+}
+/* =========================================================
+   MEMBER PAGE — PREMIUM HEADER (BLUE GLASS + BLUSH GRADIENT)
+========================================================= */
+
+.member-header {
+    background: linear-gradient(
+        135deg,
+        rgba(0, 122, 255, 0.45),
+        rgba(255, 180, 200, 0.35)
     );
+    backdrop-filter: blur(18px) saturate(180%);
+    -webkit-backdrop-filter: blur(18px) saturate(180%);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.25);
+    box-shadow: 0 6px 20px rgba(0,0,0,0.12);
 }
 
-function normalizeVideoUploadError(error, file) {
-    const message = String(error?.message || "").trim();
-    if (/maximum size exceeded/i.test(message)) {
-        return buildVideoUploadLimitError(file);
-    }
-    return error;
+/* Navigation hover (light blue glow) */
+.member-header nav a:hover span,
+.member-header nav a:hover .nav-text {
+    color: #b7d9ff !important;
+    text-shadow: 0 0 6px rgba(180, 220, 255, 0.8);
 }
 
-async function uploadMediaWithTus(category, file, onProgress) {
-    if (!window.tus) {
-        return { data: null, error: new Error("tus-js-client is not loaded.") };
-    }
-
-    const supabaseUrl = window.DAERO_SUPABASE_URL;
-    const storageUrl = window.DAERO_SUPABASE_STORAGE_URL || supabaseUrl;
-    const supabaseAnonKey = window.DAERO_SUPABASE_ANON_KEY;
-    const bucket = db.mediaUploads?.getStorageBucketName ? db.mediaUploads.getStorageBucketName() : "media-uploads";
-    if (!supabaseUrl || !storageUrl || !supabaseAnonKey) {
-        return { data: null, error: new Error("Supabase client configuration is missing.") };
-    }
-
-    const safeCategory = String(category || "misc").trim().toLowerCase();
-    const safeName = String(file?.name || "upload")
-        .replace(/\s+/g, "-")
-        .replace(/[^a-zA-Z0-9._-]/g, "");
-    const filePath = `${safeCategory}/${Date.now()}-${Math.random().toString(36).slice(2, 8)}-${safeName}`;
-    const limitBytes = getConfiguredUploadLimitBytes();
-
-    if (Number(file?.size || 0) > limitBytes) {
-        return { data: null, error: buildVideoUploadLimitError(file) };
-    }
-
-    return new Promise((resolve) => {
-        const upload = new window.tus.Upload(file, {
-            endpoint: `${storageUrl}/storage/v1/upload/resumable`,
-            retryDelays: [0, 3000, 5000, 10000, 20000],
-            chunkSize: 6 * 1024 * 1024,
-            uploadDataDuringCreation: false,
-            removeFingerprintOnSuccess: true,
-            metadata: {
-                bucketName: bucket,
-                objectName: filePath,
-                contentType: file.type || "application/octet-stream",
-                cacheControl: "3600"
-            },
-            headers: {
-                apikey: supabaseAnonKey,
-                Authorization: `Bearer ${supabaseAnonKey}`,
-                "x-upsert": "false"
-            },
-            onError: (error) => {
-                resolve({ data: null, error: normalizeVideoUploadError(error, file) });
-            },
-            onProgress: (bytesUploaded, bytesTotal) => {
-                if (!onProgress || !bytesTotal) return;
-                const percent = Math.round((bytesUploaded / bytesTotal) * 100);
-                onProgress(percent, bytesUploaded, bytesTotal);
-            },
-            onSuccess: () => {
-                const publicRes = supabaseClient.storage.from(bucket).getPublicUrl(filePath);
-                const publicUrl = publicRes?.data?.publicUrl || "";
-                if (!publicUrl) {
-                    resolve({ data: null, error: new Error("Resumable upload succeeded but no public URL was returned.") });
-                    return;
-                }
-                resolve({ data: { bucket, path: filePath, publicUrl }, error: null });
-            }
-        });
-
-        upload.start();
-    });
+/* Active Member tab */
+.member-header nav a.active span {
+    color: #ffffff !important;
+    font-weight: 700;
+    text-shadow: 0 0 8px rgba(255,255,255,0.9);
 }
 
-function normalizeProgramLabel(value) {
-    return String(value || "").trim().toLowerCase();
-}
-
-function resolveProgramLevelFromStudent(app) {
-    const label = normalizeProgramLabel(app?.gradeLevel || app?.programChoice);
-    if (!label) return "";
-
-    if (label.includes("beginner") || label.includes("basic")) return "beginner";
-    if (label.includes("intermediate")) return "intermediate";
-    if (label.includes("advanced")) return "advanced";
-    if (label.includes("after school") || label.includes("ast")) return "afterschool";
-    if (label.includes("religious")) return "religious";
-    return "";
-}
-
-function renderAdminProgramCounts() {
-    const boxes = document.querySelectorAll(".program-box[data-level]");
-    if (!boxes.length) return;
-
-    const counts = {
-        beginner: 0,
-        intermediate: 0,
-        advanced: 0,
-        afterschool: 0,
-        religious: 0
-    };
-
-    allApplicantsCache.forEach((app) => {
-        if (String(app?.status || "").toLowerCase() !== "admitted") return;
-        const level = resolveProgramLevelFromStudent(app);
-        if (!level || typeof counts[level] !== "number") return;
-        counts[level] += 1;
-    });
-
-    boxes.forEach((box) => {
-        const level = String(box.getAttribute("data-level") || "").trim().toLowerCase();
-        const countEl = box.querySelector(".program-count-value");
-        if (!countEl) return;
-        countEl.textContent = String(counts[level] || 0);
-    });
-}
 
 /* =========================================================
-   YEAR FILTER HELPERS
+   MEMBER PAGE LAYOUT (SIDE-BY-SIDE)
 ========================================================= */
 
-function getYearsFromApplicants(apps) {
-    const years = new Set();
-    apps.forEach(app => {
-        if (app.startDate) {
-            const y = new Date(app.startDate).getFullYear();
-            if (!isNaN(y)) years.add(y);
-        }
-    });
-    return Array.from(years).sort();
+.member-wrapper {
+    width: 100%;
+    max-width: 1400px;
+    margin: 0 auto;
+    padding-top: 40px;
+    flex: 1;
 }
 
-function populateYearSelect(selectId, apps) {
-    const sel = document.getElementById(selectId);
-    if (!sel) return;
-    sel.innerHTML = `<option value="">Year</option>`;
-    getYearsFromApplicants(apps).forEach(y => {
-        const opt = document.createElement("option");
-        opt.value = String(y);
-        opt.textContent = y;
-        sel.appendChild(opt);
-    });
+.member-title {
+    margin-top: 10px; /* push closer to header */
+    margin-bottom: 25px;
+    font-size: 2.3rem;
+    font-weight: 800;
+    text-align: left;
 }
+
+.member-layout {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 40px;
+}
+
 
 /* =========================================================
-   NEW APPLICANTS — FILTER + RENDER
-   One row per student
+   PREMIUM GLASS LOGIN PANEL (LEFT SIDE)
 ========================================================= */
 
-function applyNewFilters(apps) {
-    const yearVal = document.getElementById("filterYearNew")?.value.trim() || "";
-    const firstVal = document.getElementById("filterFirstNameNew")?.value.trim().toLowerCase() || "";
-    const guardVal = document.getElementById("filterGuardianNew")?.value.trim().toLowerCase() || "";
+.premium-glass {
+    width: 420px;
+    padding: 35px;
+    border-radius: 22px;
 
-    return apps.filter(app => {
-        if (app.status !== "new") return false;
+    background: rgba(255, 255, 255, 0.28);
+    backdrop-filter: blur(18px) saturate(180%);
+    -webkit-backdrop-filter: blur(18px) saturate(180%);
 
-        if (yearVal) {
-            if (!app.startDate) return false;
-            const y = new Date(app.startDate).getFullYear();
-            if (isNaN(y) || String(y) !== yearVal) return false;
-        }
-
-        if (firstVal) {
-            const fn = (app.firstName || "").toLowerCase();
-            if (!fn.includes(firstVal)) return false;
-        }
-
-        if (guardVal) {
-            const gn = (app.guardianName || "").toLowerCase();
-            if (!gn.includes(guardVal)) return false;
-        }
-
-        return true;
-    });
+    border: 1px solid rgba(255, 255, 255, 0.22);
+    box-shadow: 0 10px 28px rgba(0,0,0,0.15);
 }
 
-function renderNewApplicantsTable() {
-    const table = document.getElementById("newApplicantsTable");
-    if (!table) return;
-
-    const pageSizeVal = document.getElementById("pageSizeNew")?.value || "5";
-
-    const filtered = applyNewFilters(allApplicantsCache);
-    currentNewData = filtered;
-
-    let pageSize = filtered.length;
-    if (pageSizeVal !== "all") pageSize = parseInt(pageSizeVal, 10) || 5;
-
-    const totalPages = pageSizeVal === "all" ? 1 : Math.max(1, Math.ceil(filtered.length / pageSize));
-    if (currentNewPage > totalPages) currentNewPage = totalPages;
-
-    const start = pageSizeVal === "all" ? 0 : (currentNewPage - 1) * pageSize;
-    const pageData = filtered.slice(start, start + pageSize);
-
-    table.innerHTML = `
-        <thead>
-            <tr>
-                <th><input type="checkbox" id="selectAllNew"> Select</th>
-                <th>Guardian Name</th>
-                <th>Email</th>
-                <th>Phone</th>
-                <th>Country</th>
-                <th>City</th>
-                <th>Student</th>
-                <th>Start Date</th>
-                <th>Grade Level</th>
-                <th>Year</th>
-                <th>Actions</th>
-            </tr>
-        </thead>
-    `;
-
-    const tbody = document.createElement("tbody");
-
-    pageData.forEach(app => {
-        let yearText = "";
-        if (app.startDate) {
-            const y = new Date(app.startDate).getFullYear();
-            if (!isNaN(y)) yearText = String(y);
-        }
-
-        const row = document.createElement("tr");
-        row.innerHTML = `
-            <td><input type="checkbox" class="select-new" data-id="${app.id}"></td>
-            <td>${app.guardianName || ""}</td>
-            <td>${app.guardianEmail || ""}</td>
-            <td>${app.guardianPhone || ""}</td>
-            <td>${app.country || ""}</td>
-            <td>${app.city || ""}</td>
-            <td>${(app.firstName || "") + " " + (app.lastName || "")}</td>
-            <td>${app.startDate || ""}</td>
-            <td>${app.gradeLevel || app.programChoice || ""}</td>
-            <td>${yearText}</td>
-            <td><button class="glass-btn btn-primary btn-sm admit-btn" data-id="${app.id}">Admit</button></td>
-        `;
-        tbody.appendChild(row);
-    });
-
-    table.appendChild(tbody);
-
-    const selectAllNew = table.querySelector("#selectAllNew");
-    const rowChecksNew = Array.from(table.querySelectorAll(".select-new"));
-
-    if (selectAllNew) {
-        selectAllNew.addEventListener("change", () => {
-            rowChecksNew.forEach(ch => {
-                ch.checked = selectAllNew.checked;
-            });
-        });
-
-        rowChecksNew.forEach(ch => {
-            ch.addEventListener("change", () => {
-                const selected = rowChecksNew.filter(x => x.checked).length;
-                selectAllNew.checked = rowChecksNew.length > 0 && selected === rowChecksNew.length;
-                selectAllNew.indeterminate = selected > 0 && selected < rowChecksNew.length;
-            });
-        });
-    }
-
-    renderPagination(
-        "newPagination",
-        currentNewPage,
-        totalPages,
-        pageSize,
-        filtered.length
-    );
+.login-heading {
+    font-size: 1.8rem;
+    font-weight: 800;
+    margin-bottom: 6px;
 }
+
+.login-subtext {
+    margin-bottom: 22px;
+    opacity: 0.85;
+}
+
 
 /* =========================================================
-   ADMITTED STUDENTS — COLUMN DROPDOWN WITH CHECKBOXES
+   CINEMATIC SLIDESHOW (RIGHT SIDE)
 ========================================================= */
 
-const admittedColumns = [
-    { key: "guardianName", label: "Guardian Name" },
-    { key: "guardianEmail", label: "Email" },
-    { key: "guardianPhone", label: "Phone" },
-    { key: "country", label: "Country" },
-    { key: "city", label: "City" },
-    { key: "studentName", label: "Student" },
-    { key: "startDate", label: "Start Date" },
-    { key: "gradeLevel", label: "Grade Level" },
-    { key: "status", label: "Status" },
-    { key: "year", label: "Year" }
-];
+.member-slideshow {
+    width: 800px;
+    height: 600px;
+    border-radius: 20px;
+    overflow: hidden;
 
-let admittedVisibleCols = new Set(admittedColumns.map(c => c.key));
+    background: rgba(255,255,255,0.18);
+    backdrop-filter: blur(14px) saturate(160%);
+    -webkit-backdrop-filter: blur(14px) saturate(160%);
 
-function resetAdmittedVisibleColumnsDefault() {
-    admittedVisibleCols = new Set(
-        admittedColumns
-            .filter(col => col.key !== "country")
-            .map(col => col.key)
-    );
+    border: 1px solid rgba(255,255,255,0.22);
+    box-shadow: 0 10px 28px rgba(0,0,0,0.15);
+
+    position: relative;
 }
 
-function buildColumnCheckboxMenu() {
-    const menu = document.getElementById("columnDropdownMenu");
-    if (!menu) return;
+.member-slide {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
 
-    menu.innerHTML = "";
-
-    admittedColumns.forEach(col => {
-        const row = document.createElement("label");
-        row.innerHTML = `
-            <input type="checkbox" value="${col.key}" ${admittedVisibleCols.has(col.key) ? "checked" : ""}>
-            ${col.label}
-        `;
-        menu.appendChild(row);
-    });
-
-    menu.querySelectorAll("input[type='checkbox']").forEach(ch => {
-        ch.addEventListener("change", () => {
-            if (ch.checked) admittedVisibleCols.add(ch.value);
-            else admittedVisibleCols.delete(ch.value);
-            renderAdmittedTable();
-        });
-    });
-
-    const btn = document.getElementById("columnDropdownBtn");
-    if (btn && btn.dataset.menuBound !== "1") {
-        btn.dataset.menuBound = "1";
-        btn.addEventListener("click", () => {
-            menu.style.display = menu.style.display === "block" ? "none" : "block";
-        });
-    }
+    opacity: 0;
+    transition: opacity 1.2s ease-in-out;
+    transform: scale(1);
 }
+
+/* Active slide fades in + subtle zoom */
+.member-slide.active {
+    opacity: 1;
+    animation: subtleZoom 3s ease-in-out forwards;
+}
+
+/* Subtle 2–3% cinematic zoom */
+@keyframes subtleZoom {
+    from { transform: scale(1); }
+    to   { transform: scale(1.025); }
+}
+
 
 /* =========================================================
-   ADMITTED STUDENTS — FILTER + RENDER
-   One row per student
+   FORM ELEMENTS INSIDE LOGIN PANEL
 ========================================================= */
 
-function applyAdmittedFilters(apps) {
-    const yearVal = document.getElementById("filterYearAd")?.value.trim() || "";
-    const statusVal = document.getElementById("filterStatusAd")?.value.trim() || "";
-    const gradeVal = document.getElementById("filterGradeAd")?.value.trim() || "";
-    const firstVal = document.getElementById("filterFirstNameAd")?.value.trim().toLowerCase() || "";
-    const guardVal = document.getElementById("filterGuardianAd")?.value.trim().toLowerCase() || "";
-
-    return apps.filter(app => {
-        if (app.status !== "admitted") return false;
-
-        if (yearVal) {
-            if (!app.startDate) return false;
-            const y = new Date(app.startDate).getFullYear();
-            if (isNaN(y) || String(y) !== yearVal) return false;
-        }
-
-        if (statusVal) {
-            const cs = (app.courseStatus || "ongoing").toLowerCase();
-            if (cs !== statusVal.toLowerCase()) return false;
-        }
-
-        if (gradeVal) {
-            const gl = (app.gradeLevel || app.programChoice || "").toLowerCase();
-            if (gl !== gradeVal.toLowerCase()) return false;
-        }
-
-        if (firstVal) {
-            const fn = (app.firstName || "").toLowerCase();
-            if (!fn.includes(firstVal)) return false;
-        }
-
-        if (guardVal) {
-            const gn = (app.guardianName || "").toLowerCase();
-            if (!gn.includes(guardVal)) return false;
-        }
-
-        return true;
-    });
+.premium-glass .form-group {
+    margin-bottom: 18px;
 }
 
-function renderAdmittedTable() {
-    const table = document.getElementById("admittedStudentsTable");
-    if (!table) return;
-
-    const pageSizeVal = document.getElementById("pageSizeAd")?.value || "5";
-
-    const filtered = applyAdmittedFilters(allApplicantsCache);
-    currentAdData = filtered;
-
-    let pageSize = filtered.length;
-    if (pageSizeVal !== "all") pageSize = parseInt(pageSizeVal, 10) || 5;
-
-    const totalPages = pageSizeVal === "all" ? 1 : Math.max(1, Math.ceil(filtered.length / pageSize));
-    if (currentAdPage > totalPages) currentAdPage = totalPages;
-
-    const start = pageSizeVal === "all" ? 0 : (currentAdPage - 1) * pageSize;
-    const pageData = filtered.slice(start, start + pageSize);
-
-    table.innerHTML = `
-        <thead>
-            <tr>
-                <th><input type="checkbox" id="selectAllAd"> Select</th>
-                ${admittedColumns.map(col => `
-                    <th data-col="${col.key}" style="${admittedVisibleCols.has(col.key) ? "" : "display:none"}">
-                        ${col.label}
-                    </th>
-                `).join("")}
-                <th>Actions</th>
-            </tr>
-        </thead>
-    `;
-
-    const tbody = document.createElement("tbody");
-
-    pageData.forEach(app => {
-        const studentName = `${app.firstName || ""} ${app.lastName || ""}`.trim();
-
-        let yearText = "";
-        if (app.startDate) {
-            const y = new Date(app.startDate).getFullYear();
-            if (!isNaN(y)) yearText = String(y);
-        }
-
-        const statusRaw = (app.courseStatus || "ongoing").toLowerCase();
-        const statusLabel = statusRaw.charAt(0).toUpperCase() + statusRaw.slice(1);
-        let statusClass = "status-pill status-ongoing";
-        if (statusRaw === "suspended") statusClass = "status-pill status-suspended";
-        else if (statusRaw === "terminated") statusClass = "status-pill status-terminated";
-        else if (statusRaw === "completed") statusClass = "status-pill status-completed";
-
-        const row = document.createElement("tr");
-
-        row.innerHTML = `
-            <td>
-                <div class="ad-select-cell">
-                    <button class="sp-btn open-student-portal" data-id="${app.id}" title="Open Student Portal">S-P</button>
-                    <input type="checkbox" class="select-ad" data-id="${app.id}">
-                </div>
-            </td>
-            ${admittedColumns.map(col => {
-                let cellContent = "";
-                if (col.key === "studentName") {
-                    cellContent = studentName;
-                } else if (col.key === "startDate") {
-                    cellContent = app.startDate || "";
-                } else if (col.key === "status") {
-                    cellContent = `<span class="${statusClass}">${statusLabel}</span>`;
-                } else if (col.key === "year") {
-                    cellContent = yearText;
-                } else if (col.key === "gradeLevel") {
-                    cellContent = app.gradeLevel || app.programChoice || "";
-                } else {
-                    cellContent = app[col.key] || "";
-                }
-                return `
-                    <td data-col="${col.key}" style="${admittedVisibleCols.has(col.key) ? "" : "display:none"}">
-                        ${cellContent}
-                    </td>
-                `;
-            }).join("")}
-            <td>
-                <div class="action-dropdown">
-                    <button class="action-btn">Actions ▼</button>
-                    <div class="action-menu">
-                        <button class="action-item edit-ad" data-id="${app.id}">Edit</button>
-                        <button class="action-item Ongoing-ad" data-id="${app.id}">Ongoing</button>
-                        <button class="action-item suspend-ad" data-id="${app.id}">Suspend</button>
-                        <button class="action-item terminate-ad" data-id="${app.id}">Terminate</button>
-                        <button class="action-item complete-ad" data-id="${app.id}">Complete</button>
-                    </div>
-                </div>
-            </td>
-        `;
-
-        tbody.appendChild(row);
-    });
-
-    table.appendChild(tbody);
-
-    const selectAllAd = table.querySelector("#selectAllAd");
-    const rowChecksAd = Array.from(table.querySelectorAll(".select-ad"));
-
-    if (selectAllAd) {
-        selectAllAd.addEventListener("change", () => {
-            rowChecksAd.forEach(ch => {
-                ch.checked = selectAllAd.checked;
-            });
-        });
-
-        rowChecksAd.forEach(ch => {
-            ch.addEventListener("change", () => {
-                const selected = rowChecksAd.filter(x => x.checked).length;
-                selectAllAd.checked = rowChecksAd.length > 0 && selected === rowChecksAd.length;
-                selectAllAd.indeterminate = selected > 0 && selected < rowChecksAd.length;
-            });
-        });
-    }
-
-    renderPagination(
-        "admittedPagination",
-        currentAdPage,
-        totalPages,
-        pageSize,
-        filtered.length
-    );
-
-    // Edit
-    table.querySelectorAll(".edit-ad").forEach(btn => {
-        btn.addEventListener("click", () => {
-            const id = btn.dataset.id;
-            window.open(
-                `editpanel.html?id=${id}`,
-                "_blank",
-                "width=1100,height=800"
-            );
-        });
-    });
-
-    // Status actions
-    table.querySelectorAll(".Ongoing-ad").forEach(btn => {
-        btn.addEventListener("click", () => updateStatus(btn.dataset.id, "ongoing"));
-    });
-
-    table.querySelectorAll(".suspend-ad").forEach(btn => {
-        btn.addEventListener("click", () => updateStatus(btn.dataset.id, "suspended"));
-    });
-
-    table.querySelectorAll(".terminate-ad").forEach(btn => {
-        btn.addEventListener("click", () => updateStatus(btn.dataset.id, "terminated"));
-    });
-
-    table.querySelectorAll(".complete-ad").forEach(btn => {
-        btn.addEventListener("click", () => updateStatus(btn.dataset.id, "completed"));
-    });
-
-    table.querySelectorAll(".open-student-portal").forEach(btn => {
-        btn.addEventListener("click", () => {
-            const studentId = (btn.dataset.id || "").trim();
-            if (!studentId) return;
-            window.open(`member-portal.html?studentId=${encodeURIComponent(studentId)}`, "_blank");
-        });
-    });
+.admin-credential-block {
+    margin-top: 14px;
 }
 
-/*-----------------------------------Pagination rule---------------------------*/
-
-function renderPagination(containerId, currentPage, totalPages, pageSize, totalItems) {
-    const el = document.getElementById(containerId);
-    if (!el) return;
-
-    const start = totalItems === 0 ? 0 : (currentPage - 1) * pageSize + 1;
-    const end = Math.min(currentPage * pageSize, totalItems);
-
-    el.innerHTML = `
-        <button class="page-btn prev-btn" data-action="prev" ${currentPage === 1 ? "disabled" : ""}>
-            Previous
-        </button>
-
-        <div class="page-info">
-            Showing ${start}–${end} of ${totalItems}
-        </div>
-
-        <button class="page-btn next-btn" data-action="next" ${currentPage === totalPages ? "disabled" : ""}>
-            Next
-        </button>
-    `;
-
-    el.querySelectorAll("button").forEach(btn => {
-        btn.addEventListener("click", () => {
-            const action = btn.dataset.action;
-
-            if (action === "prev" && currentPage > 1) {
-                if (containerId === "newPagination") currentNewPage--;
-                else currentAdPage--;
-            }
-
-            if (action === "next" && currentPage < totalPages) {
-                if (containerId === "newPagination") currentNewPage++;
-                else currentAdPage++;
-            }
-
-            renderNewApplicantsTable();
-            renderAdmittedTable();
-        });
-    });
+.admin-credential-block summary {
+    cursor: pointer;
+    font-weight: 700;
 }
 
-/*-----------------------------------Status update----------------------------*/
-
-async function updateStatus(id, newStatus) {
-    if (typeof db !== 'undefined' && db.students?.updateStatus) {
-        await db.students.updateStatus(id, newStatus);
-    }
-    await refreshApplicantsCache();
-    renderAdminProgramCounts();
-    renderAdmittedTable();
+.admin-credential-block .portal-form {
+    margin-top: 10px;
 }
+
+.admin-credential-block .admin-password-input-wrap {
+    position: relative;
+}
+
+.admin-credential-block .admin-password-input-wrap input {
+    padding-right: 34px;
+}
+
+.admin-credential-block .admin-password-visibility-toggle {
+    position: absolute;
+    right: 8px;
+    top: 50%;
+    transform: translateY(-50%);
+    border: none;
+    background: transparent;
+    cursor: pointer;
+    font-size: 0.95rem;
+    line-height: 1;
+    padding: 2px;
+}
+
+.admin-credential-block #adminCredentialStatus {
+    margin-top: 8px;
+    font-weight: 700;
+}
+
+.premium-glass input,
+.premium-glass select {
+    width: 100%;
+    padding: 12px 14px;
+    border-radius: 12px;
+
+    background: rgba(255,255,255,0.65);
+    border: 1px solid rgba(0,0,0,0.15);
+
+    font-size: 1rem;
+}
+
+.premium-glass input:focus,
+.premium-glass select:focus {
+    border-color: #007aff;
+    box-shadow: 0 0 0 3px rgba(0,122,255,0.25);
+}
+
 
 /* =========================================================
-   ADMIT LOGIC
-   One student per record (A1 IDs)
+   RESPONSIVE BEHAVIOR
 ========================================================= */
 
-async function admitApplicant(id) {
-    if (typeof db === 'undefined' || !db.students?.admit) {
-        alert('Database not available.');
-        return;
-    }
-    const { error } = await db.students.admit(id);
-    if (error) {
-        alert('Could not admit student: ' + (error.message || 'Unknown error'));
-        return;
-    }
-    await refreshApplicantsCache();
-    renderAdminProgramCounts();
-    renderNewApplicantsTable();
-    renderAdmittedTable();
+.glass-social-container {
+    position: fixed;
+    right: 20px;
+    top: 150px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+
+    background: rgba(255,255,255,0.25);
+    backdrop-filter: blur(12px) saturate(160%);
+    -webkit-backdrop-filter: blur(12px) saturate(160%);
+    padding: 12px;
+    border-radius: 16px;
+    border: 1px solid rgba(255,255,255,0.25);
+    box-shadow: 0 6px 20px rgba(0,0,0,0.15);
+    z-index: 999;
 }
 
-function printSelectedAdmitted() {
-    const checks = Array.from(document.querySelectorAll(".select-ad:checked"));
-    if (!checks.length) {
-        alert("Select at least one admitted student to print.");
-        return;
-    }
-
-    const selectedIds = new Set(checks.map(ch => ch.dataset.id));
-    const selectedRows = allApplicantsCache.filter(app => app.status === "admitted" && selectedIds.has(String(app.id)));
-
-    if (!selectedRows.length) {
-        alert("Selected records could not be loaded. Please refresh and try again.");
-        return;
-    }
-
-    const trHtml = selectedRows.map((app, index) => {
-        const year = app.startDate ? new Date(app.startDate).getFullYear() : "";
-        const yearText = Number.isNaN(year) ? "" : String(year);
-        const studentName = `${app.firstName || ""} ${app.lastName || ""}`.trim();
-        const statusLabel = (app.courseStatus || "ongoing").replace(/^./, c => c.toUpperCase());
-
-        return `
-            <tr>
-                <td>${index + 1}</td>
-                <td>${app.guardianName || ""}</td>
-                <td>${studentName}</td>
-                <td>${app.startDate || ""}</td>
-                <td>${app.gradeLevel || app.programChoice || ""}</td>
-                <td>${statusLabel}</td>
-                <td>${yearText}</td>
-            </tr>
-        `;
-    }).join("");
-
-    const popup = window.open("", "_blank", "width=1100,height=800");
-    if (!popup) {
-        alert("Please allow pop-ups for printing.");
-        return;
-    }
-
-    // Determine filter for print title
-    let filterTitle = "";
-    const gradeVal = document.getElementById("filterGradeAd")?.value.trim();
-    const yearVal = document.getElementById("filterYearAd")?.value.trim();
-    const statusVal = document.getElementById("filterStatusAd")?.value.trim();
-    if (gradeVal) {
-        filterTitle = `Student List In ${gradeVal}`;
-    } else if (yearVal) {
-        filterTitle = `Student List In Year ${yearVal}`;
-    } else if (statusVal) {
-        // Capitalize first letter
-        filterTitle = `Student List In ${statusVal.charAt(0).toUpperCase() + statusVal.slice(1)}`;
-    } else {
-        filterTitle = "Admitted Students";
-    }
-
-    popup.document.write(`
-        <!doctype html>
-        <html>
-        <head>
-            <meta charset="utf-8" />
-            <title>${filterTitle}</title>
-            <style>
-                body { font-family: Arial, sans-serif; margin: 24px; color: #111; }
-                h1 { text-align: center; margin: 0 0 18px; font-size: 28px; }
-                table { width: 100%; border-collapse: collapse; }
-                th, td { border: 1px solid #999; padding: 8px 10px; text-align: left; font-size: 14px; }
-                th { background: #f2f2f2; }
-                @media print {
-                    @page { margin: 14mm; }
-                    body { margin: 0; }
-                }
-            </style>
-        </head>
-        <body>
-            <h1>${filterTitle}</h1>
-            <table>
-                <thead>
-                    <tr>
-                        <th>No.</th>
-                        <th>Guardian Name</th>
-                        <th>Student</th>
-                        <th>Start Date</th>
-                        <th>Grade Level</th>
-                        <th>Status</th>
-                        <th>Year</th>
-                    </tr>
-                </thead>
-                <tbody>${trHtml}</tbody>
-            </table>
-            <script>
-                window.onload = function () { window.print(); };
-            <\/script>
-        </body>
-        </html>
-    `);
-    popup.document.close();
+.glass-social-icon img {
+    width: 40px;
+    height: 40px;
+    border-radius: 12px;
+    object-fit: cover;
 }
+/* =========================================================
+   HELP PAGE — WRAPPER & INTRO
+========================================================= */
+
+.help-wrapper {
+    width: 100%;
+    max-width: 1400px;
+    margin: 0 auto;
+    padding-top: 40px;
+}
+
+.help-intro {
+    font-size: 1.1rem;
+    opacity: 0.85;
+    margin-bottom: 35px;
+    max-width: 900px;
+}
+
 
 /* =========================================================
-   DELETE, EXPORT, PRINT
+   HELP GRID LAYOUT
 ========================================================= */
 
-async function deleteSelectedNew() {
-    const checks = document.querySelectorAll(".select-new:checked");
-    if (!checks.length) {
-        alert('No applicants selected.');
-        return;
-    }
-
-    if (!confirm("Delete selected new applicants?")) return;
-
-    for (const ch of checks) {
-        const id = ch.dataset.id;
-        if (typeof db !== 'undefined' && db.students?.delete) {
-            await db.students.delete(id);
-        }
-        const tr = ch.closest('tr');
-        if (tr && tr.parentNode) tr.parentNode.removeChild(tr);
-    }
-
-    await refreshApplicantsCache();
-    renderAdminProgramCounts();
-    renderNewApplicantsTable();
-    renderAdmittedTable();
+.help-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(380px, 1fr));
+    gap: 30px;
+    margin-top: 20px;
 }
 
-async function deleteSelectedAdmitted() {
-    const checks = document.querySelectorAll(".select-ad:checked");
-    if (!checks.length) return;
-
-    if (!confirm("Move selected admitted students back to New Applicants?")) return;
-
-    for (const ch of checks) {
-        if (typeof db !== 'undefined' && db.students?.setLifecycleStatus) {
-            await db.students.setLifecycleStatus(ch.dataset.id, 'new', 'ongoing');
-        } else if (typeof db !== 'undefined' && db.students?.updateStatus) {
-            // Fallback for older db helper: at least reset course status.
-            await db.students.updateStatus(ch.dataset.id, 'ongoing');
-        }
-    }
-
-    await refreshApplicantsCache();
-    currentAdPage = 1;
-    currentNewPage = 1;
-    renderAdminProgramCounts();
-    renderNewApplicantsTable();
-    renderAdmittedTable();
-}
-
-function exportToCsv(data, filename) {
-    const header = ["Guardian Name","Email","Phone","Country","City","Student","Start Date","Grade Level","Status","Year"];
-
-    const escapeCsv = (value) => {
-        const text = String(value ?? "");
-        if (/[",\n]/.test(text)) return `"${text.replace(/"/g, '""')}"`;
-        return text;
-    };
-
-    const lines = [header.join(",")];
-
-    data.forEach(app => {
-        let yearText = "";
-        if (app.startDate) {
-            const y = new Date(app.startDate).getFullYear();
-            if (!isNaN(y)) yearText = String(y);
-        }
-
-        const studentName = `${app.firstName || ""} ${app.lastName || ""}`.trim();
-        const row = [
-            app.guardianName || "",
-            app.guardianEmail || "",
-            app.guardianPhone || "",
-            app.country || "",
-            app.city || "",
-            studentName,
-            app.startDate || "",
-            app.gradeLevel || app.programChoice || "",
-            app.courseStatus || app.status || "",
-            yearText
-        ];
-
-        lines.push(row.map(escapeCsv).join(","));
-    });
-
-    const blob = new Blob([lines.join("\n")], { type: "text/csv;charset=utf-8;" });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement("a");
-    link.href = url;
-    link.download = filename;
-    document.body.appendChild(link);
-    link.click();
-    link.remove();
-    URL.revokeObjectURL(url);
-}
-
-function exportToXlsx(data, filename) {
-    if (typeof XLSX === "undefined") {
-        const csvName = filename.replace(/\.xlsx$/i, ".csv");
-        exportToCsv(data, csvName);
-        return;
-    }
-
-    const rows = [
-        ["Guardian Name","Email","Phone","Country","City","Student","Start Date","Grade Level","Status","Year"]
-    ];
-
-    data.forEach(app => {
-        let yearText = "";
-        if (app.startDate) {
-            const y = new Date(app.startDate).getFullYear();
-            if (!isNaN(y)) yearText = String(y);
-        }
-
-        const studentName = `${app.firstName || ""} ${app.lastName || ""}`.trim();
-
-        rows.push([
-            app.guardianName || "",
-            app.guardianEmail || "",
-            app.guardianPhone || "",
-            app.country || "",
-            app.city || "",
-            studentName,
-            app.startDate || "",
-            app.gradeLevel || app.programChoice || "",
-            app.courseStatus || app.status || "",
-            yearText
-        ]);
-    });
-
-    const ws = XLSX.utils.aoa_to_sheet(rows);
-    const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, "Data");
-    XLSX.writeFile(wb, filename);
-}
-
-function updateExportButtonLabels() {
-    const hasXlsx = typeof XLSX !== "undefined";
-    const label = hasXlsx ? "Export XLSX" : "Export CSV";
-
-    const newBtn = document.getElementById("exportNewApplicants");
-    const adBtn = document.getElementById("exportAdmitted");
-
-    if (newBtn) newBtn.textContent = label;
-    if (adBtn) adBtn.textContent = label;
-}
-
-async function getPasswordOverrideByStudentId(studentId) {
-    if (typeof db === 'undefined' || !db.passwordOverrides?.getByStudentId) return null;
-    const { data } = await db.passwordOverrides.getByStudentId(studentId);
-    return data?.temporary_password || null;
-}
-
-async function getPasswordOverrideByEmail(email) {
-    if (typeof db === 'undefined' || !db.passwordOverrides?.getByEmail) return null;
-    const { data } = await db.passwordOverrides.getByEmail(email);
-    return data?.temporary_password || null;
-}
-
-async function savePasswordOverrideByStudentId(studentId, newPassword) {
-    if (typeof db === 'undefined' || !db.passwordOverrides?.setByStudentId) return { error: { message: 'db unavailable' } };
-    return db.passwordOverrides.setByStudentId(studentId, newPassword);
-}
-
-async function clearPasswordOverrideByStudentId(studentId) {
-    if (typeof db === 'undefined' || !db.passwordOverrides?.clearByEmail) return;
-    // clear by fetching the record first to get its email, then deleting
-    const { data } = await db.passwordOverrides.getByStudentId(studentId);
-    if (data?.guardian_email) await db.passwordOverrides.clearByEmail(data.guardian_email);
-}
-
-async function getPasswordChangeAlerts() {
-    if (typeof db === 'undefined' || !db.passwordChangeAlerts?.getAll) return [];
-    const { data } = await db.passwordChangeAlerts.getAll();
-    return Array.isArray(data) ? data : [];
-}
-
-async function getContactMessages() {
-    if (typeof db === 'undefined' || !db.contactMessages?.getAll) return [];
-    const { data } = await db.contactMessages.getAll();
-    return Array.isArray(data) ? data : [];
-}
-
-async function renderContactMessages() {
-    const listEl = document.getElementById("contactMessagesList");
-    if (!listEl) return;
-
-    const messages = await getContactMessages();
-    if (!messages.length) {
-        listEl.innerHTML = `<div class="message-item">No messages yet.</div>`;
-        return;
-    }
-
-    listEl.innerHTML = messages
-        .map(msg => {
-            const when = (msg.submitted_at || msg.createdAt)
-                ? new Date(msg.submitted_at || msg.createdAt).toLocaleString()
-                : "";
-            return `
-                <div class="message-item">
-                    <div><strong>${msg.name || "Unknown"}</strong> (${msg.email || "No email"})</div>
-                    <div>${msg.message || ""}</div>
-                    <div class="message-time">${when}</div>
-                </div>
-            `;
-        })
-        .join("");
-}
-
-function mapProgramNameToLevelForDebug(programName) {
-    const name = String(programName || "").toLowerCase();
-    if (name.includes("beginner") || name.includes("basic")) return "beginner";
-    if (name.includes("intermediate")) return "intermediate";
-    if (name.includes("advanced")) return "advanced";
-    if (name.includes("after school") || name.includes("tutorial")) return "afterschool";
-    if (name.includes("religious")) return "religious";
-    return null;
-}
-
-function collectBeginnerDebugRecords() {
-    const rows = [];
-
-    allApplicantsCache.forEach((row) => {
-        const level = mapProgramNameToLevelForDebug(row.programChoice || row.program || row.gradeLevel);
-        if (level !== "beginner") return;
-        rows.push({
-            key: `student-${row.id}`,
-            type: "supabase",
-            index: -1,
-            sid: row.id,
-            studentName: `${row.firstName || ""} ${row.lastName || ""}`.trim() || "(no name)",
-            program: row.programChoice || row.program || row.gradeLevel || "",
-            guardianEmail: row.guardianEmail || ""
-        });
-    });
-
-    return rows;
-}
-
-function renderBeginnerDebugList() {
-    const listEl = document.getElementById("beginnerDebugList");
-    if (!listEl) return;
-
-    const records = collectBeginnerDebugRecords();
-    if (!records.length) {
-        listEl.innerHTML = `<div class="debug-item">No Beginner records found.</div>`;
-        return;
-    }
-
-    listEl.innerHTML = records.map((row, i) => `
-        <div class="debug-item">
-            <div><strong>${row.studentName}</strong> — ${row.program}</div>
-            <div class="debug-item-meta">${row.guardianEmail || "No guardian email"}</div>
-            <div class="debug-item-meta">Source: ${row.type} | Key: ${row.key}${row.sid ? ` | SID: ${row.sid}` : ""}</div>
-            <button class="debug-remove-btn" data-debug-index="${i}">Remove This Record</button>
-        </div>
-    `).join("");
-
-    listEl.querySelectorAll(".debug-remove-btn").forEach(btn => {
-        btn.addEventListener("click", async () => {
-            const idx = parseInt(btn.dataset.debugIndex, 10);
-            const target = records[idx];
-            if (!target) return;
-            if (!confirm(`Remove ${target.studentName} from Beginner records?`)) return;
-
-            if (target.sid && typeof db !== 'undefined' && db.students?.delete) {
-                await db.students.delete(target.sid);
-            }
-            await refreshApplicantsCache();
-            renderNewApplicantsTable();
-            renderAdmittedTable();
-            renderBeginnerDebugList();
-        });
-    });
-}
-
-function getGuardianDirectory() {
-    const byEmail = new Map();
-
-    allApplicantsCache.forEach((row) => {
-        const email = String(row.guardianEmail || "").trim().toLowerCase();
-        if (!email) return;
-
-        const existing = byEmail.get(email) || {
-            email,
-            name: ""
-        };
-
-        const incomingName = String(row.guardianName || "").trim();
-        if (!existing.name && incomingName) existing.name = incomingName;
-        byEmail.set(email, existing);
-    });
-
-    return Array.from(byEmail.values()).sort((a, b) => a.email.localeCompare(b.email));
-}
-
-function populateGuardianSelect(selectEl, placeholderLabel = "Select Guardian") {
-    if (!selectEl) return;
-    const options = getGuardianDirectory();
-    selectEl.innerHTML = `<option value="">${placeholderLabel}</option>`;
-    options.forEach((item) => {
-        const opt = document.createElement("option");
-        opt.value = item.email;
-        opt.textContent = item.name ? `${item.name} (${item.email})` : item.email;
-        selectEl.appendChild(opt);
-    });
-}
-
-function escapeAdminHtml(value) {
-    return String(value || "")
-        .replace(/&/g, "&amp;")
-        .replace(/</g, "&lt;")
-        .replace(/>/g, "&gt;")
-        .replace(/"/g, "&quot;")
-        .replace(/'/g, "&#39;");
-}
-
-function extractUrlsFromText(value) {
-    const matches = String(value || "").match(/https?:\/\/[^\s<]+/gi) || [];
-    return matches.map((url) => url.replace(/[).,!?:;]+$/g, ""));
-}
-
-function extractZoomLinksFromReminder(reminder) {
-    const urls = new Set();
-    extractUrlsFromText(reminder?.message || "")
-        .filter((url) => /zoom\.(us|com)\//i.test(url))
-        .forEach((url) => urls.add(url));
-
-    const attachments = Array.isArray(reminder?.attachments) ? reminder.attachments : [];
-    attachments.forEach((item) => {
-        [item?.downloadUrl, item?.dataUrl, item?.fileUrl, item?.url]
-            .filter(Boolean)
-            .forEach((url) => {
-                if (/zoom\.(us|com)\//i.test(String(url))) urls.add(String(url));
-            });
-    });
-
-    return Array.from(urls);
-}
-
-function initAdminSupportPage() {
-    const maintenanceToggle = document.getElementById("maintenanceModeToggle");
-    const maintenanceStatus = document.getElementById("maintenanceModeStatus");
-
-    const resetStudentTarget = document.getElementById("resetStudentTarget");
-    const resetPassword = document.getElementById("resetPassword");
-    const saveResetBtn = document.getElementById("saveCredentialReset");
-    const clearResetBtn = document.getElementById("clearCredentialReset");
-    const resetStatus = document.getElementById("resetCredentialStatus");
-    const resetCurrentPasswordPreview = document.getElementById("resetCurrentPasswordPreview");
-    const resetPasswordAlertInfo = document.getElementById("resetPasswordAlertInfo");
-
-    const portalLinkField = document.getElementById("portalLinkField");
-    const copyPortalLink = document.getElementById("copyPortalLink");
-    const openPortalLink = document.getElementById("openPortalLink");
-    const portalStatus = document.getElementById("portalLinkStatus");
-
-    const refreshMessagesBtn = document.getElementById("refreshContactMessages");
-    const clearMessagesBtn = document.getElementById("clearContactMessages");
-    const refreshBeginnerDebugBtn = document.getElementById("refreshBeginnerDebug");
-
-    const publishAssignmentForm = document.getElementById("publishAssignmentForm");
-    const assignmentProgramLevel = document.getElementById("assignmentProgramLevel");
-    const assignmentTargetEmail = document.getElementById("assignmentTargetEmail");
-    const assignmentTitle = document.getElementById("assignmentTitle");
-    const assignmentDueDate = document.getElementById("assignmentDueDate");
-    const assignmentDownloadUrl = document.getElementById("assignmentDownloadUrl");
-    const assignmentPublishStatus = document.getElementById("assignmentPublishStatus");
-
-    const publishAnnouncementForm = document.getElementById("publishAnnouncementForm");
-    const announcementProgramLevel = document.getElementById("announcementProgramLevel");
-    const announcementTitle = document.getElementById("announcementTitle");
-    const announcementMessage = document.getElementById("announcementMessage");
-    const announcementPublishStatus = document.getElementById("announcementPublishStatus");
-
-    const publishReminderForm = document.getElementById("publishReminderForm");
-    const reminderGuardianPicker = document.getElementById("reminderGuardianPicker");
-    const reminderSelectAllGuardians = document.getElementById("reminderSelectAllGuardians");
-    const reminderClearGuardians = document.getElementById("reminderClearGuardians");
-    const reminderTitle = document.getElementById("reminderTitle");
-    const reminderDueDate = document.getElementById("reminderDueDate");
-    const reminderMessage = document.getElementById("reminderMessage");
-    const reminderAttachmentFile = document.getElementById("reminderAttachmentFile");
-    const reminderPublishStatus = document.getElementById("reminderPublishStatus");
-    const refreshReminderList = document.getElementById("refreshReminderList");
-    const toggleZoomReminderFilter = document.getElementById("toggleZoomReminderFilter");
-    const reminderManagerStatus = document.getElementById("reminderManagerStatus");
-    const publishedReminderList = document.getElementById("publishedReminderList");
-    let zoomReminderFilterEnabled = false;
-
-    const collectSelectedReminderGuardianEmails = () => {
-        if (!reminderGuardianPicker) return [];
-        return Array.from(reminderGuardianPicker.querySelectorAll('input[type="checkbox"][data-guardian-email]:checked'))
-            .map((el) => String(el.getAttribute("data-guardian-email") || "").trim().toLowerCase())
-            .filter(Boolean);
-    };
-
-    const renderReminderGuardianPicker = () => {
-        if (!reminderGuardianPicker) return;
-        const guardians = getGuardianDirectory();
-
-        if (!guardians.length) {
-            reminderGuardianPicker.innerHTML = '<div class="guardian-picker-empty">No guardians available yet.</div>';
-            return;
-        }
-
-        reminderGuardianPicker.innerHTML = guardians.map((item, index) => {
-            const safeEmail = String(item.email || "").trim().toLowerCase();
-            const safeName = String(item.name || "").trim() || "(No Name)";
-            const id = `reminderGuardian_${index}`;
-            return `
-                <label class="guardian-picker-row" for="${id}">
-                    <input type="checkbox" id="${id}" data-guardian-email="${safeEmail}">
-                    <span>${safeName}</span>
-                    <span>${safeEmail}</span>
-                </label>
-            `;
-        }).join("");
-    };
-
-    const renderPublishedReminders = async () => {
-        if (!publishedReminderList) return;
-
-        if (typeof db === "undefined" || !db.reminders?.getAll) {
-            publishedReminderList.innerHTML = '<div class="message-item">Supabase is not configured for reminders.</div>';
-            if (reminderManagerStatus) reminderManagerStatus.textContent = "Reminder manager is unavailable.";
-            return;
-        }
-
-        const { data, error } = await db.reminders.getAll();
-        if (error) {
-            publishedReminderList.innerHTML = '<div class="message-item">Could not load reminders.</div>';
-            if (reminderManagerStatus) reminderManagerStatus.textContent = `Could not load reminders: ${error.message}`;
-            return;
-        }
-
-        const allRows = Array.isArray(data) ? data : [];
-        const rows = zoomReminderFilterEnabled
-            ? allRows.filter((row) => extractZoomLinksFromReminder(row).length > 0)
-            : allRows;
-
-        if (toggleZoomReminderFilter) {
-            toggleZoomReminderFilter.textContent = zoomReminderFilterEnabled ? "Show All Reminders" : "Show Zoom Links Only";
-        }
-
-        if (reminderManagerStatus) {
-            const zoomCount = allRows.filter((row) => extractZoomLinksFromReminder(row).length > 0).length;
-            reminderManagerStatus.textContent = `${rows.length} reminder${rows.length === 1 ? "" : "s"} shown. ${zoomCount} reminder${zoomCount === 1 ? "" : "s"} contain Zoom links.`;
-        }
-
-        if (!rows.length) {
-            publishedReminderList.innerHTML = `<div class="message-item">${zoomReminderFilterEnabled ? "No reminders with Zoom links were found." : "No reminders published yet."}</div>`;
-            return;
-        }
-
-        publishedReminderList.innerHTML = rows.map((row) => {
-            const when = row.posted_at ? new Date(row.posted_at).toLocaleString() : "";
-            const links = extractZoomLinksFromReminder(row);
-            const linkHtml = links.length
-                ? links.map((url) => `<a href="${escapeAdminHtml(url)}" target="_blank" rel="noopener">${escapeAdminHtml(url)}</a>`).join("<br>")
-                : '<span>No Zoom links in this reminder.</span>';
-
-            return `
-                <div class="message-item">
-                    <div><strong>${escapeAdminHtml(row.title || "Friendly Reminder")}</strong> (${escapeAdminHtml(row.guardian_email || "No guardian email")})</div>
-                    <div>Due: ${escapeAdminHtml(row.due_date || "TBA")}</div>
-                    <div>${escapeAdminHtml(row.message || "")}</div>
-                    <div class="message-time">${escapeAdminHtml(when)}</div>
-                    <div><strong>Zoom links:</strong><br>${linkHtml}</div>
-                    <div class="support-actions">
-                        <button type="button" class="glass-btn delete-reminder-item" data-reminder-id="${escapeAdminHtml(row.id || "")}" data-reminder-title="${escapeAdminHtml(row.title || "Friendly Reminder")}">Delete Reminder</button>
-                    </div>
-                </div>
-            `;
-        }).join("");
-
-        publishedReminderList.querySelectorAll(".delete-reminder-item").forEach((btn) => {
-            btn.addEventListener("click", async () => {
-                const reminderId = String(btn.dataset.reminderId || "").trim();
-                const reminderLabel = String(btn.dataset.reminderTitle || "this reminder").trim();
-                if (!reminderId) return;
-                if (!confirm(`Delete ${reminderLabel}?`)) return;
-                if (!db.reminders?.delete) return;
-
-                const { error: deleteError } = await db.reminders.delete(reminderId);
-                if (deleteError) {
-                    if (reminderManagerStatus) reminderManagerStatus.textContent = `Could not delete reminder: ${deleteError.message}`;
-                    return;
-                }
-
-                if (reminderManagerStatus) reminderManagerStatus.textContent = `Reminder deleted.`;
-                await renderPublishedReminders();
-            });
-        });
-    };
-
-    const syncMaintenanceStatus = () => {
-        if (!maintenanceStatus || !maintenanceToggle) return;
-        maintenanceStatus.textContent = maintenanceToggle.checked ? "Maintenance: ON" : "Maintenance: OFF";
-    };
-
-    const normalizeText = (value) => String(value || "").trim().toLowerCase();
-    const normalizeId = (value) => String(value || "").trim();
-
-    const getMapValueNormalized = (mapObj, wantedKey) => {
-        const wanted = normalizeText(wantedKey);
-        if (!wanted || !mapObj || typeof mapObj !== "object") return "";
-        if (Object.prototype.hasOwnProperty.call(mapObj, wantedKey)) {
-            return String(mapObj[wantedKey] || "");
-        }
-        const matchedKey = Object.keys(mapObj).find((k) => normalizeText(k) === wanted);
-        return matchedKey ? String(mapObj[matchedKey] || "") : "";
-    };
-
-    const getCurrentStudentPassword = async (studentRow) => {
-        if (!studentRow) return "—";
-        const studentOverride = await getPasswordOverrideByStudentId(normalizeId(studentRow.id));
-        if (studentOverride) return studentOverride;
-        const emailOverride = await getPasswordOverrideByEmail(normalizeText(studentRow.guardianEmail));
-        if (emailOverride) return emailOverride;
-        return `daero${normalizeText(studentRow.firstName)}`;
-    };
-
-    const refreshResetCurrentPasswordPreview = async () => {
-        if (!resetCurrentPasswordPreview) return;
-
-        const selected = resolveSelectedStudent();
-        if (!selected) {
-            resetCurrentPasswordPreview.textContent = "Current password: —";
-            return;
-        }
-
-        const displayName = `${selected.firstName} ${selected.lastName}`.trim() || selected.id;
-        const email = selected.guardianEmail || "No email";
-        const password = await getCurrentStudentPassword(selected);
-        resetCurrentPasswordPreview.textContent = `Selected: ${displayName} (${email}) | Current password: ${password}`;
-    };
-
-    const notifyUnreadPasswordChangeAlerts = async () => {
-        const alerts = await getPasswordChangeAlerts();
-        if (!alerts.length) {
-            if (resetPasswordAlertInfo) resetPasswordAlertInfo.textContent = "";
-            return;
-        }
-
-        const latest = alerts[0] || {};
-        const latestWhen = latest.changed_at ? new Date(latest.changed_at).toLocaleString() : "";
-        if (resetPasswordAlertInfo) {
-            resetPasswordAlertInfo.textContent = `Latest password change: Student ID ${latest.student_id || '?'}${latestWhen ? ` (${latestWhen})` : ""}. `;
-        }
-
-        const unseen = alerts.filter(row => !row.seen_at);
-        if (!unseen.length) return;
-
-        const lines = unseen.map((row) => {
-            return `Student (${row.student_id || 'unknown'}) changed password!`;
-        });
-
-        alert(lines.join("\n"));
-        if (typeof db !== 'undefined' && db.passwordChangeAlerts?.markAllSeen) {
-            await db.passwordChangeAlerts.markAllSeen();
-        }
-    };
-
-    const getResetStudents = () => {
-        const rows = getAllApplicants();
-        const seen = new Set();
-
-        return rows
-            .filter((row) => row && row.id && (row.firstName || row.lastName))
-            .map((row) => ({
-                id: String(row.id || "").trim(),
-                firstName: String(row.firstName || "").trim(),
-                lastName: String(row.lastName || "").trim(),
-                guardianEmail: String(row.guardianEmail || "").trim().toLowerCase()
-            }))
-            .filter((row) => {
-                if (!row.id) return false;
-                if (seen.has(row.id)) return false;
-                seen.add(row.id);
-                return true;
-            })
-            .sort((a, b) => {
-                const an = `${a.firstName} ${a.lastName}`.trim().toLowerCase();
-                const bn = `${b.firstName} ${b.lastName}`.trim().toLowerCase();
-                return an.localeCompare(bn) || a.id.localeCompare(b.id);
-            });
-    };
-
-    const renderResetStudentTargets = () => {
-        if (!resetStudentTarget) return;
-        const rows = getResetStudents();
-
-        resetStudentTarget.innerHTML = `
-            <option value="">Select Student (Name / ID)</option>
-        `;
-
-        rows.forEach((row) => {
-            const option = document.createElement("option");
-            option.value = row.id;
-            const name = `${row.firstName} ${row.lastName}`.trim() || "(No Name)";
-            option.textContent = `${name} — ${row.id}${row.guardianEmail ? ` — ${row.guardianEmail}` : ""}`;
-            resetStudentTarget.appendChild(option);
-        });
-    };
-
-    const resolveSelectedStudent = () => {
-        const studentId = String(resetStudentTarget?.value || "").trim();
-        if (!studentId) return null;
-
-        const rows = getResetStudents();
-        return rows.find((row) => normalizeText(row.id) === normalizeText(studentId)) || null;
-    };
-
-    if (maintenanceToggle) {
-        (async () => {
-            if (typeof db !== 'undefined' && db.appSettings?.getMaintenanceMode) {
-                const { data: maintenanceValue } = await db.appSettings.getMaintenanceMode();
-                maintenanceToggle.checked = maintenanceValue === "on";
-            } else {
-                maintenanceToggle.checked = false;
-            }
-            syncMaintenanceStatus();
-        })();
-        maintenanceToggle.addEventListener("change", async () => {
-            if (typeof db !== 'undefined' && db.appSettings?.setMaintenanceMode) {
-                await db.appSettings.setMaintenanceMode(maintenanceToggle.checked, "AdminSupportToggle");
-            }
-            syncMaintenanceStatus();
-        });
-    }
-
-    if (portalLinkField) {
-        portalLinkField.value = `${window.location.origin}/member-portal.html`;
-    }
-
-    renderResetStudentTargets();
-    refreshResetCurrentPasswordPreview();
-    notifyUnreadPasswordChangeAlerts();
-
-    resetStudentTarget?.addEventListener("change", async () => {
-        await refreshResetCurrentPasswordPreview();
-    });
-
-    saveResetBtn?.addEventListener("click", async () => {
-        const selected = resolveSelectedStudent();
-        const newPass = (resetPassword?.value || "").trim();
-
-        if (!selected || !newPass) {
-            if (resetStatus) resetStatus.textContent = "Select a student and enter new password.";
-            return;
-        }
-
-        await savePasswordOverrideByStudentId(selected.id, newPass.toLowerCase());
-
-        if (resetStatus) {
-            const displayName = `${selected.firstName} ${selected.lastName}`.trim() || selected.id;
-            resetStatus.textContent = `Reset saved for ${displayName} (${selected.id}).`;
-        }
-        if (resetPassword) resetPassword.value = "";
-        await refreshResetCurrentPasswordPreview();
-    });
-
-    clearResetBtn?.addEventListener("click", async () => {
-        const selected = resolveSelectedStudent();
-        if (!selected) {
-            if (resetStatus) resetStatus.textContent = "Select a student to clear reset.";
-            return;
-        }
-
-        await clearPasswordOverrideByStudentId(selected.id);
-
-        if (resetStatus) {
-            const displayName = `${selected.firstName} ${selected.lastName}`.trim() || selected.id;
-            resetStatus.textContent = `Reset cleared for ${displayName} (${selected.id}).`;
-        }
-        await refreshResetCurrentPasswordPreview();
-    });
-
-    copyPortalLink?.addEventListener("click", async () => {
-        if (!portalLinkField) return;
-        try {
-            await navigator.clipboard.writeText(portalLinkField.value);
-            if (portalStatus) portalStatus.textContent = "Portal link copied.";
-        } catch (e) {
-            portalLinkField.select();
-            document.execCommand("copy");
-            if (portalStatus) portalStatus.textContent = "Portal link copied.";
-        }
-    });
-
-    openPortalLink?.addEventListener("click", () => {
-        window.open("member-portal.html", "_blank");
-    });
-
-    refreshMessagesBtn?.addEventListener("click", renderContactMessages);
-    refreshBeginnerDebugBtn?.addEventListener("click", renderBeginnerDebugList);
-    clearMessagesBtn?.addEventListener("click", async () => {
-        if (!confirm("Clear all customer messages?")) return;
-        if (typeof db !== "undefined" && db.contactMessages?.deleteAll) {
-            await db.contactMessages.deleteAll();
-        }
-        renderContactMessages();
-    });
-
-    publishAssignmentForm?.addEventListener("submit", async (e) => {
-        e.preventDefault();
-
-        const program = (assignmentProgramLevel?.value || "").trim().toLowerCase();
-        const targetEmail = (assignmentTargetEmail?.value || "").trim().toLowerCase();
-        const title = (assignmentTitle?.value || "").trim();
-        const dueDate = (assignmentDueDate?.value || "").trim();
-        const downloadUrl = (assignmentDownloadUrl?.value || "").trim();
-
-        if (!program || !title || !dueDate) {
-            if (assignmentPublishStatus) assignmentPublishStatus.textContent = "Program, title, and due date are required.";
-            return;
-        }
-
-        const assignmentItem = {
-            id: `asg_${Date.now()}`,
-            title,
-            dueDate,
-            program,
-            targetEmail,
-            downloadUrl,
-            postedAt: new Date().toISOString()
-        };
-
-        if (typeof db === "undefined" || !db.assignments?.publish) {
-            if (assignmentPublishStatus) assignmentPublishStatus.textContent = "Supabase is not configured for assignments.";
-            return;
-        }
-
-        const { error } = await db.assignments.publish(assignmentItem);
-        if (error) {
-            if (assignmentPublishStatus) assignmentPublishStatus.textContent = `Could not publish assignment: ${error.message}`;
-            return;
-        }
-
-        if (assignmentPublishStatus) {
-            assignmentPublishStatus.textContent = targetEmail
-                ? `Assignment published for ${program} and ${targetEmail}.`
-                : `Assignment published for ${program}.`;
-        }
-
-        publishAssignmentForm.reset();
-    });
-
-    publishAnnouncementForm?.addEventListener("submit", async (e) => {
-        e.preventDefault();
-
-        const program = (announcementProgramLevel?.value || "").trim().toLowerCase();
-        const title = (announcementTitle?.value || "").trim();
-        const message = (announcementMessage?.value || "").trim();
-
-        if (!program || !title || !message) {
-            if (announcementPublishStatus) announcementPublishStatus.textContent = "Program, title, and message are required.";
-            return;
-        }
-
-        if (typeof db === "undefined" || !db.announcements?.publish) {
-            if (announcementPublishStatus) announcementPublishStatus.textContent = "Supabase is not configured for announcements.";
-            return;
-        }
-
-        const { error } = await db.announcements.publish({
-            id: `ann_${Date.now()}`,
-            title,
-            message,
-            program,
-            date: new Date().toISOString()
-        });
-        if (error) {
-            if (announcementPublishStatus) announcementPublishStatus.textContent = `Could not publish announcement: ${error.message}`;
-            return;
-        }
-
-        if (announcementPublishStatus) announcementPublishStatus.textContent = `Announcement published for ${program}.`;
-        publishAnnouncementForm.reset();
-    });
-
-    reminderSelectAllGuardians?.addEventListener("click", () => {
-        reminderGuardianPicker?.querySelectorAll('input[type="checkbox"][data-guardian-email]').forEach((el) => {
-            el.checked = true;
-        });
-    });
-
-    reminderClearGuardians?.addEventListener("click", () => {
-        reminderGuardianPicker?.querySelectorAll('input[type="checkbox"][data-guardian-email]').forEach((el) => {
-            el.checked = false;
-        });
-    });
-
-    refreshReminderList?.addEventListener("click", () => {
-        renderPublishedReminders();
-    });
-
-    toggleZoomReminderFilter?.addEventListener("click", () => {
-        zoomReminderFilterEnabled = !zoomReminderFilterEnabled;
-        renderPublishedReminders();
-    });
-
-    publishReminderForm?.addEventListener("submit", async (e) => {
-        e.preventDefault();
-
-        const selectedEmails = collectSelectedReminderGuardianEmails();
-        const title = (reminderTitle?.value || "").trim();
-        const dueDate = (reminderDueDate?.value || "").trim();
-        const message = (reminderMessage?.value || "").trim();
-        const files = Array.from(reminderAttachmentFile?.files || []);
-
-        if (!selectedEmails.length || !title || !dueDate || !message) {
-            if (reminderPublishStatus) reminderPublishStatus.textContent = "Select at least one guardian, then enter title, due date, and message.";
-            return;
-        }
-
-        const attachments = [];
-        for (const file of files) {
-            const dataUrl = await readFileAsDataUrlAdmin(file);
-            attachments.push({
-                id: `rem_file_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`,
-                name: file.name,
-                type: file.type,
-                size: file.size,
-                downloadUrl: dataUrl || "",
-                legacyNoDownload: !dataUrl
-            });
-        }
-
-        const postedAt = new Date().toISOString();
-        if (typeof db === "undefined" || !db.reminders?.publish) {
-            if (reminderPublishStatus) reminderPublishStatus.textContent = "Supabase is not configured for reminders.";
-            return;
-        }
-
-        for (const email of selectedEmails) {
-            const { error } = await db.reminders.publish({
-                id: `rem_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`,
-                guardianEmail: email,
-                title,
-                dueDate,
-                message,
-                postedAt,
-                attachments
-            });
-            if (error) {
-                if (reminderPublishStatus) reminderPublishStatus.textContent = `Could not publish reminder: ${error.message}`;
-                return;
-            }
-        }
-
-        if (reminderPublishStatus) {
-            reminderPublishStatus.textContent = `Reminder published for ${selectedEmails.length} guardian${selectedEmails.length > 1 ? "s" : ""}${attachments.length ? ` with ${attachments.length} attachment${attachments.length > 1 ? "s" : ""}` : ""}.`;
-        }
-        publishReminderForm.reset();
-        renderReminderGuardianPicker();
-        await renderPublishedReminders();
-    });
-
-    renderReminderGuardianPicker();
-    renderPublishedReminders();
-
-    renderContactMessages();
-    if (window.__daeroContactMessagesAutoRefreshTimer) {
-        clearInterval(window.__daeroContactMessagesAutoRefreshTimer);
-    }
-    window.__daeroContactMessagesAutoRefreshTimer = setInterval(() => {
-        renderContactMessages();
-    }, 10000);
-    renderBeginnerDebugList();
-}
-
-function readFileAsDataUrlAdmin(file) {
-    return new Promise((resolve) => {
-        const reader = new FileReader();
-        reader.onload = () => resolve(reader.result || "");
-        reader.onerror = () => resolve("");
-        reader.readAsDataURL(file);
-    });
-}
-
-function formatUploadSize(size) {
-    const n = Number(size || 0);
-    if (!n || n < 1024) return `${n || 0} B`;
-    if (n < 1024 * 1024) return `${(n / 1024).toFixed(1)} KB`;
-    return `${(n / (1024 * 1024)).toFixed(2)} MB`;
-}
-
-async function renderUploadList(listId, storageKey) {
-    const listEl = document.getElementById(listId);
-    if (!listEl) return;
-
-    const category = db.mediaUploads.categoryFromKey(storageKey);
-    const { data: rows, error } = await db.mediaUploads.getByCategory(category);
-    if (error || !rows?.length) {
-        listEl.innerHTML = `<div class="message-item">No files uploaded yet.</div>`;
-        return;
-    }
-
-    listEl.innerHTML = [...rows]
-        .reverse()
-        .map((row) => {
-            const href = row.file_url || row.file_data || "";
-            const hasDownload = !!href;
-            const when = row.uploaded_at ? new Date(row.uploaded_at).toLocaleString() : "";
-            const downloadHtml = hasDownload
-                ? `<a href="${href}" download="${row.file_name || "file"}" target="_blank" rel="noopener">Download</a>`
-                : `<span class="legacy-file-badge" title="Stored as metadata only.">Legacy file</span>`;
-
-            return `
-                <div class="message-item">
-                    <div><strong>${row.file_name || "Unnamed file"}</strong></div>
-                    <div class="message-time">${when}</div>
-                    <div class="support-actions">
-                        ${downloadHtml}
-                        <button class="glass-btn btn-primary delete-upload-item" data-row-id="${row.id}" data-file-url="${href}" data-list-id="${listId}" data-storage-key="${storageKey}">Delete</button>
-                    </div>
-                </div>
-            `;
-        })
-        .join("");
-
-    listEl.querySelectorAll(".delete-upload-item").forEach((btn) => {
-        btn.addEventListener("click", async () => {
-            const rowId = btn.dataset.rowId;
-            if (!rowId) return;
-            if (btn.dataset.fileUrl && typeof db !== "undefined" && db.mediaUploads?.deleteFromStorageByUrl) {
-                await db.mediaUploads.deleteFromStorageByUrl(btn.dataset.fileUrl);
-            }
-            await db.mediaUploads.delete(rowId);
-            await renderUploadList(btn.dataset.listId, btn.dataset.storageKey);
-        });
-    });
-}
-
-function initAdditionalAssignmentsUpload() {
-    const input = document.getElementById("uploadAdditionalAssignmentsInput");
-    const classTypeSelect = document.getElementById("uploadAdditionalAssignmentsClassType");
-    const clearBtn = document.getElementById("clearUploadAdditionalAssignments");
-    const listEl = document.getElementById("uploadAdditionalAssignmentsList");
-    if (!input || !listEl || !classTypeSelect) return;
-
-    // Helper to render uploaded files from additional_assignments
-    async function renderAdditionalAssignmentsList() {
-        const selectedClassType = classTypeSelect.value || "beginner";
-        if (!db.additionalAssignments?.getByClassType) {
-            listEl.innerHTML = '<div class="message-item">Supabase integration not available.</div>';
-            return;
-        }
-        const { data: rows, error } = await db.additionalAssignments.getByClassType(selectedClassType);
-        if (error || !rows?.length) {
-            listEl.innerHTML = '<div class="message-item">No additional assignments uploaded yet.</div>';
-            return;
-        }
-        listEl.innerHTML = rows.reverse().map((row) => {
-            const href = row.file_url || row.file_data || "";
-            const when = row.uploaded_at ? new Date(row.uploaded_at).toLocaleString() : "";
-            return `<div class="message-item">
-                <div><strong>${row.file_name || "Assignment"}</strong> <span class='assignment-class-type'>Class: ${selectedClassType}</span></div>
-                <div class="message-time">${when}</div>
-                <div class="support-actions">
-                    <a href="${href}" download="${row.file_name || "resource"}" target="_blank" rel="noopener">Download</a>
-                    <button class="glass-btn btn-primary delete-assignment-item" data-row-id="${row.id}">Delete</button>
-                </div>
-            </div>`;
-        }).join("");
-
-        // Attach delete handlers
-        listEl.querySelectorAll(".delete-assignment-item").forEach((btn) => {
-            btn.addEventListener("click", async () => {
-                const rowId = btn.dataset.rowId;
-                if (!rowId || !db.additionalAssignments?.delete) return;
-                await db.additionalAssignments.delete(rowId);
-                renderAdditionalAssignmentsList();
-            });
-        });
-    }
-
-    input.addEventListener("change", async (e) => {
-        const files = Array.from(e.target.files || []);
-        console.log('[AdditionalAssignments] Files selected:', files);
-        if (!files.length) {
-            console.log('[AdditionalAssignments] No files selected.');
-            return;
-        }
-        const selectedClassType = classTypeSelect.value || "beginner";
-        let successCount = 0;
-        let failedMessages = [];
-        let skippedFiles = [];
-        // Fetch current files for this class type to check for duplicates
-        let existingRows = [];
-        if (db.additionalAssignments?.getByClassType) {
-            const { data: rows, error } = await db.additionalAssignments.getByClassType(selectedClassType);
-            console.log('[AdditionalAssignments] Existing rows:', rows, 'Error:', error);
-            existingRows = Array.isArray(rows) ? rows : [];
-        }
-        const existingNames = new Set(existingRows.map(row => (row.file_name || "").toLowerCase()));
-        listEl.innerHTML = `<div class=\"message-item\">Uploading ${files.length} file(s)...</div>`;
-        for (const file of files) {
-            if (existingNames.has((file.name || "").toLowerCase())) {
-                console.log(`[AdditionalAssignments] Skipping duplicate file: ${file.name}`);
-                skippedFiles.push(file.name);
-                continue;
-            }
-            listEl.innerHTML = `<div class=\"message-item\">Uploading ${file.name}...</div>`;
-            let uploadRes;
-            let publicUrl = null;
-            if (String(file.type || "").toLowerCase().startsWith("video/")) {
-                uploadRes = await uploadMediaWithTus(selectedClassType, file, (percent) => {
-                    listEl.innerHTML = `<div class=\\\"message-item\\\">Uploading ${file.name}… ${percent}%</div>`;
-                });
-                publicUrl = uploadRes?.publicUrl;
-                console.log(`[AdditionalAssignments] Video upload result for ${file.name}:`, uploadRes);
-            } else {
-                uploadRes = await db.mediaUploads.uploadToStorage(selectedClassType, file);
-                publicUrl = uploadRes?.data?.publicUrl;
-                console.log(`[AdditionalAssignments] Non-video upload result for ${file.name}:`, uploadRes);
-            }
-            if (uploadRes.error || !publicUrl) {
-                console.log(`[AdditionalAssignments] Upload failed for ${file.name}:`, uploadRes.error, 'Public URL:', publicUrl);
-                failedMessages.push(`${file.name}: ${uploadRes.error ? uploadRes.error.message : 'No public URL returned'}`);
-            } else {
-                // Insert metadata into additional_assignments table with explicit fields
-                const addRes = await db.additionalAssignments.add(selectedClassType, {
-                    name: file.name,
-                    type: file.type,
-                    url: publicUrl
-                });
-                console.log(`[AdditionalAssignments] Insert result for ${file.name}:`, addRes);
-                if (addRes.error) {
-                    failedMessages.push(`${file.name}: ${addRes.error.message}`);
-                } else {
-                    successCount++;
-                }
-            }
-        }
-        let statusMsg = "";
-        if (successCount > 0) statusMsg += `${successCount} file(s) uploaded successfully.<br>`;
-        if (skippedFiles.length) statusMsg += `Skipped (already uploaded): ${skippedFiles.join(", ")}<br>`;
-        if (failedMessages.length) statusMsg += `Some uploads failed:<br>${failedMessages.join("<br>")}`;
-        if (!statusMsg) statusMsg = "No files uploaded.";
-        listEl.innerHTML = `<div class=\"message-item\">${statusMsg}</div>`;
-        await renderAdditionalAssignmentsList();
-        input.value = "";
-    });
-
-    clearBtn?.addEventListener("click", async () => {
-        if (!confirm("Clear all additional assignments for this class?")) return;
-        const selectedClassType = classTypeSelect.value || "beginner";
-        if (!db.additionalAssignments?.clearByClassType) return;
-        await db.additionalAssignments.clearByClassType(selectedClassType);
-        await renderAdditionalAssignmentsList();
-    });
-
-    classTypeSelect.addEventListener("change", renderAdditionalAssignmentsList);
-    renderAdditionalAssignmentsList();
-}
-
-function initUploadInput(inputId, listId, storageKey) {
-    const input = document.getElementById(inputId);
-    if (!input) return;
-
-    const category = db.mediaUploads.categoryFromKey(storageKey);
-    const listEl = document.getElementById(listId);
-
-    const setInlineStatus = (message) => {
-        if (!listEl || !message) return;
-        listEl.innerHTML = `<div class="message-item">${message}</div>`;
-    };
-
-    input.addEventListener("change", async () => {
-        const files = Array.from(input.files || []);
-        if (!files.length) return;
-
-        let successCount = 0;
-        const failedMessages = [];
-        setInlineStatus(`Uploading ${files.length} file(s)...`);
-
-        for (const file of files) {
-            const isVideo = String(file.type || "").toLowerCase().startsWith("video/");
-            const limitBytes = getConfiguredUploadLimitBytes();
-            let error = null;
-
-            // Pre-check: reject anything over the Storage limit before touching the network
-            if (Number(file.size || 0) > limitBytes) {
-                failedMessages.push(
-                    `${file.name} is ${formatUploadSize(file.size)} — the maximum file size allowed is ${formatUploadSize(limitBytes)}. ` +
-                    `Please reduce the file size or upgrade the Supabase plan to raise the Storage limit.`
-                );
-                continue;
-            }
-
-            // All files (images and videos) go to Supabase Storage — never base64 in the database
-            let uploadRes;
-            if (isVideo) {
-                uploadRes = await uploadMediaWithTus(category, file, (percent) => {
-                    setInlineStatus(`Uploading ${file.name}… ${percent}%`);
-                });
-            } else {
-                setInlineStatus(`Uploading ${file.name}…`);
-                uploadRes = await db.mediaUploads.uploadToStorage(category, file);
-            }
-
-            if (uploadRes.error) {
-                error = isVideo ? normalizeVideoUploadError(uploadRes.error, file) : uploadRes.error;
-            } else {
-                const saveRes = await db.mediaUploads.add(category, {
-                    name: file.name,
-                    type: file.type,
-                    url: uploadRes.data?.publicUrl || ""
-                });
-                error = saveRes.error;
-                if (error && uploadRes.data?.publicUrl && db.mediaUploads?.deleteFromStorageByUrl) {
-                    await db.mediaUploads.deleteFromStorageByUrl(uploadRes.data.publicUrl);
-                }
-            }
-
-            if (error) {
-                const errMsg = String(error.message || "Unknown error.");
-                failedMessages.push(`Upload failed for ${file.name}: ${errMsg}`);
-                continue;
-            }
-
-            successCount += 1;
-        }
-
-        if (successCount > 0) {
-            await renderUploadList(listId, storageKey);
-        }
-
-        if (failedMessages.length > 0 && successCount === 0) {
-            setInlineStatus(failedMessages.join("<br>"));
-        } else if (failedMessages.length > 0) {
-            alert(failedMessages.join("\n"));
-        }
-
-        input.value = "";
-    });
-
-    renderUploadList(listId, storageKey);
-}
-
-function initClearUploadButton(buttonId, listId, storageKey, label) {
-    const btn = document.getElementById(buttonId);
-    if (!btn) return;
-
-    const category = db.mediaUploads.categoryFromKey(storageKey);
-
-    btn.addEventListener("click", async () => {
-        if (!confirm(`Clear all uploaded files for ${label}?`)) return;
-        const { data: rows } = await db.mediaUploads.getByCategory(category);
-        for (const row of rows || []) {
-            if (row?.file_url && typeof db !== "undefined" && db.mediaUploads?.deleteFromStorageByUrl) {
-                await db.mediaUploads.deleteFromStorageByUrl(row.file_url);
-            }
-        }
-        await db.mediaUploads.clearCategory(category);
-        await renderUploadList(listId, storageKey);
-    });
-}
-
-function initClearAllPostsUploadsButton() {
-    const btn = document.getElementById("clearAllPostsUploads");
-    if (!btn || btn.dataset.bound === "1") return;
-    btn.dataset.bound = "1";
-
-    const uploadPanels = [
-        { listId: "uploadIndexLatestList", storageKey: "adminUploadsIndexLatestSlides" },
-        { listId: "uploadIndexTraditionalList", storageKey: "adminUploadsIndexTraditionalSlides" },
-        { listId: "uploadIndexGraduationVideosList", storageKey: "adminUploadsIndexGraduationVideos" },
-        { listId: "uploadIndexTribesList", storageKey: "adminUploadsIndexTribesSlides" },
-        { listId: "uploadMemberSlidesList", storageKey: "adminUploadsMemberLoginSlides" },
-        { listId: "uploadRegisterSlidesList", storageKey: "adminUploadsRegisterSlides" },
-        { listId: "uploadIndexGraduationFigureList", storageKey: "adminUploadsIndexGraduationFigure" }
-    ];
-
-    btn.addEventListener("click", async () => {
-        const ok = confirm(
-            "This will delete all uploaded files from Storage that are tracked by media_uploads and clear all rows in media_uploads. Continue?"
-        );
-        if (!ok) return;
-
-        btn.disabled = true;
-        const originalText = btn.textContent;
-        btn.textContent = "Clearing...";
-
-        try {
-            const { data: rows, error: getError } = await db.mediaUploads.getAll();
-            if (getError) {
-                alert(`Could not read uploaded files: ${getError.message}`);
-                return;
-            }
-
-            let storageDeleteFailures = 0;
-            for (const row of rows || []) {
-                const fileUrl = String(row?.file_url || "").trim();
-                if (!fileUrl || !db.mediaUploads?.deleteFromStorageByUrl) continue;
-                const res = await db.mediaUploads.deleteFromStorageByUrl(fileUrl);
-                if (res?.error) storageDeleteFailures += 1;
-            }
-
-            const { error: clearError } = await db.mediaUploads.clearAll();
-            if (clearError) {
-                alert(`Could not clear media_uploads table: ${clearError.message}`);
-                return;
-            }
-
-            await Promise.all(uploadPanels.map((panel) => renderUploadList(panel.listId, panel.storageKey)));
-            await Promise.all((PROGRAM_RESOURCE_LEVELS || []).map((level) => renderProgramResourceList(level)));
-
-            const totalRows = Array.isArray(rows) ? rows.length : 0;
-            const failureNote = storageDeleteFailures > 0
-                ? ` (${storageDeleteFailures} storage object(s) could not be removed automatically.)`
-                : "";
-            alert(`Cleared ${totalRows} media record(s) from media_uploads.${failureNote}`);
-        } finally {
-            btn.disabled = false;
-            btn.textContent = originalText;
-        }
-    });
-}
-
-function initSidebarUploadSystems() {
-    initUploadInput("uploadIndexLatestInput", "uploadIndexLatestList", "adminUploadsIndexLatestSlides");
-    initUploadInput("uploadIndexTraditionalInput", "uploadIndexTraditionalList", "adminUploadsIndexTraditionalSlides");
-    initUploadInput("uploadIndexGraduationVideosInput", "uploadIndexGraduationVideosList", "adminUploadsIndexGraduationVideos");
-    initUploadInput("uploadIndexTribesInput", "uploadIndexTribesList", "adminUploadsIndexTribesSlides");
-    initUploadInput("uploadMemberSlidesInput", "uploadMemberSlidesList", "adminUploadsMemberLoginSlides");
-    initUploadInput("uploadRegisterSlidesInput", "uploadRegisterSlidesList", "adminUploadsRegisterSlides");
-    initUploadInput("uploadIndexGraduationFigureInput", "uploadIndexGraduationFigureList", "adminUploadsIndexGraduationFigure");
-    initAdditionalAssignmentsUpload();
-
-    initClearUploadButton("clearUploadIndexLatest", "uploadIndexLatestList", "adminUploadsIndexLatestSlides", "Uploading Latest posts");
-    initClearUploadButton("clearUploadIndexTraditional", "uploadIndexTraditionalList", "adminUploadsIndexTraditionalSlides", "Uploading Traditional Practices");
-    initClearUploadButton("clearUploadIndexGraduationVideos", "uploadIndexGraduationVideosList", "adminUploadsIndexGraduationVideos", "Uploading Graduations and Class Events");
-    initClearUploadButton("clearUploadIndexTribes", "uploadIndexTribesList", "adminUploadsIndexTribesSlides", "Uploading Tribes & Their Practices");
-    initClearUploadButton("clearUploadMemberSlides", "uploadMemberSlidesList", "adminUploadsMemberLoginSlides", "Uploading Member login Page slides");
-    initClearUploadButton("clearUploadRegisterSlides", "uploadRegisterSlidesList", "adminUploadsRegisterSlides", "Uploading Registration page slides");
-    initClearUploadButton("clearUploadIndexGraduationFigure", "uploadIndexGraduationFigureList", "adminUploadsIndexGraduationFigure", "Uploading Graduation Figure");
-
-    initClearAllPostsUploadsButton();
-
-    initLessonPlanDocumentUploader();
-}
-
-const PROGRAM_RESOURCE_LEVELS = ["beginner", "intermediate", "advanced", "afterschool", "religious"];
-
-function normalizeProgramResourceLevel(value) {
-    const normalized = String(value || "")
-        .trim()
-        .toLowerCase()
-        .replace(/^program-resources-/, "")
-        .replace(/[_\s]+/g, "-")
-        .replace(/-+/g, "-");
-
-    if (!normalized) return "";
-    if (normalized.includes("beginner") || normalized.includes("basic")) return "beginner";
-    if (normalized.includes("intermediate")) return "intermediate";
-    if (normalized.includes("advanced")) return "advanced";
-    if (normalized.includes("after-school") || normalized.includes("afterschool") || normalized.includes("ast") || normalized.includes("tutorial")) return "afterschool";
-    if (normalized.includes("religious")) return "religious";
-    return normalized;
-}
-
-function getProgramResourceCategory(level) {
-    return `program-resources-${normalizeProgramResourceLevel(level)}`;
-}
-
-async function getProgramResourceRows(level) {
-    const safeLevel = normalizeProgramResourceLevel(level);
-    const category = getProgramResourceCategory(safeLevel);
-    const exactResult = await db.mediaUploads.getByCategory(category);
-
-    if (exactResult.error) return exactResult;
-    if ((exactResult.data || []).length) return exactResult;
-
-    const allResult = await db.mediaUploads.getAll();
-    if (allResult.error) return allResult;
-
-    return {
-        data: (allResult.data || []).filter((row) => normalizeProgramResourceLevel(row?.category || "") === safeLevel),
-        error: null
-    };
-}
-
-async function renderProgramResourceList(level) {
-    const safeLevel = normalizeProgramResourceLevel(level);
-    const listEl = document.getElementById(`resources-${safeLevel}`);
-    if (!listEl) return;
-
-    const { data: rows, error } = await getProgramResourceRows(safeLevel);
-
-    if (error) {
-        listEl.innerHTML = `<div class="message-item">Could not load resources: ${error.message || "Unknown error"}</div>`;
-        return;
-    }
-
-    if (!rows?.length) {
-        listEl.innerHTML = `<div class="message-item">No resources uploaded yet.</div>`;
-        return;
-    }
-
-    listEl.innerHTML = [...rows]
-        .reverse()
-        .map((row) => {
-            const href = row.file_url || row.file_data || "";
-            const hasDownload = !!href;
-            const when = row.uploaded_at ? new Date(row.uploaded_at).toLocaleString() : "";
-            const downloadHtml = hasDownload
-                ? `<a href="${href}" download="${row.file_name || "resource"}" target="_blank" rel="noopener">Download</a>`
-                : `<span class="legacy-file-badge" title="Stored as metadata only.">Legacy file</span>`;
-
-            return `
-                <div class="message-item">
-                    <div><strong>${row.file_name || "Unnamed file"}</strong> (${formatUploadSize(row.file_size || 0)})</div>
-                    <div class="message-time">${when}</div>
-                    <div class="support-actions">
-                        ${downloadHtml}
-                        <button class="glass-btn btn-primary delete-program-resource" data-row-id="${row.id}" data-level="${safeLevel}">Delete</button>
-                    </div>
-                </div>
-            `;
-        })
-        .join("");
-
-    listEl.querySelectorAll(".delete-program-resource").forEach((btn) => {
-        btn.addEventListener("click", async () => {
-            const rowId = btn.dataset.rowId;
-            const rowLevel = btn.dataset.level;
-            if (!rowId || !rowLevel) return;
-            await db.mediaUploads.delete(rowId);
-            await renderProgramResourceList(rowLevel);
-        });
-    });
-}
-
-function initProgramResourceUploadSystems() {
-    const uploadButtons = document.querySelectorAll(".upload-btn[data-level]");
-    const fileInputs = document.querySelectorAll(".file-input[data-level]");
-    const refreshButtons = document.querySelectorAll(".refresh-program-resources-btn[data-level]");
-
-    uploadButtons.forEach((btn) => {
-        if (btn.dataset.bound === "1") return;
-        btn.dataset.bound = "1";
-
-        btn.addEventListener("click", () => {
-            const level = normalizeProgramResourceLevel(btn.getAttribute("data-level") || "");
-            if (!level) return;
-            const input = document.querySelector(`.file-input[data-level="${level}"]`);
-            input?.click();
-        });
-    });
-
-    fileInputs.forEach((input) => {
-        if (input.dataset.bound === "1") return;
-        input.dataset.bound = "1";
-
-        input.addEventListener("change", async () => {
-            const level = normalizeProgramResourceLevel(input.getAttribute("data-level") || "");
-            if (!level) return;
-
-            const files = Array.from(input.files || []);
-            if (!files.length) return;
-
-            const category = getProgramResourceCategory(level);
-            for (const file of files) {
-                const dataUrl = await readFileAsDataUrlAdmin(file);
-                await db.mediaUploads.add(category, {
-                    name: file.name,
-                    type: file.type,
-                    dataUrl
-                });
-            }
-
-            input.value = "";
-            await renderProgramResourceList(level);
-        });
-    });
-
-    refreshButtons.forEach((btn) => {
-        if (btn.dataset.bound === "1") return;
-        btn.dataset.bound = "1";
-
-        btn.addEventListener("click", async () => {
-            const level = normalizeProgramResourceLevel(btn.getAttribute("data-level") || "");
-            if (!level) return;
-            await renderProgramResourceList(level);
-        });
-    });
-
-    PROGRAM_RESOURCE_LEVELS.forEach((level) => {
-        renderProgramResourceList(level);
-    });
-}
-
-
-const TEACHERS_TASK_LEVELS = ["Basic Class", "Intermediate", "Advanced", "After School Tutorial", "Religious Study"];
-const TEACHERS_TASK_ATTENDANCE_SLOTS = [
-    "week1Wed", "week1Sat",
-    "week2Wed", "week2Sat",
-    "week3Wed", "week3Sat",
-    "week4Wed", "week4Sat"
-];
-
-let lessonPlanDocsCache = [];
-
-function normalizeTeachersTaskLevel(level) {
-    const raw = String(level || "").trim();
-    const value = raw.toLowerCase();
-    if (!value) return "";
-
-    if (value.includes("basic") || value.includes("beginner")) return "Basic Class";
-    if (value.includes("intermediate")) return "Intermediate";
-    if (value.includes("advanced")) return "Advanced";
-    if (value.includes("after school") || value.includes("ast") || value.includes("cultural")) return "After School Tutorial";
-    if (value.includes("religious")) return "Religious Study";
-    return raw;
-}
-
-function normalizeLessonDocWeek(week) {
-    const raw = String(week || "").trim();
-    if (!raw) return "";
-    const value = raw.toLowerCase();
-    const match = value.match(/week\s*-?\s*(\d{1,2})/) || value.match(/^(\d{1,2})$/);
-    if (match) return `Week-${match[1]}`;
-    return raw;
-}
-
-function normalizeLessonDocDay(day) {
-    const raw = String(day || "").trim();
-    if (!raw) return "";
-    const value = raw.toLowerCase();
-    if (!value) return raw;
-    if (value === "wednesday" || value === "wed" || value === "class-1" || value === "class 1") return "Wednesday";
-    if (value === "saturday" || value === "sat" || value === "class-2" || value === "class 2") return "Saturday";
-    return raw;
-}
-
-async function refreshLessonPlanDocs() {
-    const { data } = await db.lessonPlanDocs.getAll();
-    lessonPlanDocsCache = data || [];
-}
-
-function refreshCurrentLessonPlanPanel() {
-    const levelSelect = document.getElementById("lessonPlanClassSelect");
-    if (!levelSelect) return;
-    const selectedValue = normalizeTeachersTaskLevel(levelSelect.value);
-    const selected = TEACHERS_TASK_LEVELS.includes(selectedValue) ? selectedValue : "Basic Class";
-    renderTeachersTaskLessonPlan(selected);
-}
-
-async function renderLessonDocumentUploadList() {
-    const listEl = document.getElementById("lessonDocsUploadList");
-    if (!listEl) return;
-
-    const programSelect = document.getElementById("lessonDocsProgramSelect");
-    const weekSelect = document.getElementById("lessonDocsWeekSelect");
-    const daySelect = document.getElementById("lessonDocsDaySelect");
-
-    await refreshLessonPlanDocs();
-    const docs = lessonPlanDocsCache;
-
-    const selectedProgram = normalizeTeachersTaskLevel(programSelect?.value || "");
-    const selectedWeek = normalizeLessonDocWeek(weekSelect?.value || "");
-    const selectedDay = normalizeLessonDocDay(daySelect?.value || "");
-
-    const filteredDocs = docs.filter((row) => {
-        const rowProgram = normalizeTeachersTaskLevel(row?.class_level || "");
-        const rowWeek = normalizeLessonDocWeek(row?.week || "");
-        const rowDay = normalizeLessonDocDay(row?.day || "");
-
-        return (!selectedProgram || rowProgram === selectedProgram) &&
-            (!selectedWeek || rowWeek === selectedWeek) &&
-            (!selectedDay || rowDay === selectedDay);
-    });
-
-    if (!filteredDocs.length) {
-        listEl.innerHTML = `<div class="message-item">No lesson documents uploaded for the selected class/week/day.</div>`;
-        return;
-    }
-
-    listEl.innerHTML = filteredDocs.map((row) => {
-        const whenSource = row.uploaded_at || row.updated_at || "";
-        const when = whenSource ? new Date(whenSource).toLocaleString() : "";
-        const href = row.file_url || row.file_data || "";
-        const hasDownload = !!href;
-        const classLabel = normalizeTeachersTaskLevel(row.class_level || "") || row.class_level || "";
-        const weekLabel = normalizeLessonDocWeek(row.week || "") || row.week || "";
-        const dayLabel = normalizeLessonDocDay(row.day || "") || row.day || "";
-        return `
-            <div class="message-item">
-                <div><strong>${row.file_name || "Unnamed file"}</strong> (${formatUploadSize(row.file_size || 0)})</div>
-                <div>${classLabel} / ${weekLabel} / ${dayLabel}</div>
-                <div class="message-time">${when}</div>
-                <div class="support-actions">
-                    ${hasDownload ? `<a href="${href}" download="${row.file_name || "file"}" target="_blank" rel="noopener">Download</a>` : `<span class="legacy-file-badge">Legacy file</span>`}
-                    <button class="glass-btn btn-primary lesson-doc-delete" data-doc-id="${row.id}">Delete</button>
-                </div>
-            </div>
-        `;
-    }).join("");
-
-    listEl.querySelectorAll(".lesson-doc-delete").forEach(btn => {
-        btn.addEventListener("click", async () => {
-            const docId = btn.dataset.docId;
-            if (!docId) return;
-            await db.lessonPlanDocs.delete(docId);
-            await renderLessonDocumentUploadList();
-            refreshCurrentLessonPlanPanel();
-        });
-    });
-}
-
-function getLessonDocumentsBySlot(program, week, day) {
-    const p = normalizeTeachersTaskLevel(program).toLowerCase();
-    const w = normalizeLessonDocWeek(week).toLowerCase();
-    const d = normalizeLessonDocDay(day).toLowerCase();
-    return lessonPlanDocsCache.filter(row =>
-        normalizeTeachersTaskLevel(row.class_level || "").toLowerCase() === p &&
-        normalizeLessonDocWeek(row.week || "").toLowerCase() === w &&
-        normalizeLessonDocDay(row.day || "").toLowerCase() === d
-    );
-}
-
-function fillLessonWeekDownloadIcons(weekCard, level, weekKey) {
-    const days = ["Wednesday", "Saturday"];
-    days.forEach(day => {
-        const host = weekCard.querySelector(`[data-doc-host="${day}"]`);
-        if (!host) return;
-
-        const docs = getLessonDocumentsBySlot(level, weekKey, day);
-        host.innerHTML = docs
-            .map(doc => {
-                const href = doc.file_url || doc.file_data || "";
-                if (!href) return "";
-                const safeName = doc.file_name || "document";
-                return `<a class="lesson-doc-icon-link" href="${href}" download="${safeName}" target="_blank" rel="noopener" title="${safeName}">⭳</a>`;
-            })
-            .join("");
-    });
-}
-
-function initLessonPlanDocumentUploader() {
-    const programSelect = document.getElementById("lessonDocsProgramSelect");
-    const weekSelect = document.getElementById("lessonDocsWeekSelect");
-    const daySelect = document.getElementById("lessonDocsDaySelect");
-    const fileInput = document.getElementById("lessonDocsFileInput");
-    const uploadBtn = document.getElementById("lessonDocsUploadBtn");
-    const refreshBtn = document.getElementById("refreshLessonDocsBtn");
-    const statusEl = document.getElementById("lessonDocsUploadStatus");
-
-    if (!programSelect || !weekSelect || !daySelect || !fileInput || !uploadBtn || !refreshBtn) return;
-
-    renderLessonDocumentUploadList();
-
-    programSelect.addEventListener("change", renderLessonDocumentUploadList);
-    weekSelect.addEventListener("change", renderLessonDocumentUploadList);
-    daySelect.addEventListener("change", renderLessonDocumentUploadList);
-
-    uploadBtn.addEventListener("click", async () => {
-        const program = normalizeTeachersTaskLevel(programSelect.value);
-        const week = normalizeLessonDocWeek(weekSelect.value);
-        const day = normalizeLessonDocDay(daySelect.value);
-        const files = Array.from(fileInput.files || []);
-
-        if (!program || !week || !day) {
-            if (statusEl) statusEl.textContent = "Please select class, week, and day.";
-            return;
-        }
-        if (!files.length) {
-            if (statusEl) statusEl.textContent = "Please choose at least one file.";
-            return;
-        }
-
-        for (const file of files) {
-            const dataUrl = await readFileAsDataUrlAdmin(file);
-            await db.lessonPlanDocs.add({
-                id: `lpd_${Date.now()}_${Math.random().toString(16).slice(2)}`,
-                program,
-                week,
-                day,
-                name: file.name,
-                type: file.type,
-                size: file.size,
-                dataUrl
-            });
-        }
-
-        fileInput.value = "";
-        await renderLessonDocumentUploadList();
-        refreshCurrentLessonPlanPanel();
-        if (statusEl) statusEl.textContent = "Lesson document uploaded.";
-    });
-
-    refreshBtn.addEventListener("click", async () => {
-        await renderLessonDocumentUploadList();
-        if (statusEl) statusEl.textContent = "Lesson documents refreshed.";
-    });
-}
-
-function getDefaultLessonList(isSaturday = false) {
-    return [
-        "- Lesson topic",
-        "- Reading & Writing practice",
-        isSaturday ? "- Next week topic" : "- Q&A session",
-        "- Additional assignment"
-    ].join("\n");
-}
-
-function getDefaultLessonPlanData() {
-    const data = {};
-    TEACHERS_TASK_LEVELS.forEach(level => {
-        data[level] = {};
-        for (let week = 1; week <= 11; week += 1) {
-            data[level][`Week-${week}`] = {
-                Wednesday: getDefaultLessonList(false),
-                Saturday: getDefaultLessonList(true)
-            };
-        }
-    });
-    return data;
-}
-
-let lessonPlanCache = {};
-
-async function loadLessonPlanForLevel(level) {
-    const { data } = await db.lessonPlans.getByClass(level);
-    const defaults = getDefaultLessonPlanData()[level] || {};
-    const plansByWeek = {};
-
-    (data || []).forEach(row => {
-        const weekKey = `Week-${row.week_number}`;
-        if (!plansByWeek[weekKey]) plansByWeek[weekKey] = { ...defaults[weekKey] };
-        plansByWeek[weekKey][row.day] = row.content || "";
-    });
-
-    for (let week = 1; week <= 11; week += 1) {
-        const weekKey = `Week-${week}`;
-        if (!plansByWeek[weekKey]) {
-            plansByWeek[weekKey] = defaults[weekKey] || {
-                Wednesday: getDefaultLessonList(false),
-                Saturday: getDefaultLessonList(true)
-            };
-        }
-    }
-
-    lessonPlanCache[level] = plansByWeek;
-}
-
-function createLessonWeekCard(level, weekNumber, plansByWeek) {
-    const weekKey = `Week-${weekNumber}`;
-    const weekPayload = plansByWeek?.[weekKey] || {
-        Wednesday: getDefaultLessonList(false),
-        Saturday: getDefaultLessonList(true)
-    };
-
-    const weekCard = document.createElement("article");
-    weekCard.className = "lesson-week-card";
-    weekCard.dataset.level = level;
-    weekCard.dataset.week = weekKey;
-
-    weekCard.innerHTML = `
-        <div class="lesson-week-title">${weekKey}</div>
-        <div class="lesson-week-days">
-            <div class="lesson-day-column lesson-day-wednesday">
-                <div class="lesson-day-header-row">
-                    <h4>Wednesday</h4>
-                    <div class="lesson-day-doc-host" data-doc-host="Wednesday"></div>
-                </div>
-                <textarea class="lesson-day-editor" data-day="Wednesday" readonly>${weekPayload.Wednesday}</textarea>
-            </div>
-            <div class="lesson-day-column lesson-day-saturday">
-                <div class="lesson-day-header-row">
-                    <h4>Saturday</h4>
-                    <div class="lesson-day-doc-host" data-doc-host="Saturday"></div>
-                </div>
-                <textarea class="lesson-day-editor" data-day="Saturday" readonly>${weekPayload.Saturday}</textarea>
-            </div>
-        </div>
-        <div class="lesson-week-actions">
-            <button type="button" class="glass-btn btn-secondary lesson-edit-btn">Edit</button>
-            <button type="button" class="glass-btn btn-primary lesson-save-btn" disabled>Save</button>
-        </div>
-    `;
-
-    const editBtn = weekCard.querySelector(".lesson-edit-btn");
-    const saveBtn = weekCard.querySelector(".lesson-save-btn");
-    const editors = Array.from(weekCard.querySelectorAll(".lesson-day-editor"));
-
-    if (editBtn && saveBtn && editors.length) {
-        editBtn.addEventListener("click", () => {
-            editors.forEach(editor => editor.removeAttribute("readonly"));
-            saveBtn.disabled = false;
-            editBtn.disabled = true;
-            editors[0].focus();
-            // Highlight edit mode for yellow/orange boxes
-            editors.forEach(editor => {
-                if (editor.closest('.lesson-day-wednesday')) {
-                    editor.closest('.lesson-day-wednesday').classList.add('edit-mode');
-                }
-                if (editor.closest('.lesson-day-saturday')) {
-                    editor.closest('.lesson-day-saturday').classList.add('edit-mode');
-                }
-            });
-        });
-
-        saveBtn.addEventListener("click", async () => {
-            const wedContent = editors.find(e => e.dataset.day === "Wednesday")?.value || "";
-            const satContent = editors.find(e => e.dataset.day === "Saturday")?.value || "";
-            await db.lessonPlans.save(level, weekNumber, "Wednesday", wedContent);
-            await db.lessonPlans.save(level, weekNumber, "Saturday", satContent);
-
-            editors.forEach(editor => editor.setAttribute("readonly", "readonly"));
-            saveBtn.disabled = true;
-            editBtn.disabled = false;
-            // Remove edit mode highlight
-            editors.forEach(editor => {
-                if (editor.closest('.lesson-day-wednesday')) {
-                    editor.closest('.lesson-day-wednesday').classList.remove('edit-mode');
-                }
-                if (editor.closest('.lesson-day-saturday')) {
-                    editor.closest('.lesson-day-saturday').classList.remove('edit-mode');
-                }
-            });
-        });
-    }
-
-    fillLessonWeekDownloadIcons(weekCard, level, weekKey);
-
-    return weekCard;
-}
-
-async function renderTeachersTaskLessonPlan(level) {
-    const container = document.getElementById("lessonPlanWeeksContainer");
-    if (!container) return;
-
-    await loadLessonPlanForLevel(level);
-    const plansByWeek = lessonPlanCache[level] || {};
-    container.innerHTML = "";
-
-    for (let week = 1; week <= 11; week += 1) {
-        container.appendChild(createLessonWeekCard(level, week, plansByWeek));
-    }
-}
-
-function normalizeTeachersProgramLabel(programName) {
-    const value = String(programName || "").trim().toLowerCase();
-    if (value.includes("basic") || value.includes("beginner")) return "Basic Class";
-    if (value.includes("intermediate")) return "Intermediate";
-    if (value.includes("advanced")) return "Advanced";
-    if (value.includes("after school") || value.includes("tutorial")) return "After School Tutorial";
-    if (value.includes("religious")) return "Religious Study";
-    return "";
-}
-
-function getTeachersTaskStudentsByProgram(programLabel) {
-    const normalizedRequested = String(programLabel || "").trim().toLowerCase();
-    const showAllClasses = normalizedRequested === "all class list";
-    const target = normalizeTeachersProgramLabel(programLabel);
-    const admittedRows = getAllApplicants().filter(row => String(row.status || "").toLowerCase() === "admitted");
-
-    return admittedRows
-        .filter(row => {
-            if (showAllClasses) return true;
-            return normalizeTeachersProgramLabel(row.gradeLevel || row.programChoice || row.program) === target;
-        })
-        .sort((a, b) => {
-            if (showAllClasses) {
-                const programA = normalizeTeachersProgramLabel(a.gradeLevel || a.programChoice || a.program);
-                const programB = normalizeTeachersProgramLabel(b.gradeLevel || b.programChoice || b.program);
-                const compareProgram = String(programA).localeCompare(String(programB));
-                if (compareProgram !== 0) return compareProgram;
-            }
-            const fullA = `${a.firstName || ""} ${a.lastName || ""}`.trim().toLowerCase();
-            const fullB = `${b.firstName || ""} ${b.lastName || ""}`.trim().toLowerCase();
-            return fullA.localeCompare(fullB);
-        })
-        .map((row, index) => ({
-            serial: index + 1,
-            studentId: String(row.id || ""),
-            guardianName: String(row.guardianName || "").trim(),
-            guardianEmail: String(row.guardianEmail || "").trim().toLowerCase(),
-            guardianKey: (() => {
-                const email = String(row.guardianEmail || "").trim().toLowerCase();
-                const name = String(row.guardianName || "").trim().toLowerCase();
-                return email || `name:${name}`;
-            })(),
-            studentName: (() => {
-                const base = `${row.firstName || ""} ${row.lastName || ""}`.trim() || "Unnamed Student";
-                if (!showAllClasses) return base;
-                const cls = normalizeTeachersProgramLabel(row.gradeLevel || row.programChoice || row.program) || "Unassigned";
-                return `${base} (${cls})`;
-            })()
-        }));
-}
-
-// Map camelCase slot key to Supabase column name
-function slotToColumn(slotKey) {
-    const map = {
-        week1Wed: "week1_wed", week1Sat: "week1_sat",
-        week2Wed: "week2_wed", week2Sat: "week2_sat",
-        week3Wed: "week3_wed", week3Sat: "week3_sat",
-        week4Wed: "week4_wed", week4Sat: "week4_sat"
-    };
-    return map[slotKey] || slotKey;
-}
-
-function getAttendanceMark(rows, studentId, slotKey) {
-    const col = slotToColumn(slotKey);
-    const found = rows.find(r => String(r.student_id || "") === String(studentId));
-    return !!(found?.[col]);
-}
-
-function buildAttendancePeriod(monthLabel, yearLabel) {
-    const month = String(monthLabel || "").trim();
-    const year = String(yearLabel || "").trim();
-    return year ? `${month} ${year}` : month;
-}
-
-function populateAttendanceGuardianSelect(programLabel, selectedKey = "") {
-    const guardianSelect = document.getElementById("attendanceGuardianSelect");
-    if (!guardianSelect) return "";
-
-    const rows = getTeachersTaskStudentsByProgram(programLabel);
-    const unique = new Map();
-    rows.forEach((row) => {
-        const key = String(row.guardianKey || "").trim().toLowerCase();
-        if (!key || unique.has(key)) return;
-        unique.set(key, {
-            key,
-            name: row.guardianName || "Unknown Guardian",
-            email: row.guardianEmail || ""
-        });
-    });
-
-    const options = Array.from(unique.values()).sort((a, b) => {
-        const nameCmp = String(a.name).localeCompare(String(b.name));
-        if (nameCmp !== 0) return nameCmp;
-        return String(a.email).localeCompare(String(b.email));
-    });
-
-    guardianSelect.innerHTML = `<option value="">All guardians</option>`;
-    options.forEach((item) => {
-        const opt = document.createElement("option");
-        opt.value = item.key;
-        opt.textContent = item.name;
-        guardianSelect.appendChild(opt);
-    });
-
-    const normalizedSelected = String(selectedKey || "").trim().toLowerCase();
-    if (normalizedSelected && options.some((item) => item.key === normalizedSelected)) {
-        guardianSelect.value = normalizedSelected;
-    } else {
-        guardianSelect.value = "";
-    }
-
-    return guardianSelect.value;
-}
-
-async function renderTeachersAttendanceTable(programLabel, monthLabel, yearLabel, guardianKey = "") {
-    const wrap = document.getElementById("attendanceSheetWrap");
-    if (!wrap) return;
-
-    const allRows = getTeachersTaskStudentsByProgram(programLabel);
-    const targetGuardian = String(guardianKey || "").trim().toLowerCase();
-    const rows = targetGuardian
-        ? allRows.filter((row) => String(row.guardianKey || "").trim().toLowerCase() === targetGuardian)
-        : allRows;
-
-    if (!rows.length) {
-        const guardianSuffix = targetGuardian ? " for selected guardian" : "";
-        wrap.innerHTML = `<div class="attendance-empty">No admitted students found in ${programLabel}${guardianSuffix}.</div>`;
-        return;
-    }
-
-    const periodLabel = buildAttendancePeriod(monthLabel, yearLabel);
-    let { data: attendanceRows } = await db.attendance.getByClassMonth(programLabel, periodLabel);
-
-    // Backward compatibility: legacy rows may still use month-only keys.
-    if ((!attendanceRows || !attendanceRows.length) && periodLabel !== monthLabel) {
-        const legacy = await db.attendance.getByClassMonth(programLabel, monthLabel);
-        attendanceRows = legacy?.data || [];
-    }
-
-    const bodyRows = rows.map(row => {
-        const cells = TEACHERS_TASK_ATTENDANCE_SLOTS.map(slot => {
-            const checked = getAttendanceMark(attendanceRows || [], row.studentId, slot);
-            return `
-                <td class="attendance-mark-cell">
-                    <input
-                        type="checkbox"
-                        class="attendance-mark"
-                        data-student-id="${row.studentId}"
-                        data-student-name="${row.studentName}"
-                        data-slot="${slot}"
-                        ${checked ? "checked" : ""}
-                        disabled
-                    >
-                </td>
-            `;
-        }).join("");
-
-        return `
-            <tr>
-                <td class="attendance-serial">${row.serial}</td>
-                <td class="attendance-name">${row.studentName}</td>
-                ${cells}
-            </tr>
-        `;
-    }).join("");
-
-    wrap.innerHTML = `
-        <div id="attendancePrintableArea" class="attendance-sheet">
-            <table class="attendance-table">
-                <thead>
-                    <tr>
-                        <th colspan="2" class="attendance-left-title">${programLabel}</th>
-                        <th colspan="8" class="attendance-main-title">Students Attendance For The Month ${periodLabel}</th>
-                    </tr>
-                    <tr>
-                        <th rowspan="2" class="attendance-col-sn">No</th>
-                        <th rowspan="2" class="attendance-col-student">Student Name</th>
-                        <th colspan="2">WEEK-1</th>
-                        <th colspan="2">WEEK-2</th>
-                        <th colspan="2">WEEK-3</th>
-                        <th colspan="2">WEEK-4</th>
-                    </tr>
-                    <tr>
-                        <th>WED</th><th>SAT</th>
-                        <th>WED</th><th>SAT</th>
-                        <th>WED</th><th>SAT</th>
-                        <th>WED</th><th>SAT</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    ${bodyRows}
-                </tbody>
-            </table>
-        </div>
-    `;
-}
-
-function setAttendanceEditMode(isEditing) {
-    const saveBtn = document.getElementById("attendanceSaveBtn");
-    const editBtn = document.getElementById("attendanceEditBtn");
-    document.querySelectorAll("#attendanceSheetWrap .attendance-mark").forEach(control => {
-        control.disabled = !isEditing;
-    });
-    if (saveBtn) saveBtn.disabled = !isEditing;
-    if (editBtn) editBtn.disabled = isEditing;
-}
-
-async function saveAttendanceFromSheet(programLabel, monthLabel, yearLabel) {
-    const marks = document.querySelectorAll("#attendanceSheetWrap .attendance-mark");
-    const byStudent = {};
-    const periodLabel = buildAttendancePeriod(monthLabel, yearLabel);
-
-    marks.forEach(mark => {
-        const studentId = mark.dataset.studentId || "";
-        const studentName = mark.dataset.studentName || "";
-        const slot = mark.dataset.slot || "";
-        if (!studentId || !slot) return;
-        if (!byStudent[studentId]) byStudent[studentId] = { studentId, studentName, slots: {} };
-        byStudent[studentId].slots[slot] = mark.checked ? "P" : "";
-    });
-
-    for (const entry of Object.values(byStudent)) {
-        const { error } = await db.attendance.saveRow(
-            programLabel,
-            periodLabel,
-            entry.studentId,
-            entry.studentName,
-            entry.slots
-        );
-        if (error) {
-            throw error;
-        }
-    }
-    return true;
-}
-
-function printAttendanceSheet() {
-    const printable = document.getElementById("attendancePrintableArea");
-    if (!printable) return;
-
-    const printWin = window.open("", "_blank", "width=1200,height=850");
-    if (!printWin) {
-        alert("Please allow popups to print attendance.");
-        return;
-    }
-
-    printWin.document.write(`
-        <!doctype html>
-        <html>
-        <head>
-            <title>Student Attendance</title>
-            <style>
-                body { font-family: Arial, sans-serif; padding: 14px; }
-                table { width: 100%; border-collapse: collapse; }
-                th, td { border: 1.5px solid #000; padding: 4px; font-size: 14px; }
-                .attendance-main-title, .attendance-left-title { font-size: 26px; font-weight: 900; }
-                .attendance-left-title { text-align: left; }
-                .attendance-main-title { text-align: center; }
-                .attendance-name { text-align: left; font-weight: 700; }
-                .attendance-serial, .attendance-mark-cell { text-align: center; }
-                input[type=checkbox] { width: 17px; height: 17px; accent-color: #1b67b0; }
-            </style>
-        </head>
-        <body>${printable.outerHTML}</body>
-        </html>
-    `);
-    printWin.document.close();
-    printWin.focus();
-    printWin.print();
-}
-
-function initTeachersTaskAttendancePanel() {
-    const programSelect = document.getElementById("attendanceProgramSelect");
-    const yearSelect = document.getElementById("attendanceYearSelect");
-    const monthSelect = document.getElementById("attendanceMonthSelect");
-    const guardianSelect = document.getElementById("attendanceGuardianSelect");
-    const editBtn = document.getElementById("attendanceEditBtn");
-    const saveBtn = document.getElementById("attendanceSaveBtn");
-    const printBtn = document.getElementById("attendancePrintBtn");
-    const status = document.getElementById("attendanceStatus");
-
-    if (!programSelect || !yearSelect || !monthSelect || !guardianSelect || !editBtn || !saveBtn || !printBtn) return;
-
-    const currentYear = new Date().getFullYear();
-    yearSelect.innerHTML = "";
-    for (let year = currentYear - 2; year <= currentYear + 5; year += 1) {
-        const opt = document.createElement("option");
-        opt.value = String(year);
-        opt.textContent = String(year);
-        if (year === currentYear) opt.selected = true;
-        yearSelect.appendChild(opt);
-    }
-
-    const rerender = async () => {
-        const selectedGuardian = populateAttendanceGuardianSelect(programSelect.value, guardianSelect.value);
-        await renderTeachersAttendanceTable(
-            programSelect.value,
-            monthSelect.value,
-            yearSelect.value,
-            selectedGuardian
-        );
-        setAttendanceEditMode(false);
-        if (status) status.textContent = "";
-    };
-
-    rerender();
-
-    programSelect.addEventListener("change", rerender);
-    yearSelect.addEventListener("change", rerender);
-    monthSelect.addEventListener("change", rerender);
-    guardianSelect.addEventListener("change", rerender);
-
-    editBtn.addEventListener("click", () => {
-        setAttendanceEditMode(true);
-        if (status) status.textContent = "Editing attendance...";
-    });
-
-    saveBtn.addEventListener("click", async () => {
-        try {
-            await saveAttendanceFromSheet(programSelect.value, monthSelect.value, yearSelect.value);
-            setAttendanceEditMode(false);
-            if (status) status.textContent = "Attendance saved.";
-        } catch (error) {
-            if (status) status.textContent = `Failed to save attendance: ${error.message || error}`;
-        }
-    });
-
-    printBtn.addEventListener("click", () => {
-        printAttendanceSheet();
-    });
-}
-
-function initTeachersTaskPage() {
-    const levelSelect = document.getElementById("lessonPlanClassSelect");
-    const lessonContainer = document.getElementById("lessonPlanWeeksContainer");
-    if (!levelSelect || !lessonContainer) return;
-
-    levelSelect.value = normalizeTeachersTaskLevel(levelSelect.value);
-    if (!TEACHERS_TASK_LEVELS.includes(levelSelect.value)) {
-        levelSelect.value = "Basic Class";
-    }
-
-    renderTeachersTaskLessonPlan(levelSelect.value);
-
-    levelSelect.addEventListener("change", () => {
-        const selectedValue = normalizeTeachersTaskLevel(levelSelect.value);
-        const selected = TEACHERS_TASK_LEVELS.includes(selectedValue)
-            ? selectedValue
-            : "Basic Class";
-        renderTeachersTaskLessonPlan(selected);
-    });
-
-    initTeachersTaskAttendancePanel();
-}
-
-async function initPriceSettingsPage() {
-    const priceStatus = document.getElementById("priceSettingsStatus");
-    const specialOfferForm = document.getElementById("specialOfferForm");
-    const specialOfferPrice = document.getElementById("specialOfferPrice");
-    const specialOfferGuardianEmail = document.getElementById("specialOfferGuardianEmail");
-    const specialOfferStartDate = document.getElementById("specialOfferStartDate");
-    const specialOfferEndDate = document.getElementById("specialOfferEndDate");
-    const specialOfferReason = document.getElementById("specialOfferReason");
-    const specialOfferStatus = document.getElementById("specialOfferStatus");
-
-    const defaults = {
-        level1: { price: "30", rating: "4.9" },
-        level2: { price: "35", rating: "4.9" },
-        level3: { price: "40", rating: "4.9" },
-        level4: { price: "25", rating: "4.9" },
-        level5: { price: "20", rating: "4.9" }
-    };
-
-    const levels = ["level1", "level2", "level3", "level4", "level5"];
-
-    // Load prices from Supabase into local cache
-    const pricesCache = {};
-    if (typeof db !== 'undefined' && db.programPrices?.getAll) {
-        const { data: allPrices } = await db.programPrices.getAll();
-        (allPrices || []).forEach(row => {
-            pricesCache[row.level] = {
-                price: String(row.price ?? defaults[row.level]?.price ?? "0"),
-                rating: String(row.rating ?? "4.9")
-            };
-        });
-    }
-
-    const getProgramData = (level) => {
-        if (pricesCache[level]) return pricesCache[level];
-        return defaults[level] || { price: "0", rating: "4.9" };
-    };
-
-    const loadPriceInputs = () => {
-        levels.forEach((level) => {
-            const input = document.getElementById(`admin-price-${level}`);
-            if (!input) return;
-            const data = getProgramData(level);
-            input.value = data.price;
-        });
-    };
-
-    const renderProgramCardPrices = () => {
-        document.querySelectorAll(".admin-program-price-value").forEach((el) => {
-            const level = el.getAttribute("data-level");
-            if (!level) return;
-            const data = getProgramData(level);
-            el.textContent = `$${data.price}`;
-        });
-    };
-
-    const savePrice = async (level) => {
-        const input = document.getElementById(`admin-price-${level}`);
-        if (!input) return;
-
-        const value = String(input.value || "").trim();
-        if (!value || isNaN(Number(value)) || Number(value) < 0) {
-            if (priceStatus) priceStatus.textContent = "Enter a valid price (0 or higher).";
-            return;
-        }
-
-        const existing = getProgramData(level);
-        const rating = existing.rating || (defaults[level]?.rating || "4.9");
-
-        if (typeof db !== 'undefined' && db.programPrices?.save) {
-            await db.programPrices.save(level, Number(value), Number(rating));
-        }
-        pricesCache[level] = { price: value, rating };
-        renderProgramCardPrices();
-        if (priceStatus) priceStatus.textContent = `Saved ${level} price: $${value}`;
-    };
-
-    document.querySelectorAll(".save-program-price").forEach((btn) => {
-        btn.addEventListener("click", async () => {
-            const level = btn.dataset.level;
-            if (!level) return;
-            await savePrice(level);
-        });
-    });
-
-    levels.forEach((level) => {
-        const input = document.getElementById(`admin-price-${level}`);
-        input?.addEventListener("keydown", async (e) => {
-            if (e.key === "Enter") {
-                e.preventDefault();
-                await savePrice(level);
-            }
-        });
-    });
-
-    specialOfferForm?.addEventListener("submit", async (e) => {
-        e.preventDefault();
-
-        const offerPrice = String(specialOfferPrice?.value || "").trim();
-        const guardianEmail = String(specialOfferGuardianEmail?.value || "").trim().toLowerCase();
-        const startDate = String(specialOfferStartDate?.value || "").trim();
-        const endDate = String(specialOfferEndDate?.value || "").trim();
-        const reason = String(specialOfferReason?.value || "").trim();
-
-        if (!offerPrice || isNaN(Number(offerPrice)) || Number(offerPrice) < 0 || !guardianEmail || !startDate || !endDate || !reason) {
-            if (specialOfferStatus) specialOfferStatus.textContent = "Complete all offer fields with valid values.";
-            return;
-        }
-
-        if (new Date(endDate) < new Date(startDate)) {
-            if (specialOfferStatus) specialOfferStatus.textContent = "Offer end date must be after start date.";
-            return;
-        }
-
-        if (typeof db !== 'undefined' && db.familyOffers?.save) {
-            await db.familyOffers.save(guardianEmail, { offerPrice, startDate, endDate, reason });
-        }
-
-        if (specialOfferStatus) specialOfferStatus.textContent = `Special offer saved for ${guardianEmail}.`;
-        specialOfferForm.reset();
-        populateGuardianSelect(specialOfferGuardianEmail, "Select guardian");
-    });
-
-    populateGuardianSelect(specialOfferGuardianEmail, "Select guardian");
-
-    loadPriceInputs();
-    renderProgramCardPrices();
-}
 
 /* =========================================================
-   NAV ACTIVE STATE
+   HELP CARDS (GLASS STYLE)
 ========================================================= */
 
-document.addEventListener("DOMContentLoaded", () => {
-    const existingRole = (sessionStorage.getItem("daeroUserRole") || "").toLowerCase();
-    if (existingRole !== "itdev") {
-        sessionStorage.setItem("daeroUserRole", "admin");
-    }
+.help-card {
+    padding: 25px;
+    border-radius: 20px;
 
-    const navLinks = document.querySelectorAll(".navbar nav a");
+    background: rgba(255, 255, 255, 0.28);
+    backdrop-filter: blur(16px) saturate(180%);
+    -webkit-backdrop-filter: blur(16px) saturate(180%);
 
-    navLinks.forEach(link => {
-        link.addEventListener("click", () => {
-            const role = (sessionStorage.getItem("daeroUserRole") || "admin").toLowerCase();
-            if (role === "itdev") {
-                sessionStorage.setItem("daeroUserRole", "itdev");
-            } else {
-                sessionStorage.setItem("daeroUserRole", "admin");
-            }
-
-            navLinks.forEach(l => l.classList.remove("active"));
-            link.classList.add("active");
-        });
-    });
-});
-
-/* =========================================================
-   CLOSE MENUS ON OUTSIDE CLICK
-========================================================= */
-
-document.addEventListener("click", (e) => {
-    const columnMenu = document.getElementById("columnDropdownMenu");
-    const columnBtn = document.getElementById("columnDropdownBtn");
-
-    if (columnMenu && columnBtn) {
-        if (!columnBtn.contains(e.target) && !columnMenu.contains(e.target)) {
-            columnMenu.style.display = "none";
-        }
-    }
-
-    const isActionButton = e.target.classList.contains("action-btn");
-    const dropdown = e.target.closest(".action-dropdown");
-
-    document.querySelectorAll(".action-menu").forEach(menu => {
-        if (!menu.contains(e.target) && !menu.previousElementSibling?.contains(e.target)) {
-            menu.style.display = "none";
-        }
-    });
-
-    if (isActionButton && dropdown) {
-        const menu = dropdown.querySelector(".action-menu");
-        const btn = dropdown.querySelector(".action-btn");
-        if (menu && btn) {
-            const isVisible = menu.style.display === "block";
-            menu.style.display = isVisible ? "none" : "block";
-            
-            // Position the fixed menu based on button's screen coords
-            if (!isVisible) {
-                const btnRect = btn.getBoundingClientRect();
-                menu.style.top = (btnRect.bottom + 4) + "px";
-                menu.style.left = (btnRect.right - 150) + "px"; // align right edge with button
-                menu.style.position = "fixed";
-            }
-        }
-    }
-});
-
-/* =========================================================
-   DATABASE BACKUP & RESTORE
-========================================================= */
-
-function initBackupRestoreSystem() {
-    const backupBtn           = document.getElementById("backupDbBtn");
-    const restoreBtn          = document.getElementById("restoreDbBtn");
-    const restoreInput        = document.getElementById("restoreFileInput");
-    const schedulePlanSelect  = document.getElementById("backupSchedulePlan");
-    const scheduleToggleBtn   = document.getElementById("backupScheduleToggle");
-    const statusEl            = document.getElementById("backupRestoreStatus");
-    const scheduleInfoEl      = document.getElementById("backupScheduleInfo");
-    if (!backupBtn || !restoreBtn) return;
-
-    const TABLES = [
-        "applicants", "students", "program_prices",
-        "assignments", "announcements", "reminders",
-        "reminder_reads", "family_offers", "password_overrides", "media_uploads"
-    ];
-
-    const CONFLICT_COL = {
-        applicants:         "id",
-        students:           "id",
-        program_prices:     "level",
-        assignments:        "id",
-        announcements:      "id",
-        reminders:          "id",
-        reminder_reads:     "id",
-        family_offers:      "id",
-        password_overrides: "id",
-        media_uploads:      "id"
-    };
-
-    const BACKUP_PLAN_KEY = "daero-backup-plan";
-    const BACKUP_NEXT_KEY = "daero-backup-next-run";
-    let isBusy = false;
-    let scheduleTimer = null;
-
-    function setStatus(msg, spinning) {
-        if (!statusEl) return;
-        if (!msg) { statusEl.innerHTML = ""; statusEl.style.display = "none"; return; }
-        statusEl.innerHTML = spinning
-            ? `<span class="backup-spinner"></span>${msg}`
-            : msg;
-        statusEl.style.display = "inline-flex";
-    }
-
-    function setScheduleInfo(msg) {
-        if (!scheduleInfoEl) return;
-        if (!msg) {
-            scheduleInfoEl.textContent = "";
-            scheduleInfoEl.style.display = "none";
-            return;
-        }
-        scheduleInfoEl.textContent = msg;
-        scheduleInfoEl.style.display = "inline-flex";
-    }
-
-    function formatDateTime(dt) {
-        try {
-            return dt.toLocaleString();
-        } catch (_) {
-            return String(dt);
-        }
-    }
-
-    function getPlanMs(plan) {
-        if (plan === "3days") return 3 * 24 * 60 * 60 * 1000;
-        if (plan === "weekly") return 7 * 24 * 60 * 60 * 1000;
-        return 0;
-    }
-
-    function nextRunFrom(plan, fromDate = new Date()) {
-        const base = new Date(fromDate);
-        if (plan === "monthly") {
-            base.setMonth(base.getMonth() + 1);
-            return base;
-        }
-        const stepMs = getPlanMs(plan);
-        if (!stepMs) return null;
-        return new Date(base.getTime() + stepMs);
-    }
-
-    function saveSchedule(plan, nextIso) {
-        if (!plan || !nextIso) {
-            localStorage.removeItem(BACKUP_PLAN_KEY);
-            localStorage.removeItem(BACKUP_NEXT_KEY);
-            return;
-        }
-        localStorage.setItem(BACKUP_PLAN_KEY, plan);
-        localStorage.setItem(BACKUP_NEXT_KEY, nextIso);
-    }
-
-    function loadSchedule() {
-        return {
-            plan: (localStorage.getItem(BACKUP_PLAN_KEY) || "").trim(),
-            nextRunIso: (localStorage.getItem(BACKUP_NEXT_KEY) || "").trim()
-        };
-    }
-
-    function refreshScheduleUi() {
-        if (!scheduleToggleBtn) return;
-        const { plan, nextRunIso } = loadSchedule();
-        const enabled = !!plan;
-
-        if (schedulePlanSelect) {
-            schedulePlanSelect.value = plan || "";
-        }
-
-        scheduleToggleBtn.textContent = enabled ? "Disable Schedule" : "Enable Schedule";
-        scheduleToggleBtn.classList.toggle("btn-secondary", enabled);
-
-        if (enabled && nextRunIso) {
-            const nextDate = new Date(nextRunIso);
-            setScheduleInfo(`Scheduled (${plan}) • Next: ${formatDateTime(nextDate)} • Keep this admin page open.`);
-        } else {
-            setScheduleInfo("Schedule is OFF");
-        }
-    }
-
-    function setBusy(busy) {
-        isBusy = busy;
-        backupBtn.disabled  = busy;
-        restoreBtn.disabled = busy;
-        if (schedulePlanSelect) schedulePlanSelect.disabled = busy;
-        if (scheduleToggleBtn) scheduleToggleBtn.disabled = busy;
-    }
-
-    async function runBackup(triggerLabel = "manual") {
-        setBusy(true);
-        setStatus(
-            triggerLabel === "scheduled"
-                ? "Running scheduled backup…"
-                : "Backing up database…",
-            true
-        );
-        try {
-            const backup = { version: 1, created_at: new Date().toISOString(), trigger: triggerLabel, tables: {} };
-
-            for (const table of TABLES) {
-                const { data, error } = await sb().from(table).select("*");
-                if (error) throw new Error(`Error reading ${table}: ${error.message}`);
-                backup.tables[table] = data || [];
-                setStatus(`Backing up… reading ${table}`, true);
-            }
-
-            const ts = new Date().toISOString().replace(/[:.]/g, "-").slice(0, 19);
-            const filename = `daero-backup-${ts}.json`;
-            const blob = new Blob([JSON.stringify(backup, null, 2)], { type: "application/json" });
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement("a");
-            a.href = url;
-            a.download = filename;
-            document.body.appendChild(a);
-            a.click();
-            document.body.removeChild(a);
-            URL.revokeObjectURL(url);
-
-            setStatus("✅ Database backed up successfully", false);
-            return { ok: true };
-        } catch (e) {
-            setStatus("❌ Backup failed: " + e.message, false);
-            return { ok: false, error: e };
-        } finally {
-            setBusy(false);
-        }
-    }
-
-    async function runScheduledBackupIfDue() {
-        if (isBusy) return;
-        const { plan, nextRunIso } = loadSchedule();
-        if (!plan || !nextRunIso) return;
-
-        const nextRun = new Date(nextRunIso);
-        if (Number.isNaN(nextRun.getTime())) {
-            saveSchedule("", "");
-            refreshScheduleUi();
-            return;
-        }
-
-        if (Date.now() < nextRun.getTime()) return;
-
-        const result = await runBackup("scheduled");
-        if (!result.ok) return;
-
-        const afterRun = loadSchedule();
-        if (!afterRun.plan) return; // user may disable during operation
-        const newNextRun = nextRunFrom(afterRun.plan, new Date());
-        if (!newNextRun) {
-            saveSchedule("", "");
-            refreshScheduleUi();
-            return;
-        }
-        saveSchedule(afterRun.plan, newNextRun.toISOString());
-        refreshScheduleUi();
-    }
-
-    // ── BACKUP ──────────────────────────────────────────────
-    backupBtn.addEventListener("click", async () => {
-        await runBackup("manual");
-    });
-
-    // ── RESTORE ─────────────────────────────────────────────
-    restoreBtn.addEventListener("click", () => {
-        restoreInput.value = "";
-        restoreInput.click();
-    });
-
-    restoreInput.addEventListener("change", async () => {
-        const file = restoreInput.files?.[0];
-        if (!file) return;
-
-        const ok = confirm(
-            "⚠️ Restore will overwrite existing records that match backup IDs.\n" +
-            "Records not in the backup file will NOT be deleted.\n\n" +
-            `File: ${file.name}\n\nContinue?`
-        );
-        if (!ok) return;
-
-        setBusy(true);
-        setStatus("Restoring database…", true);
-        try {
-            const text   = await file.text();
-            const backup = JSON.parse(text);
-            if (!backup?.tables || typeof backup.tables !== "object") {
-                throw new Error("Invalid backup file — missing tables object.");
-            }
-
-            let totalRecords = 0;
-            for (const [table, rows] of Object.entries(backup.tables)) {
-                if (!Array.isArray(rows) || rows.length === 0) continue;
-                const conflictCol = CONFLICT_COL[table] || "id";
-                setStatus(`Restoring… ${table} (${rows.length} rows)`, true);
-                // Batch in chunks of 100 to avoid payload limits
-                for (let i = 0; i < rows.length; i += 100) {
-                    const chunk = rows.slice(i, i + 100);
-                    const { error } = await sb().from(table).upsert(chunk, { onConflict: conflictCol });
-                    if (error) throw new Error(`Error in ${table}: ${error.message}`);
-                }
-                totalRecords += rows.length;
-            }
-
-            setStatus(`✅ Database restored successfully — ${totalRecords} records`, false);
-        } catch (e) {
-            setStatus("❌ Restore failed: " + e.message, false);
-        } finally {
-            setBusy(false);
-        }
-    });
-
-    if (scheduleToggleBtn) {
-        scheduleToggleBtn.addEventListener("click", () => {
-            const current = loadSchedule();
-            if (current.plan) {
-                saveSchedule("", "");
-                refreshScheduleUi();
-                setStatus("Scheduled backup disabled", false);
-                return;
-            }
-
-            const plan = (schedulePlanSelect?.value || "").trim();
-            if (!plan) {
-                setStatus("Pick a schedule plan first", false);
-                return;
-            }
-
-            const nextRun = nextRunFrom(plan, new Date());
-            if (!nextRun) {
-                setStatus("Invalid schedule plan", false);
-                return;
-            }
-
-            saveSchedule(plan, nextRun.toISOString());
-            refreshScheduleUi();
-            setStatus(`Scheduled backup enabled (${plan})`, false);
-        });
-    }
-
-    refreshScheduleUi();
-    if (scheduleTimer) clearInterval(scheduleTimer);
-    scheduleTimer = window.setInterval(() => {
-        runScheduledBackupIfDue();
-    }, 60 * 1000);
-    runScheduledBackupIfDue();
+    border: 1px solid rgba(255, 255, 255, 0.22);
+    box-shadow: 0 10px 28px rgba(0,0,0,0.12);
 }
 
+.help-card h2 {
+    font-size: 1.5rem;
+    font-weight: 800;
+    margin-bottom: 15px;
+	
+}
+
+.help-list {
+    list-style: none;
+    padding-left: 0;
+}
+
+.help-list li {
+    margin-bottom: 12px;
+    line-height: 1.5;
+}
+
+
 /* =========================================================
-   MAIN INITIALIZATION
+   FLOATING SOCIAL ICONS (RIGHT SIDE VERTICAL)
 ========================================================= */
 
-document.addEventListener("DOMContentLoaded", async () => {
-    updateExportButtonLabels();
-    await refreshApplicantsCache();
-    initAdminSupportPage();
-    initBackupRestoreSystem();
-    initSidebarUploadSystems();
-    initProgramResourceUploadSystems();
-    initPriceSettingsPage();
-    initTeachersTaskPage();
-    runOneTimeApplicantDataRepair();
+.glass-social-container {
+    position: fixed;
+    right: 20px;
+    top: 160px;
 
-    populateYearSelect("filterYearNew", allApplicantsCache);
-    populateYearSelect("filterYearAd", allApplicantsCache);
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
 
-    const gradeSel = document.getElementById("filterGradeAd");
-    if (gradeSel) {
-        gradeSel.innerHTML = `
-            <option value="">Grade level</option>
-            <option value="Beginner Class">Beginner Class</option>
-            <option value="Intermediate Class">Intermediate Class</option>
-            <option value="Advanced Class">Advanced Class</option>
-            <option value="After School Tutorial">After School Tutorial</option>
-            <option value="Religious Study">Religious Study</option>
-        `;
+    background: linear-gradient(180deg, rgba(255,255,255,0.28), rgba(173, 214, 255, 0.24));
+    backdrop-filter: blur(12px) saturate(160%);
+    -webkit-backdrop-filter: blur(12px) saturate(160%);
+
+    padding: 14px;
+    border-radius: 18px;
+    border: 1px solid rgba(255,255,255,0.45);
+    box-shadow: 0 10px 28px rgba(0,0,0,0.2);
+
+    z-index: 999;
+}
+
+.glass-social {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    gap: 10px;
+}
+
+.glass-social-icon {
+    position: relative;
+    display: inline-flex;
+    border-radius: 14px;
+    padding: 2px;
+    background: linear-gradient(135deg, rgba(255,255,255,0.55), rgba(74, 154, 255, 0.35));
+    box-shadow: 0 6px 12px rgba(5, 34, 70, 0.25);
+}
+
+.glass-social-icon img {
+    width: 42px;
+    height: 42px;
+    border-radius: 12px;
+    object-fit: cover;
+    transition: transform 0.2s ease;
+}
+
+.glass-social-icon:hover img {
+    transform: scale(1.08);
+}
+
+.social-overlay {
+    position: absolute;
+    inset: 0;
+    border-radius: 12px;
+    border: 1px solid rgba(255,255,255,0.35);
+    pointer-events: none;
+}
+
+
+/* =========================================================
+   RESPONSIVE BEHAVIOR
+========================================================= */
+
+@media (max-width: 900px) {
+    .glass-social-container {
+        display: none; /* hide on small screens */
     }
-
-    resetAdmittedVisibleColumnsDefault();
-    buildColumnCheckboxMenu();
-
-    renderNewApplicantsTable();
-    renderAdmittedTable();
-    renderAdminProgramCounts();
-
-    const newFilters = [
-        "filterYearNew",
-        "filterFirstNameNew",
-        "filterGuardianNew",
-        "pageSizeNew"
-    ];
-
-    newFilters.forEach(id => {
-        const el = document.getElementById(id);
-        if (!el) return;
-
-        const handler = () => {
-            currentNewPage = 1;
-            renderNewApplicantsTable();
-        };
-
-        if (el.tagName === "INPUT") el.addEventListener("input", handler);
-        else el.addEventListener("change", handler);
-    });
-
-    document.getElementById("deleteNewApplicants")?.addEventListener("click", deleteSelectedNew);
-    document.getElementById("exportNewApplicants")?.addEventListener("click", () => {
-        exportToXlsx(currentNewData, "new-applicants.xlsx");
-    });
-
-    const adFilters = [
-        "filterYearAd",
-        "filterStatusAd",
-        "filterGradeAd",
-        "filterFirstNameAd",
-        "filterGuardianAd",
-        "pageSizeAd"
-    ];
-
-    adFilters.forEach(id => {
-        const el = document.getElementById(id);
-        if (!el) return;
-
-        const handler = () => {
-            currentAdPage = 1;
-            renderAdmittedTable();
-        };
-
-        if (el.tagName === "INPUT") el.addEventListener("input", handler);
-        else el.addEventListener("change", handler);
-    });
-
-    document.getElementById("deleteAdmitted")?.addEventListener("click", deleteSelectedAdmitted);
-    document.getElementById("exportAdmitted")?.addEventListener("click", () => {
-        exportToXlsx(currentAdData, "admitted-students.xlsx");
-    });
-    document.getElementById("printAdmitted")?.addEventListener("click", () => {
-        printSelectedAdmitted();
-    });
- });
-
+}
  /* =========================================================
-   GLOBAL CLICK HANDLER — ADMIT BUTTON
- ========================================================= */
-// Show an admin page section by id and update left sidebar active state
-function showAdminPage(pageId) {
-    document.querySelectorAll('.admin-page').forEach(s => {
-        s.style.display = (s.id === pageId) ? 'block' : 'none';
-    });
-
-    document.querySelectorAll('.admin-link').forEach(link => {
-        if (link.dataset.target === pageId) link.classList.add('active');
-        else link.classList.remove('active');
-    });
-
-    window.scrollTo(0, 0);
-}
-
-// Delegate admit clicks: admit the applicant (stay on current page so user can continue)
-document.addEventListener('click', (e) => {
-    const btn = e.target.closest && e.target.closest('.admit-btn');
-    if (!btn) return;
-
-    const id = btn.dataset.id;
-    console.log('Admit clicked on DevTools page', id);
-
-    admitApplicant(id);
-
-    // no navigation; tables already updated by admitApplicant
-});
-// Sidebar page links — open admin pages and re-render tables
-document.querySelectorAll('.admin-link').forEach(link => {
-  link.addEventListener('click', async (ev) => {
-    ev.preventDefault();
-    const target = link.dataset.target;
-    if (!target) return;
-    showAdminPage(target);
-
-    if (target === 'newApplicantsPage') {
-      currentNewPage = 1;
-      await refreshApplicantsCache();
-            renderAdminProgramCounts();
-      renderNewApplicantsTable();
-    } else if (target === 'admittedStudentsPage') {
-      currentAdPage = 1;
-            resetAdmittedVisibleColumnsDefault();
-            buildColumnCheckboxMenu();
-      await refreshApplicantsCache();
-            renderAdminProgramCounts();
-      renderAdmittedTable();
-        } else if (target === 'adminSupportPage') {
-            renderContactMessages();
-    }
-  });
-});
-
-// Ensure initial page is visible on load
-document.addEventListener('DOMContentLoaded', () => {
-  // default to New Applicants if nothing already visible
-  const anyVisible = Array.from(document.querySelectorAll('.admin-page')).some(s => getComputedStyle(s).display !== 'none');
-  if (!anyVisible) {
-    showAdminPage('newApplicantsPage');
-  }
-
-  // Initialize admin teacher dashboard
-  initAdminTeacherDashboard();
-});
-
-/* =========================================================
-   ADMIN TEACHER DASHBOARD — LIVE CHAT MANAGEMENT
+   HELP PAGE — SEARCH BAR
 ========================================================= */
 
-let currentSelectedSessionId = null;
-
-async function initAdminTeacherDashboard() {
-    // Load initial chat sessions
-    await loadChatSessions();
-    
-    // Set up event listeners
-    const refreshBtn = document.getElementById('refreshChatSessionsBtn');
-    if (refreshBtn) {
-        refreshBtn.addEventListener('click', () => loadChatSessions());
-    }
-
-    const backBtn = document.getElementById('backToChatListBtn');
-    if (backBtn) {
-        backBtn.addEventListener('click', backToChatList);
-    }
-
-    const sendReplyBtn = document.getElementById('adminSendReplyBtn');
-    if (sendReplyBtn) {
-        sendReplyBtn.addEventListener('click', sendTeacherReply);
-    }
-
-    // Subscribe to new chat sessions
-    subscribeToNewChatSessions();
+.help-search-container {
+    margin-bottom: 30px;
+    max-width: 500px;
+	background-color: #a0c9e0;
+    background-image: 
+        radial-gradient(at 47% 33%, hsl(200.35, 70%, 68%) 0, transparent 59%), 
+        radial-gradient(at 82% 65%, hsl(198.89, 98%, 78%) 0, transparent 55%);
 }
 
-async function loadChatSessions() {
-    if (typeof db === 'undefined' || !db.liveChat) return;
-
-    try {
-        const { data: sessions, error } = await db.liveChat.getActiveSessions();
-        
-        if (error) {
-            console.error('[admin] Error loading sessions:', error);
-            return;
-        }
-        
-        if (!sessions || sessions.length === 0) {
-            const listEl = document.getElementById('adminChatSessionsList');
-            if (listEl) {
-                listEl.innerHTML = '<p class="empty-state">No active chat sessions</p>';
-            }
-            return;
-        }
-
-        // Fetch unread count for each session
-        const sessionsWithDetails = await Promise.all((sessions || []).map(async (session) => {
-            const { data: messages } = await db.liveChat.getMessagesByStudent(session.student_email);
-            const unreadCount = (messages || []).filter(msg => !msg.is_read && msg.sender_type === 'student').length;
-            return {
-                ...session,
-                messageCount: messages?.length || 0,
-                unreadCount: unreadCount,
-                lastMessage: messages?.length > 0 ? messages[messages.length - 1] : null
-            };
-        }));
-
-        renderChatSessionsList(sessionsWithDetails);
-    } catch (error) {
-        console.error('[admin] loadChatSessions error:', error);
-    }
+#helpSearch {
+    width: 100%;
+    padding: 14px 18px;
+    border-radius: 14px;
+    border: 1px solid rgba(0,0,0,0.15);
+    background: rgba(255,255,255,0.65);
+    font-size: 1rem;
+    outline: none;
+    transition: box-shadow 0.2s ease;
 }
 
-function renderChatSessionsList(sessions) {
-    const listEl = document.getElementById('adminChatSessionsList');
-    if (!listEl) return;
-
-    if (!sessions || sessions.length === 0) {
-        listEl.innerHTML = '<p class="empty-state">No active chat sessions</p>';
-        return;
-    }
-
-    listEl.innerHTML = sessions.map(session => {
-        const timestamp = session.created_at ? new Date(session.created_at).toLocaleTimeString() : 'Unknown time';
-        return `
-            <div class="admin-chat-session-item" data-session-email="${session.student_email}">
-                <div class="admin-chat-session-info">
-                    <p class="admin-chat-session-name">${session.student_name || 'Unknown Student'}</p>
-                    <p class="admin-chat-session-time">${session.student_email || 'No email'} • ${timestamp}</p>
-                </div>
-                ${session.unreadCount > 0 ? `<span class="admin-chat-unread-badge">${session.unreadCount}</span>` : ''}
-            </div>
-        `;
-    }).join('');
-
-    // Add click listeners to session items
-    listEl.querySelectorAll('.admin-chat-session-item').forEach(item => {
-        item.addEventListener('click', async () => {
-            const studentEmail = item.dataset.sessionEmail;
-            await openChatSession(studentEmail);
-        });
-    });
+#helpSearch:focus {
+    border-color: #007aff;
+    box-shadow: 0 0 0 3px rgba(0,122,255,0.25);
 }
 
-async function openChatSession(studentEmail) {
-    currentSelectedSessionId = studentEmail;
 
-    const sessionsList = document.getElementById('adminChatSessionsList');
-    const detailPanel = document.getElementById('adminChatDetailPanel');
-    
-    if (sessionsList) sessionsList.style.display = 'none';
-    if (detailPanel) detailPanel.style.display = 'flex';
+/* =========================================================
+   HELP PAGE — TITLES BLACK + BOLD
+========================================================= */
 
-    try {
-        // Fetch session details
-        const { data: sessionData, error } = await db.supabase
-            .from('live_chat_sessions')
-            .select('*')
-            .eq('student_email', studentEmail)
-            .single();
+.help-card h2,
+.page-title,
+.help-wrapper h1 {
+    color: #000 !important;
+    font-weight: 800 !important;
+}
 
-        if (error) throw error;
 
-        // Update header with student name
-        const nameEl = document.getElementById('adminChatStudentName');
-        if (nameEl) {
-            nameEl.textContent = sessionData.student_name || 'Student';
-        }
+/* =========================================================
+   FLOATING “NEED HELP?” BUTTON
+========================================================= */
 
-        // Fetch and display messages
-        await displayChatMessages(studentEmail);
+.help-floating-btn {
+    position: fixed;
+    bottom: 30px;
+    right: 30px;
 
-        // Mark messages as read
-        const { data: messages } = await db.liveChat.getMessagesByStudent(studentEmail);
-        for (const msg of (messages || [])) {
-            if (msg.sender_type === 'student' && !msg.is_read) {
-                await db.supabase
-                    .from('live_chat_messages')
-                    .update({ is_read: true })
-                    .eq('id', msg.id);
-            }
-        }
+    background: linear-gradient(
+        135deg,
+        rgba(0, 122, 255, 0.75),
+        rgba(255, 180, 200, 0.75)
+    );
+    backdrop-filter: blur(12px) saturate(160%);
+    -webkit-backdrop-filter: blur(12px) saturate(160%);
 
-        // Subscribe to new messages for this session
-        subscribeToSessionMessages(studentEmail);
-    } catch (error) {
-        console.error('[admin] openChatSession error:', error);
+    padding: 14px 22px;
+    border-radius: 50px;
+    color: #fff;
+    font-weight: 700;
+    font-size: 1rem;
+    cursor: pointer;
+
+    box-shadow: 0 8px 24px rgba(0,0,0,0.18);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    z-index: 999;
+}
+
+.help-floating-btn:hover {
+    transform: scale(1.05);
+    box-shadow: 0 10px 28px rgba(0,0,0,0.22);
+}
+
+/* =========================================================
+   LIVE CHAT MODAL STYLES
+========================================================= */
+
+.live-chat-modal {
+    display: none;
+    position: fixed;
+    bottom: 100px;
+    right: 30px;
+    width: 380px;
+    max-height: 600px;
+    z-index: 1000;
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(12px) saturate(160%);
+    -webkit-backdrop-filter: blur(12px) saturate(160%);
+    border-radius: 18px;
+    box-shadow: 0 16px 48px rgba(0, 0, 0, 0.15);
+    border: 1px solid rgba(255, 255, 255, 0.35);
+    flex-direction: column;
+    animation: slideUp 0.3s ease;
+}
+
+.live-chat-modal.active {
+    display: flex;
+}
+
+@keyframes slideUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
     }
 }
 
-async function displayChatMessages(studentEmail) {
-    const historyEl = document.getElementById('adminChatMessageHistory');
-    if (!historyEl) return;
+.live-chat-container {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    border-radius: 18px;
+    overflow: hidden;
+}
 
-    try {
-        const { data: messages } = await db.liveChat.getMessagesByStudent(studentEmail);
-        
-        if (!messages || messages.length === 0) {
-            historyEl.innerHTML = '<p class="empty-state">No messages yet</p>';
-            return;
-        }
+.live-chat-header {
+    background: linear-gradient(135deg, #007aff, #ff9500);
+    color: white;
+    padding: 16px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-shrink: 0;
+}
 
-        historyEl.innerHTML = messages.map(msg => {
-            const senderClass = msg.sender_type === 'student' ? 'student' : 'teacher';
-            const time = new Date(msg.sent_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-            // Add delete button for each message
-            return `
-                <div class="admin-chat-message ${senderClass}" data-message-id="${msg.id}">
-                    <div style="display: flex; align-items: center; justify-content: space-between; gap: 8px;">
-                        <span>${msg.message}</span>
-                        <button class="chat-delete-btn" title="Delete message" style="background: none; border: none; color: #ff4757; cursor: pointer; font-size: 1.1em; padding: 0 4px;">🗑️</button>
-                    </div>
-                    <small style="opacity: 0.7;">${time}</small>
-                </div>
-            `;
-        }).join('');
+.live-chat-header h3 {
+    margin: 0;
+    font-size: 1rem;
+    font-weight: 700;
+}
 
-        // Add event listeners for delete buttons
-        historyEl.querySelectorAll('.chat-delete-btn').forEach(btn => {
-            btn.addEventListener('click', async (e) => {
-                e.stopPropagation();
-                const messageDiv = btn.closest('.admin-chat-message');
-                const messageId = messageDiv.getAttribute('data-message-id');
-                if (messageId && confirm('Delete this message?')) {
-                    try {
-                        // Delete from Supabase
-                        await db.supabase.from('live_chat_messages').delete().eq('id', messageId);
-                        // Refresh messages
-                        await displayChatMessages(studentEmail);
-                    } catch (err) {
-                        alert('Failed to delete message.');
-                    }
-                }
-            });
-        });
+.live-chat-close {
+    background: none;
+    border: none;
+    color: white;
+    font-size: 24px;
+    cursor: pointer;
+    padding: 0;
+    width: 28px;
+    height: 28px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: transform 0.2s ease;
+}
 
-        // Scroll to bottom
-        historyEl.scrollTop = historyEl.scrollHeight;
-    } catch (error) {
-        console.error('[admin] displayChatMessages error:', error);
+.live-chat-close:hover {
+    transform: scale(1.1);
+}
+
+.live-chat-messages {
+    flex: 1;
+    overflow-y: auto;
+    padding: 12px;
+    background: #f9f9f9;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.chat-message {
+    padding: 10px 12px;
+    border-radius: 10px;
+    max-width: 85%;
+    word-wrap: break-word;
+    font-size: 0.9rem;
+    line-height: 1.4;
+}
+
+.chat-message.user {
+    align-self: flex-end;
+    background: linear-gradient(135deg, #007aff, #0051d5);
+    color: white;
+    margin-left: 15%;
+}
+
+.chat-message.teacher {
+    align-self: flex-start;
+    background: linear-gradient(135deg, #e8eef5, #d0d8e3);
+    color: #333;
+    margin-right: 15%;
+}
+
+.chat-message.system-message {
+    align-self: center;
+    background: rgba(0, 122, 255, 0.1);
+    color: #007aff;
+    font-size: 0.85rem;
+    padding: 8px 12px;
+    text-align: center;
+    max-width: 95%;
+}
+
+.live-chat-input-area {
+    display: flex;
+    gap: 8px;
+    padding: 12px;
+    background: white;
+    border-top: 1px solid #e0e0e0;
+    flex-shrink: 0;
+}
+
+.chat-input {
+    flex: 1;
+    border: 1px solid #ddd;
+    border-radius: 20px;
+    padding: 8px 16px;
+    font-family: inherit;
+    font-size: 0.9rem;
+    transition: border-color 0.2s ease;
+}
+
+.chat-input:focus {
+    outline: none;
+    border-color: #007aff;
+    box-shadow: 0 0 0 2px rgba(0, 122, 255, 0.1);
+}
+
+.chat-send-btn {
+    background: linear-gradient(135deg, #007aff, #0051d5);
+    color: white;
+    border: none;
+    border-radius: 20px;
+    padding: 8px 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    font-size: 0.9rem;
+}
+
+.chat-send-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 122, 255, 0.3);
+}
+
+.chat-send-btn:active {
+    transform: translateY(0);
+}
+
+/* Scrollbar styling for chat messages */
+.live-chat-messages::-webkit-scrollbar {
+    width: 6px;
+}
+
+.live-chat-messages::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.live-chat-messages::-webkit-scrollbar-thumb {
+    background: rgba(0, 122, 255, 0.3);
+    border-radius: 3px;
+}
+
+.live-chat-messages::-webkit-scrollbar-thumb:hover {
+    background: rgba(0, 122, 255, 0.5);
+}
+
+/* =========================================================
+   ADMIN TEACHER DASHBOARD - LIVE CHAT MANAGEMENT
+========================================================= */
+
+.admin-chat-controls {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 12px;
+}
+
+.admin-chat-controls button {
+    padding: 8px 12px;
+    font-size: 0.9rem;
+}
+
+.admin-chat-sessions-list {
+    flex: 1;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-bottom: 12px;
+    max-height: 500px;
+}
+
+.admin-chat-session-item {
+    padding: 12px;
+    background: linear-gradient(135deg, rgba(112, 180, 255, 0.15), rgba(255, 152, 0, 0.15));
+    border: 1px solid rgba(0, 122, 255, 0.2);
+    border-radius: 10px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.admin-chat-session-item:hover {
+    background: linear-gradient(135deg, rgba(112, 180, 255, 0.25), rgba(255, 152, 0, 0.25));
+    border-color: rgba(0, 122, 255, 0.4);
+    transform: translateX(4px);
+}
+
+.admin-chat-session-info {
+    flex: 1;
+}
+
+.admin-chat-session-name {
+    font-weight: 700;
+    color: #052c4f;
+    margin: 0;
+    margin-bottom: 2px;
+}
+
+.admin-chat-session-time {
+    font-size: 0.8rem;
+    color: #666;
+    margin: 0;
+}
+
+.admin-chat-unread-badge {
+    background: linear-gradient(135deg, #ff6b6b, #ff4757);
+    color: white;
+    border-radius: 12px;
+    padding: 4px 8px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    min-width: 24px;
+    text-align: center;
+}
+
+.admin-chat-detail-panel {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    border: 1px solid rgba(0, 122, 255, 0.2);
+    border-radius: 10px;
+    overflow: hidden;
+    min-height: 0;
+}
+
+.admin-chat-header {
+    background: linear-gradient(135deg, #1f93c5, #0051d5);
+    color: white;
+    padding: 10px 12px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-shrink: 0;
+}
+
+.admin-chat-header button {
+    background: rgba(255, 255, 255, 0.2);
+    color: white;
+    border: none;
+    border-radius: 6px;
+    padding: 4px 8px;
+    font-size: 0.85rem;
+    cursor: pointer;
+    transition: background 0.2s ease;
+}
+
+.admin-chat-header button:hover {
+    background: rgba(255, 255, 255, 0.3);
+}
+
+.admin-chat-header h3 {
+    margin: 0;
+    flex: 1;
+    font-size: 0.95rem;
+    font-weight: 700;
+}
+
+.admin-chat-message-history {
+    flex: 1 1 0;
+    overflow-y: auto;
+    padding: 12px;
+    background: #f9f9f9;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    min-height: 0;
+}
+
+.admin-chat-message {
+    padding: 10px 12px;
+    border-radius: 10px;
+    max-width: 90%;
+    word-wrap: break-word;
+    font-size: 0.85rem;
+    line-height: 1.4;
+}
+
+.admin-chat-message.student {
+    align-self: flex-start;
+    background: linear-gradient(135deg, #e8eef5, #d0d8e3);
+    color: #333;
+    margin-right: auto;
+}
+
+.admin-chat-message.teacher {
+    align-self: flex-end;
+    background: linear-gradient(135deg, #007aff, #0051d5);
+    color: white;
+    margin-left: auto;
+}
+
+.admin-chat-reply-section {
+    display: flex;
+    gap: 8px;
+    padding: 12px;
+    background: white;
+    border-top: 1px solid #e0e0e0;
+    flex-shrink: 0;
+}
+
+.admin-chat-reply-input {
+    flex: 1;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    padding: 8px 12px;
+    font-family: inherit;
+    font-size: 0.85rem;
+    min-height: 36px;
+    resize: none;
+    transition: border-color 0.2s ease;
+}
+
+.admin-chat-reply-input:focus {
+    outline: none;
+    border-color: #007aff;
+    box-shadow: 0 0 0 2px rgba(0, 122, 255, 0.1);
+}
+
+.empty-state {
+    text-align: center;
+    color: #999;
+    padding: 20px;
+    font-style: italic;
+}
+
+/* Chat Request Popup Notification */
+.chat-request-popup {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    z-index: 10000;
+    animation: slideInDown 0.3s ease;
+}
+
+.chat-request-popup-content {
+    background: linear-gradient(135deg, #ff6b6b, #ff4757);
+    color: white;
+    padding: 16px 20px;
+    border-radius: 12px;
+    box-shadow: 0 8px 24px rgba(255, 107, 107, 0.3);
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    max-width: 500px;
+}
+
+.chat-request-popup-content span {
+    flex: 1;
+    font-weight: 600;
+}
+
+.chat-request-popup-content button {
+    white-space: nowrap;
+    padding: 6px 14px;
+    font-size: 0.85rem;
+    background: rgba(255, 255, 255, 0.2);
+    border: 1px solid rgba(255, 255, 255, 0.4);
+    color: white;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: 600;
+    transition: all 0.2s ease;
+}
+
+.chat-request-popup-content button:hover {
+    background: rgba(255, 255, 255, 0.3);
+    border-color: rgba(255, 255, 255, 0.6);
+    transform: translateY(-1px);
+}
+
+@keyframes slideInDown {
+    from {
+        opacity: 0;
+        transform: translateY(-20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
     }
 }
 
-async function sendTeacherReply() {
-    if (!currentSelectedSessionId) return;
+/* =========================================================
+   GLOBAL BLUE GLASSMORPHISM HEADER (Unified Across All Pages)
+========================================================= */
 
-    const inputEl = document.getElementById('adminChatReplyInput');
-    if (!inputEl) return;
+.navbar.glass-nav,
+.member-header {
+    background-color: #5e8cb0;
+    background-image: 
+        radial-gradient(at 47% 33%, hsl(180.00, 22%, 89%) 0, transparent 59%), 
+        radial-gradient(at 82% 65%, hsl(208.81, 95%, 42%) 0, transparent 55%);
+}
 
-    const message = inputEl.value.trim();
-    if (!message) return;
+/* Light blue hover for nav buttons */
+.navbar.glass-nav nav a:hover span,
+.navbar.glass-nav nav a:hover .nav-text {
+    color: #b7d9ff !important;
+    text-shadow: 0 0 6px rgba(180, 220, 255, 0.8);
+}
 
-    try {
-        // Get session details for sender info
-        const { data: sessionData } = await db.supabase
-            .from('live_chat_sessions')
-            .select('*')
-            .eq('student_email', currentSelectedSessionId)
-            .single();
+/* Active nav item */
+.navbar.glass-nav nav a.active span,
+.navbar.glass-nav nav a.active .nav-text {
+    color: #ffffff !important;
+    font-weight: 700;
+    text-shadow: 0 0 8px rgba(255,255,255,0.9);
+}
 
-        // Save message to database
-        const { error } = await db.liveChat.saveChatMessage(
-            currentSelectedSessionId,
-            sessionData?.student_name || 'Student',
-            message,
-            'teacher',
-            'Teacher'
-        );
+/* =========================================================
+   HELP PAGE — EXPAND/COLLAPSE DETAILS
+========================================================= */
 
-        if (error) throw error;
+.help-details {
+    max-height: 0;
+    overflow: hidden;
+    opacity: 0;
+    padding-top: 0;
+    transition: max-height 0.35s ease, opacity 0.35s ease, padding-top 0.35s ease;
+}
 
-        inputEl.value = '';
-        
-        // Refresh message display
-        await displayChatMessages(currentSelectedSessionId);
-    } catch (error) {
-        console.error('[admin] sendTeacherReply error:', error);
+.help-details.open {
+    max-height: 300px;
+    opacity: 1;
+    padding-top: 12px;
+}
+
+.help-more-link {
+    display: inline-block;
+    margin-top: 12px;
+    font-weight: 700;
+    color: #007aff;
+    cursor: pointer;
+    text-decoration: none;
+    transition: color 0.2s ease, text-shadow 0.2s ease;
+}
+
+.help-more-link:hover {
+    color: #005fcc;
+    text-shadow: 0 0 6px rgba(0,122,255,0.35);
+}
+/* POSTS GRID */
+.posts-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(550px, 1fr));
+    gap: 10px;
+    margin-top: 30px;
+	/*background: #62dd6f;*/
+}
+
+/* WRAPPER */
+.post-wrapper {
+
+	background-color: #5ea0f9;
+   
+}
+
+/* MEDIA BOXES */
+.post-media {
+    width: 400px;
+    height: 300px;
+    border-radius: 20px;
+    overflow: hidden;
+
+    /*background: rgba(255,255,255,0.25);*/
+    backdrop-filter: blur(14px) saturate(160%);
+    -webkit-backdrop-filter: blur(14px) saturate(160%);
+    border: 1px solid rgba(255,255,255,0.22);
+    box-shadow: 0 10px 28px rgba(0,0,0,0.15);
+
+    margin: 0 auto;
+    position: relative;
+}
+
+/* SLIDESHOW IMAGES */
+.slideshow img.slide {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+
+    opacity: 0;
+    transition: opacity 1s ease-in-out;
+}
+
+.slideshow img.active {
+    opacity: 1;
+}
+
+/* TITLES */
+.post-title {
+    margin-top: 12px;
+    font-size: 1.3rem;
+    font-weight: 800;
+    color: #000;
+}
+
+/* VIDEO PLAYER */
+.video-player {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+/* VIDEO THUMBNAILS */
+.video-thumbs {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    margin-top: 12px;
+}
+
+.video-thumbs img.thumb {
+    width: 80px;
+    height: 60px;
+    object-fit: cover;
+    border-radius: 10px;
+    cursor: pointer;
+    opacity: 0.6;
+    transition: opacity 0.2s ease;
+}
+
+.video-thumbs img.thumb.active,
+.video-thumbs img.thumb:hover {
+    opacity: 1;
+}
+
+/* FORCE ALL POST WRAPPERS TO BE EQUAL SIZE */
+.post-wrapper {
+    width: 550px;
+    margin: 0 auto;
+}
+
+/* FORCE ALL MEDIA BOXES TO MATCH EXACT SIZE */
+.post-media {
+    width: 550px !important;
+    height: 400px !important;
+    border-radius: 20px;
+    overflow: hidden;
+    position: relative;
+}
+
+/* FIX IMAGE SPLITTING — ENSURE FULL COVERAGE */
+.post-media img.slide {
+    width: 100%;
+    height: 100%;
+    object-fit: cover; /* keeps full coverage */
+    object-position: center; /* centers image to avoid weird cropping */
+}
+
+/* FIX GRID ALIGNMENT */
+.posts-grid {
+    display: flex;
+    justify-content: center;
+    gap: 40px;
+    flex-wrap: wrap;
+}
+/* REMOVE ALL EXTRA SPACING AROUND WRAPPERS */
+.posts {
+    margin: 0;
+    padding: 0;
+}
+
+.posts-grid {
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    gap: 20px; /* tighter spacing */
+    margin: 0;
+    padding: 0;
+}
+
+/* REMOVE DEFAULT MARGINS FROM TITLES */
+.posts h2,
+.post-title {
+    margin: 0;
+    padding: 0;
+}
+
+/* FORCE WRAPPERS TO SIT FLUSH */
+.post-wrapper {
+    width: 550px;
+    margin: 0; /* remove vertical spacing */
+    padding: 0;
+}
+
+/* FORCE MEDIA BOXES TO BE EXACT SIZE */
+.post-media {
+    width: 550px !important;
+    height: 400px !important;
+    margin: 0;
+    padding: 0;
+    border-radius: 20px;
+    overflow: hidden;
+    position: relative;
+}
+
+/* FIX IMAGE SPLITTING + REMOVE ANY GAP */
+.post-media img.slide {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center;
+    display: block; /* removes inline whitespace */
+}
+
+/* REMOVE SPACE UNDER VIDEO PLAYER */
+.video-player {
+    display: block;
+    margin: 0;
+    padding: 0;
+}
+
+/* REMOVE SPACE ABOVE TITLES */
+.post-title {
+    margin-top: 8px; /* small clean spacing */
+    font-size: 1.3rem;
+    font-weight: 800;
+    color: #000;
+}
+/* =========================================================
+   ADMIN SIDEBAR — iOS 26.2 Modern Frosted Style
+========================================================= */
+
+.admin-sidebar {
+    width: 280px;
+    padding: 28px 22px;
+    border-radius: 22px;
+
+    /* iOS 26.2 frosted blue glass */
+    background: rgba(240, 245, 255, 0.55);
+    backdrop-filter: blur(28px) saturate(180%);
+    -webkit-backdrop-filter: blur(28px) saturate(180%);
+    border: 1px solid rgba(255, 255, 255, 0.35);
+    box-shadow: 0 8px 28px rgba(0,0,0,0.12);
+
+    display: flex;
+    flex-direction: column;
+    gap: 32px;
+}
+
+/* Sidebar Title */
+.admin-sidebar h2 {
+    font-size: 1.4rem;
+    font-weight: 800;
+    color: #000;
+    margin: 0 0 10px 0;
+    letter-spacing: -0.5px;
+}
+
+/* Section Titles */
+.admin-section h3 {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: #111;
+    margin-bottom: 10px;
+    letter-spacing: -0.3px;
+}
+
+/* Sidebar Links */
+.admin-section a {
+    display: block;
+    padding: 10px 14px;
+    margin-bottom: 6px;
+
+    font-size: 0.95rem;
+    font-weight: 500;
+    color: #222;
+    text-decoration: none;
+
+    border-radius: 12px;
+    transition: background 0.2s ease, color 0.2s ease, transform 0.15s ease;
+}
+
+/* Hover State — iOS subtle glow */
+.admin-section a:hover {
+    background: rgba(255,255,255,0.65);
+    color: #007aff;
+    transform: translateX(4px);
+}
+
+/* Active State (if you add .active later) */
+.admin-section a.active {
+    background: rgba(0,122,255,0.15);
+    color: #007aff;
+    font-weight: 600;
+}
+
+/* Footer */
+.admin-footer {
+    margin-top: auto;
+    font-size: 0.9rem;
+    color: #333;
+    opacity: 0.8;
+    padding-top: 20px;
+    border-top: 1px solid rgba(255,255,255,0.4);
+}
+/* =========================================================
+   GLOBAL BLUE GLASS GRADIENT (REPLACES ALL BACKGROUND IMAGES)
+========================================================= */
+
+.programs-section,
+.why-section,
+.cta-box,
+.program-box,
+.why-box,
+.admin-sidebar,
+
+.admin-page {
+    background-color: rgba(120, 177, 224, 0.97);
+}
+
+/* =========================================================
+   PROGRAMS — FOUR BOXES HORIZONTAL, RESPONSIVE
+========================================================= */
+
+.program-box-grid {
+    display: flex;
+    justify-content: center;
+    align-items: stretch;
+    gap: 20px;
+    margin-top: 30px;  
+}
+
+/* Base desktop size */
+.program-box {
+    flex: 0 0 22%;              /* four in a row */
+    min-width: 200px;
+    max-width: 260px;
+    aspect-ratio: 13 / 6;       /* similar to 260x120 */
+    padding: 16px;
+    border-radius: 18px;
+    color: #fff;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+
+    backdrop-filter: blur(18px) saturate(180%);
+    -webkit-backdrop-filter: blur(18px) saturate(180%);
+    border: 1px solid rgba(255,255,255,0.35);
+    box-shadow: 0 8px 22px rgba(0,0,0,0.15);
+}
+
+/* Match admin-dashboard program colors */
+
+/* Programs page color scheme to match admin-dashboard visual */
+.program-box[data-level="beginner"] {
+    background: linear-gradient(135deg, #2986f5, #2563c9) !important;
+}
+.program-box[data-level="intermediate"] {
+    background: linear-gradient(135deg, #ff7eb9, #ff5fa2) !important;
+}
+.program-box[data-level="advanced"] {
+    background: linear-gradient(135deg, #3ec97c, #1e8c4c) !important;
+}
+.program-box[data-level="afterschool"] {
+    background: linear-gradient(135deg, #a084ee, #6c47c6) !important;
+}
+.program-box[data-level="religious"] {
+    background: linear-gradient(135deg, #ffb347, #ff8300) !important;
+}
+
+/* Titles + text inside */
+.program-box h2 {
+    font-size: 1rem;
+    margin-bottom: 4px;
+}
+
+.program-count,
+.program-rating {
+    font-size: 0.85rem;
+    margin: 0;
+}
+
+/* =========================================================
+   FINAL FIX — FORCE 4 BOXES HORIZONTAL + RESPONSIVE SHRINK
+========================================================= */
+
+/* Parent container: ALWAYS horizontal */
+.program-box-grid {
+    display: flex !important;
+    flex-direction: row !important;
+    justify-content: center !important;
+    align-items: stretch !important;
+    gap: 20px !important;
+    flex-wrap: nowrap !important;   /* NEVER wrap */
+    width: 100% !important;
+    overflow-x: auto;               /* allow scroll if needed */
+    padding: 10px 0;
+}
+
+/* Base desktop size */
+.program-box {
+    flex: 0 0 240px !important;     /* fixed width for desktop */
+    height: 120px !important;
+    padding: 16px !important;
+    border-radius: 18px !important;
+    display: flex !important;
+    flex-direction: column !important;
+    justify-content: space-between !important;
+    color: #fff !important;
+    box-sizing: border-box !important;
+}
+
+/* Titles + text */
+.program-box h2 {
+    font-size: 1rem !important;
+    margin: 0 0 4px 0 !important;
+}
+
+.program-count,
+.program-rating {
+    font-size: 0.85rem !important;
+    margin: 0 !important;
+}
+
+/* =========================================================
+   SMALL SCREENS — SHRINK TO HALF SIZE
+========================================================= */
+
+@media (max-width: 600px) {
+
+    .program-box {
+        flex: 0 0 120px !important;   /* HALF width */
+        height: 60px !important;      /* HALF height */
+        padding: 8px !important;
+        border-radius: 12px !important;
+    }
+
+    .program-box h2 {
+        font-size: 0.65rem !important;
+    }
+
+    .program-count,
+    .program-rating {
+        font-size: 0.55rem !important;
+    }
+
+    .program-box .glass-btn {
+        display: none !important;     /* hide button on tiny screens */
     }
 }
 
-function backToChatList() {
-    currentSelectedSessionId = null;
-
-    const sessionsList = document.getElementById('adminChatSessionsList');
-    const detailPanel = document.getElementById('adminChatDetailPanel');
-    
-    if (sessionsList) sessionsList.style.display = 'flex';
-    if (detailPanel) detailPanel.style.display = 'none';
-
-    // Clear input
-    const inputEl = document.getElementById('adminChatReplyInput');
-    if (inputEl) inputEl.value = '';
-
-    // Reload sessions to refresh unread badges
-    loadChatSessions();
+/* PROGRAMS PAGE — EXPAND CARDS TO FIT CONTENT */
+.programs-section .program-box {
+    flex: 1 1 0;
+    width: auto;
+    min-width: 160px;
+    height: auto !important;
+        min-height: 500px !important;
+    justify-content: flex-start !important;
+    overflow: visible !important;
 }
 
-function subscribeToNewChatSessions() {
-    if (typeof db === 'undefined' || !db.supabase) return;
-
-    db.supabase
-        .channel('public:live_chat_sessions')
-        .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'live_chat_sessions' }, (payload) => {
-            console.log('[admin] New chat session:', payload.new);
-            showChatRequestPopup(payload.new);
-            showHeaderHelpNotification(payload.new);
-            loadChatSessions();
-        })
-        .subscribe();
+@media (max-width: 900px) {
+    .programs-section .program-box {
+        flex: 0 0 calc(50% - 10px);
+        height: auto !important;
+            min-height: 430px !important;
+    }
 }
 
-function subscribeToSessionMessages(studentEmail) {
-    if (typeof db === 'undefined' || !db.supabase) return;
-
-    db.supabase
-        .channel(`public:live_chat_messages:${studentEmail}`)
-        .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'live_chat_messages', filter: `student_email=eq.${studentEmail}` }, (payload) => {
-            console.log('[admin] New message in current session:', payload.new);
-            displayChatMessages(studentEmail);
-        })
-        .subscribe();
+@media (max-width: 600px) {
+    .programs-section .program-box {
+        flex: 0 0 100%;
+        height: auto !important;
+            min-height: 400px !important;
+    }
 }
 
-function showChatRequestPopup(session) {
-    const popup = document.getElementById('chatRequestPopup');
-    if (!popup) return;
+/* PROGRAMS PAGE — MODERN WHY + CTA BLOCKS */
+.programs-why-section {
+    background: linear-gradient(180deg, #091a36 0%, #07142b 100%) !important;
+    border-radius: 20px;
+    margin-top: 34px;
+    padding: 34px 28px 24px;
+}
 
-    const msgEl = document.getElementById('chatRequestPopupMessage');
-    if (msgEl) {
-        msgEl.textContent = `New help request from ${session.student_name || 'a student'}!`;
+.programs-why-title {
+    color: #b8d44d !important;
+    margin-bottom: 24px;
+}
+
+.programs-why-row {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(190px, 1fr));
+    gap: 18px;
+}
+
+.programs-why-card {
+    background: rgba(36, 52, 78, 0.9) !important;
+    border: 1px solid rgba(255,255,255,0.08) !important;
+    border-radius: 10px;
+    min-height: 188px;
+    width: auto;
+    height: auto;
+    padding: 20px 16px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+    text-align: center;
+}
+
+.programs-why-badge {
+    width: 54px;
+    height: 54px;
+    border-radius: 50%;
+    display: grid;
+    place-items: center;
+    font-size: 1.45rem;
+    margin-bottom: 12px;
+    background: linear-gradient(135deg, #ff9a24 10%, #f56a4e 55%, #53c66f 100%);
+}
+
+.programs-why-card h3 {
+    color: #ffffff;
+    font-size: 1.03rem;
+    line-height: 1.25;
+    margin: 0 0 8px;
+}
+
+.programs-why-card p {
+    color: #d7e1f0;
+    font-size: 0.92rem;
+    line-height: 1.35;
+    margin: 0;
+}
+
+.programs-cta-section {
+    margin-top: 22px;
+    margin-bottom: 26px;
+}
+
+.programs-cta-box {
+    width: min(980px, 100%);
+    height: auto;
+    min-height: 210px;
+    padding: 34px 26px;
+    border-radius: 14px;
+    background: linear-gradient(90deg, rgba(29, 47, 75, 0.95) 0%, rgba(67, 80, 104, 0.93) 100%) !important;
+    border: 1px solid rgba(255,255,255,0.12);
+}
+
+.programs-cta-box .cta-title {
+    margin-bottom: 8px;
+    color: #ffffff;
+}
+
+.programs-cta-box .cta-text {
+    margin-bottom: 18px;
+    color: #e5edf9;
+}
+
+.programs-cta-actions {
+    display: flex;
+    gap: 12px;
+    justify-content: center;
+    flex-wrap: wrap;
+}
+
+.programs-cta-btn {
+    min-width: 162px;
+    padding: 10px 20px;
+    border-radius: 7px;
+    text-decoration: none;
+    font-weight: 700;
+    font-size: 0.92rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    position: relative;
+    transition: transform 0.2s ease, box-shadow 0.2s ease, filter 0.2s ease;
+}
+
+.programs-cta-btn-gradient {
+    color: #fff;
+    background: linear-gradient(90deg, #f6a11d 0%, #f26e3b 55%, #55c56d 100%);
+}
+
+.programs-cta-btn-outline {
+    color: #fff;
+    border: 0;
+    background: linear-gradient(90deg, #f6a11d 0%, #f26e3b 55%, #55c56d 100%);
+}
+
+.programs-cta-btn .cta-icon {
+    font-size: 1rem;
+    line-height: 1;
+}
+
+.programs-cta-btn .cta-arrow {
+    font-size: 1.05rem;
+    line-height: 1;
+    transition: transform 0.2s ease;
+}
+
+.programs-cta-btn:hover {
+    filter: brightness(1.18) saturate(1.18);
+    box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.25), 0 8px 22px rgba(0, 0, 0, 0.32);
+    animation: programs-btn-gradient-shift 1.05s linear infinite;
+    background-size: 180% 180%;
+}
+
+.programs-cta-btn:hover .cta-arrow {
+    animation: programs-arrow-forward 0.55s ease-in-out infinite;
+}
+
+#geezLetterBoard {
+    scroll-margin-top: 95px;
+}
+
+@keyframes programs-btn-vibrate {
+    0% { transform: translate(0, 0); }
+    25% { transform: translate(1px, -1px); }
+    50% { transform: translate(-1px, 1px); }
+    75% { transform: translate(1px, 1px); }
+    100% { transform: translate(0, 0); }
+}
+
+@keyframes programs-btn-gradient-shift {
+    0% { background-position: 0% 50%; }
+    100% { background-position: 100% 50%; }
+}
+
+@keyframes programs-arrow-forward {
+    0% { transform: translateX(0); }
+    50% { transform: translateX(6px); }
+    100% { transform: translateX(0); }
+}
+
+@media (max-width: 980px) {
+    .programs-why-row {
+        grid-template-columns: repeat(2, minmax(180px, 1fr));
+    }
+}
+
+@media (max-width: 640px) {
+    .programs-why-row {
+        grid-template-columns: 1fr;
     }
 
-    popup.style.display = 'block';
-
-    const goToChatBtn = document.getElementById('goToChatBtn');
-    if (goToChatBtn) {
-        goToChatBtn.onclick = async () => {
-            // Switch to Teachers Task page
-            showAdminPage('classTeachersTaskPage');
-            
-            // Open the chat session
-            await openChatSession(session.student_email);
-            
-            // Hide popup
-            popup.style.display = 'none';
-        };
+    .programs-cta-box {
+        padding: 26px 16px;
     }
+}
+/* =========================================================
+   GLOBAL BLUE GLASS GRADIENT — REPLACE ALL BACKGROUND IMAGES
+========================================================= */
 
-    // Auto-hide after 10 seconds
-    setTimeout(() => {
-        popup.style.display = 'none';
-    }, 10000);
+.programs-section,
+.why-section,
+.cta-box,
+.program-box,
+.why-box,
+.admin-sidebar,
 
-    // Show header notification
-    showHeaderHelpNotification(session);
+.program-resources-card {
+    background: linear-gradient(
+        135deg,
+        rgba(0, 122, 255, 0.35),
+        rgba(180, 210, 255, 0.45)
+    ) !important;
+
+    backdrop-filter: blur(22px) saturate(180%) !important;
+    -webkit-backdrop-filter: blur(22px) saturate(180%) !important;
+    border: 1px solid rgba(255,255,255,0.35) !important;
 }
 
-function showHeaderHelpNotification(session) {
-    const headerNotif = document.getElementById('headerHelpNotification');
-    const headerNotifText = document.getElementById('headerNotificationText');
-    const headerNotifBtn = document.getElementById('headerNotificationBtn');
+/* =========================================================
+   PROGRAM BOXES — FOUR COLORS + HORIZONTAL + RESPONSIVE
+========================================================= */
 
-    if (!headerNotif || !headerNotifText || !headerNotifBtn) return;
+.program-box-grid {
+    display: flex !important;
+    flex-direction: row !important;
+    justify-content: center !important;
+    align-items: stretch !important;
+    gap: 20px !important;
+    flex-wrap: nowrap !important;
+    width: 100% !important;
+    overflow-x: auto;
+    padding: 10px 0;
+}
 
-    // Extract first name from student_name or determine if it's a visitor
-    let displayName = 'a student';
-    if (session.student_name) {
-        if (session.student_email.includes('@daero.local')) {
-            // New visitor/guest (format: guest-{timestamp}-{hash}@daero.local)
-            displayName = 'a new visitor';
-        } else if (session.student_name === 'Guest User') {
-            displayName = 'a new visitor';
-        } else {
-            // Registered student - extract first name
-            const nameArray = session.student_name.trim().split(' ');
-            displayName = nameArray[0] || 'a student';
-        }
+/* Desktop size */
+.program-box {
+    flex: 0 0 320px !important;
+    height: 120px !important;
+    padding: 16px !important;
+    border-radius: 18px !important;
+    display: flex !important;
+    flex-direction: column !important;
+    justify-content: space-between !important;
+    color: #fff !important;
+    box-sizing: border-box !important;
+}
+
+/* Text inside */
+.program-box h2 {
+    font-size: 1rem !important;
+    margin: 0 0 4px 0 !important;
+}
+
+.program-count,
+.program-rating {
+    font-size: 0.85rem !important;
+    margin: 0 !important;
+}
+
+/* Four different colors */
+.program-box[data-level="beginner"] {
+    background: linear-gradient(135deg, #6bb8ff, #3d9bff) !important;
+}
+
+.program-box[data-level="intermediate"] {
+    background: linear-gradient(135deg, #b28cff, #9a6bff) !important;
+}
+
+.program-box[data-level="advanced"] {
+    background: linear-gradient(135deg, #4fd4c7, #2fb8a8) !important;
+}
+
+.program-box[data-level="immersion"] {
+    background: linear-gradient(135deg, #ff9bb0, #ff6f8a) !important;
+}
+
+/* Small screens — shrink to half size */
+@media (max-width: 600px) {
+
+    .program-box {
+        flex: 0 0 120px !important;
+        height: 60px !important;
+        padding: 8px !important;
+        border-radius: 12px !important;
     }
 
-    // Update notification text
-    headerNotifText.textContent = `New message from ${displayName}`;
+    .program-box h2 {
+        font-size: 0.65rem !important;
+    }
 
-    // Set up button click handler
-    headerNotifBtn.onclick = async () => {
-        // Switch to Teachers Task page
-        showAdminPage('classTeachersTaskPage');
-        
-        // Open the chat session
-        await openChatSession(session.student_email);
-        
-        // Hide header notification
-        headerNotif.style.display = 'none';
-    };
+    .program-count,
+    .program-rating {
+        font-size: 0.55rem !important;
+    }
 
-    // Show notification
-    headerNotif.style.display = 'flex';
+    .program-box .glass-btn {
+        display: none !important;
+    }
+}
+/* =========================================================
+   PROGRAM RESOURCE LIST — GLASS CARD WITH SCROLL
+========================================================= */
 
-    // Auto-hide after 15 seconds
-    setTimeout(() => {
-        headerNotif.style.display = 'none';
-    }, 15000);
+.program-resources-wrapper {
+    margin-top: 40px;
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 30px;
+}
+
+.program-resources-card {
+    padding: 20px;
+    border-radius: 18px;
+    box-shadow: 0 8px 22px rgba(0,0,0,0.15);
+}
+
+.program-resources-card h2 {
+    font-size: 1.2rem;
+    font-weight: 800;
+    margin-bottom: 12px;
+    color: #fff;
+}
+
+/* Scrollable list */
+.resource-list {
+    max-height: 220px;
+    overflow-y: auto;
+    padding-right: 10px;
+}
+
+/* Individual file row */
+.resource-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 12px;
+    margin-bottom: 8px;
+    border-radius: 12px;
+
+    background: rgba(255,255,255,0.25);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(255,255,255,0.35);
+}
+
+.resource-item span {
+    font-size: 0.9rem;
+    color: #fff;
+}
+
+.resource-name-wrap {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    min-width: 0;
+}
+
+.legacy-file-badge {
+    display: inline-block;
+    padding: 2px 7px;
+    border-radius: 999px;
+    font-size: 0.68rem;
+    font-weight: 700;
+    line-height: 1.2;
+    color: #7a1f1f;
+    background: rgba(255, 214, 214, 0.95);
+    border: 1px solid rgba(255, 160, 160, 0.95);
+    white-space: nowrap;
+}
+
+/* Buttons */
+.resource-btn {
+    padding: 6px 12px;
+    font-size: 0.75rem;
+    border-radius: 10px;
+    border: none;
+    cursor: pointer;
+    color: #fff;
+}
+
+.resource-btn.update {
+    background: rgba(0,122,255,0.55);
+}
+
+.resource-btn.delete {
+    background: rgba(255,80,80,0.55);
+}
+
+/* =========================================================
+   DATA GRID — TABLE STYLING FOR NEW/APPLICANTS + ADMITTED
+========================================================= */
+
+.data-grid {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px;
+    border-radius: 18px;
+    overflow: hidden;
+
+   
+}
+
+.data-grid th,
+.data-grid td {
+    padding: 8px 12px;
+    border-bottom: 1px solid rgba(0,0,0,0.1);
+    text-align: left;
+}
+
+.data-grid th {
+    background: rgba(0,0,0,0.05);
+    font-weight: 600;
+}
+
+
+.data-grid tr:hover {
+    background: rgba(255,255,255,0.15);
+}
+
+.filter-bar {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+}
+.filter-bar {
+    position: relative;
+    overflow: visible !important;
+    z-index: 10;
+}
+
+
+.filter-bar input,
+.filter-bar select {
+    padding: 10px 14px;
+    border-radius: 12px;
+    border: 1px solid rgba(255,255,255,0.35);
+    background: rgba(255,255,255,0.25);
+    color: #fff;
+    backdrop-filter: blur(12px);
+}
+
+/* =========================================================
+   PAGE VISIBILITY — ONLY ONE PAGE VISIBLE AT A TIME
+========================================================= */
+
+.admin-page {
+    display: none;
+}
+
+.admin-page.active {
+    display: block;
+}
+
+/* Align program boxes and resource cards in a 4-column grid */
+.programs-section-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 20px;
+    width: 100%;
+}
+/* 4×2 grid layout */
+.programs-section-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 22px;
+    width: 100%;
+    margin-top: 20px;
+}
+
+/* Resource cards same size as program boxes */
+.program-resources-card {
+    padding: 16px;
+    border-radius: 18px;
+    height: 500px;
+    overflow-y: auto;
+    color: white;
+    backdrop-filter: blur(12px);
+	
+}
+
+/* Match colors to program boxes */
+.program-resources-card[data-level="beginner"] {
+    background: linear-gradient(135deg, #6bb8ff, #3d9bff);
+}
+
+.program-resources-card[data-level="intermediate"] {
+    background: linear-gradient(135deg, #b28cff, #9a6bff);
+}
+
+.program-resources-card[data-level="advanced"] {
+    background: linear-gradient(135deg, #4fd4c7, #2fb8a8);
+}
+
+.program-resources-card[data-level="immersion"] {
+    background: linear-gradient(135deg, #ff9bb0, #ff6f8a);
+}
+
+/* Ensure resource list scrolls nicely */
+.resource-list {
+    max-height: 500px;
+    overflow-y: auto;
+    padding-right: 6px;
+}
+/* Match resource card colors EXACTLY to program boxes */
+.program-resources-card[data-level="beginner"] {
+    background: linear-gradient(135deg, #6bb8ff, #3d9bff) !important;
+}
+
+.program-resources-card[data-level="intermediate"] {
+    background: linear-gradient(135deg, #b28cff, #9a6bff) !important;
+}
+
+.program-resources-card[data-level="advanced"] {
+    background: linear-gradient(135deg, #4fd4c7, #2fb8a8) !important;
+}
+
+.program-resources-card[data-level="immersion"] {
+    background: linear-gradient(135deg, #ff9bb0, #ff6f8a) !important;
+}
+
+/* 4×2 grid layout for perfect alignment */
+.programs-section-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 22px;
+    width: 100%;
+    margin-top: 20px;
+	color: yellow;
+}
+
+/* Resource cards same size and shape as program boxes */
+.program-resources-card {
+    padding: 16px;
+    border-radius: 18px;
+    height: 500px;
+    overflow-y: auto;
+    color: white;
+    backdrop-filter: blur(12px);
+}
+.input-error {
+    border: 2px solid #ff4d4d !important;
+    background-color: #ffecec !important;
+}
+select {
+    color: black !important;
+}
+
+select option {
+    background-color: white !important;
+    color: black !important;
+}
+.filter-bar {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+	overflow: visible !important;
+	position: relative; 
+	z-index: 10;
+}
+
+.filter-bar select,
+.filter-bar input {
+    height: 36px;
+    padding: 4px 10px;
+    border-radius: 6px;
+    border: 1px solid rgba(0,0,0,0.2);
+    font-size: 0.9rem;
+}
+/* Column dropdown container */
+.column-dropdown {
+    position: relative;
+	display: inline-block;
+    z-index: 20;
+}
+
+/* Dropdown menu */ 
+.dropdown-menu { display: none; 
+    position: absolute; 
+    top: 40px; 
+    right: 0; 
+    background: white; 
+    color: black; 
+    border-radius: 10px; 
+    padding: 12px; 
+    min-width: 180px; 
+    box-shadow: 0 4px 14px rgba(0,0,0,0.25); 
+    z-index: 9999; }
+
+
+/* Checkbox rows */
+.dropdown-menu label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 4px 0;
+    font-size: 0.9rem;
+    color: black;
+    cursor: pointer;
+}
+
+/* Checkbox styling */
+.dropdown-menu input[type="checkbox"] {
+    width: 16px;
+    height: 16px;
+    cursor: pointer;
+}
+
+/* Button that opens the dropdown */
+#columnDropdownBtn {
+    cursor: pointer;
+    user-select: none;
+}
+
+/* Close dropdown when clicking outside */
+body.dropdown-open .dropdown-menu {
+    display: block;
+}
+
+.action-dropdown {
+    position: relative;
+    display: inline-block;
+    z-index: 100000; /* ensure menu sits on top */
+}
+
+.action-btn {
+    padding: 6px 12px;
+    background: rgba(29, 53, 87, 0.45);
+    color: white;
+    border-radius: 6px;
+    border: 1px solid rgba(255,255,255,0.25);
+    cursor: pointer;
+}
+
+.action-menu {
+    display: none;
+    position: fixed;
+    background: #fff;
+    border-radius: 8px;
+    min-width: 150px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.25);
+    z-index: 100001;
+    overflow: visible;
+    padding: 4px 0;
+    border: 1px solid #e0e0e0;
+    opacity: 1 !important;
+}
+
+.action-item {
+    display: block;
+    width: 100%;
+    padding: 8px 12px;
+    background: white;
+    border: none;
+    text-align: left;
+    cursor: pointer;
+    color: black;
+	
+}
+
+.action-item:hover {
+    background: #f0f0f0;
+}
+
+.status-pill {
+    display: inline-block;
+    padding: 4px 10px;
+    border-radius: 999px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: #fff;
+	
+}
+
+.status-ongoing {
+    background: #2e7d32; /* green */
+}
+
+.status-suspended {
+    background: #f9a825; /* yellow */
+    color: #222;
+}
+
+.status-terminated {
+    background: #c62828; /* red */
+}
+
+.status-completed {
+    background: #1565c0; /* blue */
+}
+.filter-bar {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.filter-bar .glass-btn {
+    margin: 0; /* override global 10px margin */
+}
+
+.filter-bar select,
+.filter-bar input {
+    margin: 0;
+}
+/* Modern Progress Bar */
+.progress-container {
+    width: 100%;
+    margin-bottom: 25px;
+}
+
+.progress-track {
+    width: 100%;
+    height: 6px;
+    background: rgba(255,255,255,0.25);
+    border-radius: 50px;
+    overflow: hidden;
+    backdrop-filter: blur(6px);
+}
+
+.progress-fill {
+    height: 100%;
+    width: 0%;
+    background: linear-gradient(90deg, #4facfe, #00f2fe);
+    border-radius: 50px;
+    transition: width 0.4s ease;
+}
+
+.progress-steps {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 10px;
+}
+
+.progress-step {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.25);
+    backdrop-filter: blur(6px);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-weight: 700;
+    color: #fff;
+    transition: all 0.3s ease;
+}
+
+.progress-step.active {
+    background: linear-gradient(135deg, #4facfe, #00f2fe);
+    color: #fff;
+    transform: scale(1.15);
+}
+
+/* === Modern Progress Bar === */
+
+.progress-wrapper {
+    width: 100%;
+    margin-bottom: 30px;
+    position: relative;
+}
+
+.progress-track {
+    width: 100%;
+    height: 8px;
+    background: rgba(255,255,255,0.25);
+    border-radius: 50px;
+    overflow: hidden;
+    backdrop-filter: blur(6px);
+    position: relative;
+}
+
+.progress-fill {
+    height: 100%;
+    width: 0%;
+    background: linear-gradient(90deg, #4facfe, #00f2fe);
+    border-radius: 50px;
+    transition: width 0.5s ease;
+}
+
+/* Rolling soccer ball */
+.progress-ball {
+    width: 38px;
+    height: 38px;
+    position: absolute;
+    top: -22px;
+    left: 0%;
+    transform: translateX(-50%);
+    transition: left 0.5s ease;
+}
+
+/* Step numbers */
+.progress-steps {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 12px;
+}
+
+.progress-step {
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.25);
+    backdrop-filter: blur(6px);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-weight: 700;
+    color: #fff;
+    transition: all 0.3s ease;
+}
+
+.progress-step.active {
+    background: linear-gradient(135deg, #4facfe, #00f2fe);
+    transform: scale(1.15);
+}
+/* Compact form layout */
+.compact-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 10px;
+    gap: 10px;
+}
+
+.compact-row label {
+    width: 35%;
+    font-size: 0.9rem;
+    font-weight: 600;
+}
+
+.compact-row input,
+.compact-row select {
+    width: 65%;
+    padding: 6px 10px;
+    font-size: 0.9rem;
+}
+
+/* Reduce spacing between sections */
+.form-title {
+    margin-top: 15px;
+    margin-bottom: 10px;
+}
+
+.step-panel {
+    padding-top: 5px;
+}
+
+/* Reduce card padding */
+.register-card {
+    padding: 20px 25px;
+}
+
+/* Reduce vertical spacing inside student blocks */
+.student-block {
+    margin-bottom: 15px;
+    padding: 10px;
+}
+/* UNIVERSAL NAVIGATION BAR */
+.main-nav ul {
+    display: flex;
+    gap: 25px;
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.main-nav a {
+    display: inline-block;
+    padding: 10px 18px;
+    border-radius: 10px;
+    font-weight: 600;
+    color: #ffffff;
+    text-decoration: none;
+    transition: 0.25s ease;
+}
+
+/* Hover */
+.main-nav a:hover {
+    background: rgba(255,255,255,0.25);
+    backdrop-filter: blur(6px);
+}
+
+/* Focus */
+.main-nav a:focus {
+    outline: none;
+    background: rgba(255,255,255,0.35);
+}
+
+/* Active */
+.main-nav a.active {
+    background: linear-gradient(135deg, #4facfe, #00f2fe);
+    color: #fff;
+}
+/* REGISTER PAGE — Pull content closer to header */
+.register-layout,
+.page-wrapper {
+    margin-top: 0 !important;
+    padding-top: 10px !important;
+}
+
+.page-title {
+    margin-top: 5px !important;
+    padding-top: 0 !important;
+}
+
+.left-form .register-card {
+    margin-top: 10px !important;
+	background-color: #5a7aa7;
+    background-image: 
+        radial-gradient(at 47% 33%, hsl(180.00, 22%, 89%) 0, transparent 59%), 
+        radial-gradient(at 82% 65%, hsl(193.99, 94%, 42%) 0, transparent 55%);
+}
+
+.pagination-footer {
+    margin-top: 15px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    color: white;
+    font-size: 15px;
+    font-weight: bold;
+    width: 100%;
+    z-index: 1; /* keep under dropdowns */
+    gap: 20px;
+}
+
+.page-btn {
+    padding: 8px 18px;
+    border-radius: 8px;
+    border: none;
+    cursor: pointer;
+    font-weight: bold;
+    background: #ff6f8a; /* SAME as your delete button */
+    color: white;
+    transition: 0.2s ease;
+}
+
+.page-btn:disabled {
+    opacity: 0.4;
+    cursor: default;
+}
+
+.page-btn:hover:not(:disabled) {
+    background: #ff8fa3;
+}
+
+.page-info {
+    flex-grow: 1;
+    text-align: center;
+}
+.table-section {
+    overflow: visible !important;
+}
+
+
+
+.data-grid {
+    overflow: visible !important;
+}
+
+.data-grid tbody tr {
+    overflow: visible;
+}
+
+.data-grid td {
+    overflow: visible;
+    position: relative;
+}
+/*
+aside p {
+    background: #6f747b!important; 
+	
+}
+.index-aside {
+    background: #6f747b!important; 
+}
+
+.side-card {
+    background: #6f747b!important; 
+}
+.side-card-rgbtn {
+    background: transparent !important;
+}
+.side-card-rgbtn h3,
+.side-card-rgbtn h4 {
+    color: #000000 !important;
+    text-shadow: none !important;
+    font-weight: bold !important;
+}
+.side-card-rgbtn p {
+    text-align: justify !important;
+}
+
+.side-card-second p {
+    background: none !important;
+    text-align: justify !important;
+}
+
+.side-card-second {
+    background: transparent !important;
+}
+.side-card-second h3,
+.side-card-second h4 {
+    color: #000000 !important;
+    text-shadow: none !important;
+    font-weight: bold !important;
+}
+.glass-btn {
+    background: #d2b14e !important;
+    color: #0a1a3a !important;
+    font-weight: bold;
+}
+*/
+
+.post-wrapper h3{
+	background: #8b959f !important;
+	
+}
+.post-wrapper h5{
+	background: #8b959f !important;
+	text-align: center;
+	font-size: 1rem;
+}
+.post-wrapper p{
+	text-align: justify;
+	font-size: 1rem;
+	
+}
+.post-media h3{
+	text-align: center;
+	font-size: 1rem;
+	
+}
+
+header {
+    /*background: #626a6f !important;  your deep navy */
+	/* From https://css.glass */
+background: rgba(8, 45, 58, 0.36);
+border-radius: 16px;
+box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+backdrop-filter: blur(0.1px);
+-webkit-backdrop-filter: blur(0.1px);
+border: 1px solid rgba(8, 45, 58, 0.95);
+}
+
+.side-card-second, .glass-btn
+.right-aside {
+    backdrop-filter: blur(3px) saturate(200%);
+    -webkit-backdrop-filter: blur(3px) saturate(200%);
+    background-color: rgba(255, 255, 255, 0.32);
+    border-radius: 12px;
+    border: 1px solid rgba(209, 213, 219, 0.3);
+}
+.register-btn,
+.cta-btn {
+    background: #f95e88 !important;
+    color: #f95e88 !important;
+    font-weight: 700;
+    padding: 12px 26px;
+    border-radius: 14px;
+    border: none;
+    box-shadow: 0 4px 12px rgba(210, 177, 78, 0.4);
+    transition: 0.25s ease;
+}
+
+.register-btn:hover,
+.cta-btn:hover {
+    background-color: #7b7b92;
+}
+
+.asside.side-cardbig {
+  background-color: hsl(204, 49%, 33%);
+}
+
+/*-----------------------------------------------------------*/
+/* FIX PAGINATION LAYOUT */
+.table-section {
+    width: 100% !important;
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 12px !important;
+}
+
+.page-btn {
+    flex-shrink: 0 !important;
+}
+
+@media (max-width: 600px) {
+    .pagination-footer {
+        flex-direction: column !important;
+        gap: 8px !important;
+    }
+}
+
+.admin-page {
+    width: 100% !important;
+}
+.table-section {
+    width: 100% !important;
+    display: block !important;
+    margin-top: 15px;
+}
+/* ============================================
+   FINAL FIX — OVERRIDE ADMIN-PAGE INHERITANCE
+============================================ */
+.admin-page .pagination-footer {
+    all: unset !important;
+    display: flex !important;
+    justify-content: space-between !important;
+    align-items: center !important;
+    width: 100% !important;
+    padding: 12px 0 !important;
+    background: transparent !important;
+    border: none !important;
+    backdrop-filter: none !important;
+}
+
+@media (max-width: 1100px) {
+    .member-layout {
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .member-slideshow {
+        width: 100%;
+        height: 420px;
+    }
+
+    .premium-glass {
+        width: 100%;
+    }
+}
+
+.table-section {
+    width: 100% !important;
+    display: block !important;
+    margin-top: 12px !important;
+}
+
+
+.data-grid {
+    width: 100% !important;
+    border-collapse: collapse !important;
+}
+
+.pagination-footer {
+    width: 100% !important;
+    display: flex !important;
+    justify-content: center !important;
+    align-items: center !important;
+    gap: 12px;
+    margin-top: 10px;
+}
+
+.page-btn {
+    flex-shrink: 0 !important;
+}
+
+.admin-page .pagination-footer {
+    background: transparent !important;
+    border: none !important;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+
+    display: flex !important;
+    justify-content: nenter;
+    align-items: center !important;
+
+    width: 100% !important;
+    padding: 12px 0 !important;
+}
+/* Chrome pagination fix */
+.table-section {
+    display: block !important;
+    width: 100% !important;
+}
+
+/* FINAL ADMIN PAGINATION ALIGNMENT */
+.admin-page .pagination-footer {
+    display: flex !important;
+    justify-content: center !important;
+    align-items: center !important;
+    width: 100% !important;
+    gap: 12px !important;
+}
+
+.admin-page .pagination-footer .page-info {
+    flex-grow: 0 !important;
+    text-align: center !important;
+}
+
+/* COMPACT ADMIN FILTERS — ONE ROW */
+.admin-page .filter-bar {
+    display: flex !important;
+    align-items: center !important;
+    flex-wrap: nowrap !important;
+    gap: 8px !important;
+    overflow-x: auto;
+    overflow-y: hidden;
+    padding-bottom: 2px;
+}
+
+.admin-page .filter-bar > * {
+    flex: 0 0 auto;
+}
+
+.admin-page .filter-bar .column-dropdown {
+    display: inline-flex;
+    align-items: center;
+    position: relative;
+}
+
+.admin-page #filterFirstNameNew,
+.admin-page #filterGuardianNew,
+.admin-page #filterFirstNameAd,
+.admin-page #filterGuardianAd {
+    width: 120px;
+    min-width: 120px;
+}
+
+.admin-page #filterYearAd,
+.admin-page #filterStatusAd,
+.admin-page #filterGradeAd,
+.admin-page #pageSizeAd,
+.admin-page #filterYearNew,
+.admin-page #pageSizeNew {
+    min-width: 95px;
+}
+
+/* Keep admitted table columns horizontal on narrower widths */
+#admittedStudentsPage .table-section {
+    overflow-x: auto !important;
+}
+
+#admittedStudentsPage .data-grid {
+    min-width: 1300px;
+}
+
+#admittedStudentsPage .data-grid th,
+#admittedStudentsPage .data-grid td {
+    white-space: nowrap;
+}
+
+#admittedStudentsPage .ad-select-cell {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+}
+
+#admittedStudentsPage .sp-btn {
+    border-radius: 8px;
+    border: 1px solid rgba(0, 122, 255, 0.35);
+    background: rgba(0, 122, 255, 0.15);
+    color: #0f2741;
+    font-size: 0.72rem;
+    font-weight: 700;
+    line-height: 1;
+    padding: 4px 6px;
+    cursor: pointer;
+}
+
+#admittedStudentsPage .sp-btn:hover {
+    background: rgba(0, 122, 255, 0.25);
+}
+
+#newApplicantsPage .data-grid,
+#admittedStudentsPage .data-grid,
+#newApplicantsPage .data-grid th,
+#newApplicantsPage .data-grid td,
+#admittedStudentsPage .data-grid th,
+#admittedStudentsPage .data-grid td {
+    color: #000000 !important;
+    text-shadow: none !important;
+    filter: none !important;
+}
+
+#newApplicantsPage .table-section,
+#admittedStudentsPage .table-section,
+#newApplicantsPage .data-grid,
+#admittedStudentsPage .data-grid {
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+}
+
+#newApplicantsPage .data-grid th,
+#admittedStudentsPage .data-grid th {
+    font-weight: 800 !important;
+}
+
+#newApplicantsPage .data-grid td,
+#admittedStudentsPage .data-grid td,
+#newApplicantsPage .data-grid td *,
+#admittedStudentsPage .data-grid td * {
+    font-weight: 700 !important;
+    color: #000000 !important;
+    text-shadow: none !important;
+}
+
+/* CONTACT PAGE REDESIGN */
+.contact-layout {
+    display: grid;
+    grid-template-columns: 1.35fr 1fr;
+    gap: 22px;
+    align-items: start;
+}
+
+.contact-card {
+    padding: 20px;
+}
+
+.contact-form {
+    display: grid;
+    gap: 10px;
+}
+
+.contact-form input,
+.contact-form select,
+.contact-form textarea {
+    width: 100%;
+    border-radius: 10px;
+    border: 1px solid rgba(255,255,255,0.35);
+    background: rgba(255,255,255,0.75);
+    color: #0f2741;
+    padding: 10px 12px;
+    font-size: 0.95rem;
+}
+
+.contact-form textarea {
+    resize: vertical;
+    min-height: 140px;
+}
+
+.contact-status {
+    margin-top: 8px;
+    font-weight: 700;
+    color: #0f4f79;
+}
+
+/* ADMIN SUPPORT PAGE */
+.admin-support-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(280px, 1fr));
+    gap: 18px;
+}
+
+#classTeachersTaskPage .page-title {
+    margin-bottom: 14px;
+}
+
+.teachers-task-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 16px;
+    align-items: stretch;
+}
+
+.teachers-task-panel {
+    padding: 14px;
+    min-height: 720px;
+}
+
+.teachers-task-lesson-panel {
+    min-height: 720px;
+}
+
+.teachers-task-schedules-panel {
+    min-height: 720px;
+}
+
+.teachers-task-admin-dashboard-panel {
+    min-height: 720px;
+    height: 720px;
+    max-height: 720px;
+    padding-top: 10px;
+    display: flex;
+    flex-direction: column;
+}
+
+.teachers-task-attendance-panel.teachers-task-attendance-full {
+    grid-column: 1 / -1;
+    min-height: auto;
+}
+
+.teachers-task-attendance-panel.teachers-task-attendance-full h2 {
+    margin-top: 0;
+    margin-bottom: 2px;
+}
+
+.teachers-task-class-select-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 10px;
+}
+
+.teachers-task-class-select-row label {
+    font-weight: 700;
+}
+
+.teachers-task-class-select-row select {
+    min-width: 190px;
+    border-radius: 8px;
+    border: 1px solid rgba(28, 98, 168, 0.35);
+    background: #ffffff;
+    padding: 6px 10px;
+    font-weight: 700;
+    color: #073259;
+}
+
+.lesson-plan-weeks {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    max-height: 640px;
+    overflow: auto;
+    padding-right: 4px;
+}
+
+.lesson-week-card {
+    border: 2px solid #2a2a2a;
+    background: #f6f6f6;
+}
+
+.lesson-week-title {
+    text-align: center;
+    font-size: 1.85rem;
+    font-weight: 900;
+    color: #000000;
+    border-bottom: 2px solid #2a2a2a;
+    padding: 4px 0;
+}
+
+.lesson-week-days {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+}
+
+.lesson-day-column {
+    display: flex;
+    flex-direction: column;
+    min-height: 245px;
+}
+
+.lesson-day-column h4 {
+    margin: 0;
+    text-align: center;
+    font-size: 2rem;
+    font-weight: 900;
+    border-bottom: 2px solid #2a2a2a;
+    color: #000000;
+    padding: 2px 0;
+}
+
+.lesson-day-header-row {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    align-items: center;
+    border-bottom: 2px solid #2a2a2a;
+    background: #ffffff;
+}
+
+.lesson-day-header-row h4 {
+    border-bottom: 0;
+}
+
+.lesson-day-doc-host {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    padding-right: 8px;
+}
+
+.lesson-doc-icon-link {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 24px;
+    height: 24px;
+    border-radius: 999px;
+    border: 1px solid rgba(28, 98, 168, 0.35);
+    background: #ffffff;
+    color: #0f4d88;
+    font-size: 1rem;
+    font-weight: 900;
+    text-decoration: none;
+}
+
+.lesson-doc-icon-link:hover {
+    background: #e7f3ff;
+}
+
+.lesson-day-wednesday {
+    border-right: 2px solid #2a2a2a;
+}
+
+.lesson-day-editor {
+    width: 100%;
+    flex: 1;
+    border: none;
+    border-radius: 0;
+    resize: vertical;
+    padding: 8px;
+    font-size: 1.75rem;
+    font-weight: 800;
+    line-height: 1.38;
+    color: #003a7b;
+}
+
+.lesson-day-editor:focus {
+    outline: none;
+}
+
+.lesson-day-wednesday .lesson-day-editor {
+    background: #fff800;
+}
+
+.lesson-day-saturday .lesson-day-editor {
+    background: #ead0d3;
+}
+
+.lesson-week-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+    border-top: 2px solid #2a2a2a;
+    padding: 8px;
+    background: #ffffff;
+}
+.lesson-edit-btn:hover {
+    background-color: #ff944d !important; /* slightly brighter than #ed7d40 */
+    color: #fff;
+}
+.lesson-save-btn:hover {
+    background-color: #f3d2c2 !important; /* slightly brighter than #dec0ad */
+    color: #fff;
+}
+.lesson-day-wednesday.edit-mode .lesson-day-editor {
+    background: #d5f08d !important;
+}
+.lesson-day-saturday.edit-mode .lesson-day-editor {
+    background: #edb993 !important;
+}
+
+.teachers-white-paper {
+    min-height: 540px;
+    border-radius: 10px;
+    border: 1px solid rgba(28, 98, 168, 0.28);
+    background: #ffffff;
+    padding: 12px;
+    color: #052c4f;
+    font-size: 0.96rem;
+    line-height: 1.45;
+}
+
+.teachers-white-paper:focus {
+    outline: 2px solid rgba(28, 98, 168, 0.32);
+    outline-offset: 2px;
+}
+
+.attendance-controls-row {
+/* Shared row style for lesson plan and assignment uploads */
+.lesson-doc-upload-controls,
+.assignment-upload-controls {
+    display: flex;
+    gap: 18px;
+    align-items: center;
+    margin-bottom: 10px;
+    width: 100%;
+}
+
+.lesson-doc-upload-controls select,
+.lesson-doc-upload-controls input[type="file"],
+.assignment-upload-controls select,
+.assignment-upload-controls input[type="file"] {
+    font-size: 1.15rem;
+    padding: 14px 16px;
+    border-radius: 8px;
+    border: 1.5px solid #007aff;
+    background: #fff;
+    min-width: 400px;
+    max-width: 100%;
+    height: 52px;
+    flex: 1 1 auto;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+}
+
+.assignment-upload-controls button#uploadAdditionalAssignmentsBtn {
+    height: 52px;
+    min-width: 120px;
+    font-size: 1.12rem;
+    border-radius: 8px;
+    background: var(--color-primary);
+    color: #fff;
+    border: none;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+    cursor: pointer;
+    transition: background 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.assignment-upload-controls button#uploadAdditionalAssignmentsBtn:hover {
+    background: #005bb5;
+}
+
+.assignment-upload-controls button#clearUploadAdditionalAssignments {
+    height: 52px;
+    min-width: 110px;
+    font-size: 1.08rem;
+    border-radius: 8px;
+    background: #f3f3f3;
+    color: #333;
+    border: 1.5px solid #bbb;
+    margin-left: 10px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.03);
+    cursor: pointer;
+    transition: background 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.assignment-upload-controls button#clearUploadAdditionalAssignments:hover {
+    background: #e0e0e0;
+}
+    flex-wrap: nowrap;
+    margin-top: 0;
+    margin-bottom: 2px;
+}
+
+.attendance-controls-row .glass-btn {
+    white-space: nowrap;
+    height: 34px;
+    padding: 6px 10px;
+    font-size: 0.95rem;
+}
+
+.attendance-controls-row select {
+    border-radius: 8px;
+    border: 1px solid rgba(28, 98, 168, 0.35);
+    background: #ffffff;
+    color: #073259;
+    font-weight: 700;
+    padding: 6px 10px;
+    height: 34px;
+}
+
+#attendanceGuardianSelect {
+    min-width: 190px;
+}
+
+.attendance-sheet-wrap {
+    min-height: 640px;
+    max-height: 640px;
+    overflow: auto;
+    border: 1px solid rgba(28, 98, 168, 0.22);
+    border-radius: 10px;
+    background: #ffffff;
+}
+
+#attendanceStatus {
+    margin: 0 0 4px;
+    text-align: right;
+}
+
+.attendance-empty {
+    padding: 12px;
+    color: #083f68;
+    font-weight: 700;
+}
+
+.attendance-table {
+    width: 100%;
+    border-collapse: collapse;
+    min-width: 960px;
+}
+
+.attendance-table th,
+.attendance-table td {
+    border: 1.4px solid #1e1e1e;
+    padding: 4px 6px;
+    color: #000000;
+}
+
+.attendance-left-title {
+    font-size: 1.65rem;
+    font-weight: 900;
+    text-align: left;
+    background: #eef4fb;
+}
+
+.attendance-main-title {
+    font-size: 1.65rem;
+    font-weight: 900;
+    text-align: center;
+    background: #f8fbff;
+}
+
+.attendance-col-sn,
+.attendance-serial,
+.attendance-mark-cell {
+    text-align: center;
+}
+
+.attendance-col-student,
+.attendance-name {
+    text-align: left;
+}
+
+.attendance-name {
+    font-weight: 700;
+    background: #d7dee8;
+}
+
+.attendance-mark {
+    width: 16px;
+    height: 16px;
+    accent-color: #2d7cc4;
+    cursor: pointer;
+}
+
+.attendance-mark:disabled {
+    cursor: default;
+}
+
+.lesson-doc-upload-controls {
+    display: grid;
+    grid-template-columns: minmax(150px, 1fr) minmax(130px, 1fr) minmax(130px, 1fr) minmax(220px, 1.4fr) auto auto;
+    gap: 8px;
+    align-items: center;
+}
+
+.lesson-doc-upload-controls select,
+.lesson-doc-upload-controls input[type="file"] {
+    border-radius: 8px;
+    border: 1px solid rgba(28, 98, 168, 0.35);
+    background: #ffffff;
+    color: #073259;
+    font-weight: 700;
+    padding: 6px 10px;
+}
+
+@media (max-width: 1450px) {
+    .lesson-doc-upload-controls {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 1450px) {
+    .teachers-task-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .teachers-task-admin-dashboard-panel {
+        grid-column: auto;
+    }
+
+    .teachers-task-attendance-full {
+        grid-column: auto;
+    }
+
+    .attendance-controls-row {
+        justify-content: flex-start;
+        flex-wrap: wrap;
+    }
+
+    .teachers-task-panel,
+    .teachers-task-lesson-panel {
+        min-height: auto;
+    }
+}
+
+.support-card {
+    padding: 18px;
+}
+
+#allPostsMediaPage .admin-support-grid > .support-card:nth-child(1) {
+    background: #d8ecff !important;
+    border: 1px solid rgba(28, 98, 168, 0.28);
+}
+
+#allPostsMediaPage .admin-support-grid > .support-card:nth-child(2) {
+    background: #d9f6df !important;
+    border: 1px solid rgba(36, 130, 72, 0.28);
+}
+
+#allPostsMediaPage .admin-support-grid > .support-card:nth-child(3) {
+    background: #fff3d6 !important;
+    border: 1px solid rgba(166, 120, 32, 0.28);
+}
+
+#allPostsMediaPage .admin-support-grid > .support-card:nth-child(4) {
+    background: #f0e5ff !important;
+    border: 1px solid rgba(98, 65, 160, 0.28);
+}
+
+#allPostsMediaPage .admin-support-grid > .support-card:nth-child(5) {
+    background: #ffe4ea !important;
+    border: 1px solid rgba(168, 58, 95, 0.28);
+}
+
+#allPostsMediaPage .admin-support-grid > .support-card:nth-child(6) {
+    background: #e2f8f8 !important;
+    border: 1px solid rgba(40, 131, 131, 0.28);
+}
+
+#allPostsMediaPage .graduation-figure-upload-card {
+    background: #e8efff !important;
+    border: 1px solid rgba(66, 92, 168, 0.30);
+}
+
+#allPostsMediaPage .support-card h2,
+#allPostsMediaPage .support-card h3,
+#allPostsMediaPage .support-card h4,
+#allPostsMediaPage .support-card h5 {
+    color: #000000 !important;
+    font-weight: 800 !important;
+    text-shadow: none !important;
+}
+
+#adminSupportPage {
+    position: relative;
+}
+
+#adminSupportPage .support-card {
+    border-radius: 14px;
+    border: 1px solid rgba(15, 39, 65, 0.2);
+    box-shadow: 0 8px 24px rgba(12, 34, 56, 0.12);
+}
+
+#adminSupportPage .support-card h2 {
+    color: #09253f;
+    font-weight: 800;
+}
+
+#adminSupportPage .support-card-credentials {
+    background: #dff0ff !important;
+    border-color: rgba(34, 98, 162, 0.3);
+}
+
+#adminSupportPage .support-card-portal-link {
+    background: #e5f8e8 !important;
+    border-color: rgba(46, 134, 74, 0.3);
+}
+
+#adminSupportPage .support-card-customer-messages {
+    background: #fff2d9 !important;
+    border-color: rgba(178, 127, 34, 0.3);
+}
+
+#adminSupportPage .support-card-reminder {
+    background: #f1e7ff !important;
+    border-color: rgba(103, 70, 165, 0.3);
+}
+
+#adminSupportPage .support-card-announcement {
+    background: #ffe5ee !important;
+    border-color: rgba(169, 64, 104, 0.3);
+}
+
+.maintenance-toggle-corner {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    z-index: 5;
+}
+
+.maintenance-toggle-label {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.76rem;
+    font-weight: 700;
+    background: rgba(255,255,255,0.72);
+    color: #123b5a;
+    border-radius: 8px;
+    padding: 5px 8px;
+    border: 1px solid rgba(255,255,255,0.55);
+}
+
+.maintenance-toggle-label input[type="checkbox"] {
+    width: 12px;
+    height: 12px;
+    margin: 0;
+}
+
+.maintenance-mode-status {
+    margin-left: 6px;
+    font-size: 0.72rem;
+    font-weight: 700;
+    color: #0b4f78;
+}
+
+/* ---- BACKUP / RESTORE BAR ---- */
+.maintenance-toggle-corner {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 4px;
+}
+
+.backup-top-row {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+}
+
+.backup-actions-row {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    justify-content: flex-end;
+}
+
+.backup-restore-btn {
+    font-size: 0.70rem !important;
+    padding: 4px 10px !important;
+    margin: 0 !important;
+    white-space: nowrap;
+}
+
+.backup-schedule-select {
+    border-radius: 8px;
+    border: 1px solid rgba(255,255,255,0.55);
+    background: rgba(255,255,255,0.78);
+    color: #0f2741;
+    font-size: 0.70rem;
+    font-weight: 700;
+    padding: 4px 8px;
+    height: 29px;
+}
+
+.backup-restore-status {
+    display: none;
+    align-items: center;
+    gap: 5px;
+    font-size: 0.70rem;
+    font-weight: 700;
+    color: #0b4f78;
+    background: rgba(255,255,255,0.80);
+    border-radius: 6px;
+    padding: 3px 8px;
+    border: 1px solid rgba(255,255,255,0.55);
+    max-width: 260px;
+    word-break: break-word;
+}
+
+.backup-schedule-info {
+    display: none;
+    align-items: center;
+    font-size: 0.69rem;
+    font-weight: 700;
+    color: #0b4f78;
+    background: rgba(255,255,255,0.80);
+    border-radius: 6px;
+    padding: 3px 8px;
+    border: 1px solid rgba(255,255,255,0.55);
+}
+
+.backup-spinner {
+    display: inline-block;
+    flex-shrink: 0;
+    width: 11px;
+    height: 11px;
+    border: 2px solid rgba(11, 79, 120, 0.25);
+    border-top-color: #0b4f78;
+    border-radius: 50%;
+    animation: backup-spin 0.7s linear infinite;
+}
+
+@keyframes backup-spin {
+    to { transform: rotate(360deg); }
+}
+
+.support-card-wide {
+    grid-column: 1 / -1;
+}
+
+.support-form {
+    display: grid;
+    gap: 10px;
+    margin-top: 8px;
+}
+
+.support-form input,
+.support-form select,
+.support-form textarea {
+    border-radius: 10px;
+    border: 1px solid rgba(255,255,255,0.35);
+    background: rgba(255,255,255,0.78);
+    color: #0f2741;
+    padding: 10px 12px;
+}
+
+.support-status {
+    margin-top: 8px;
+    color: #053f67;
+    font-weight: 700;
+}
+
+.guardian-picker {
+    display: grid;
+    gap: 0;
+    max-height: 180px;
+    overflow-y: auto;
+    border: 1px solid rgba(255,255,255,0.35);
+    border-radius: 10px;
+    background: rgba(255,255,255,0.82);
+}
+
+.guardian-picker-row {
+    display: grid;
+    grid-template-columns: 28px 1fr 1.1fr;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 10px;
+    color: #0f2741;
+    border-bottom: 1px solid rgba(15, 39, 65, 0.12);
+}
+
+.guardian-picker-row:last-child {
+    border-bottom: none;
+}
+
+.guardian-picker-row span {
+    font-size: 0.88rem;
+}
+
+.guardian-picker-empty {
+    padding: 10px 12px;
+    color: #345a78;
+    font-weight: 600;
+}
+
+.price-settings-left-panel,
+.price-settings-right-panel {
+    text-align: left;
+}
+
+.price-setting-row {
+    display: grid;
+    grid-template-columns: minmax(170px, 1.2fr) minmax(110px, 1fr) auto;
+    gap: 10px;
+    align-items: center;
+}
+
+.price-setting-row label {
+    font-weight: 800;
+    color: #0f2741;
+}
+
+.date-range-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+}
+
+.support-actions {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-bottom: 10px;
+}
+
+#adminSupportPage .glass-btn {
+    padding: 6px 12px !important;
+    font-size: 0.84rem !important;
+    line-height: 1.1;
+    border-radius: 8px;
+    min-height: 30px;
+}
+
+.messages-list {
+    display: grid;
+    gap: 10px;
+    max-height: 420px;
+    overflow-y: auto;
+}
+
+.message-item {
+    background: rgba(255,255,255,0.8);
+    color: #0f2741;
+    border-radius: 10px;
+    padding: 10px 12px;
+    border: 1px solid rgba(255,255,255,0.45);
+}
+
+.message-time {
+    margin-top: 6px;
+    font-size: 0.82rem;
+    opacity: 0.8;
+}
+
+.debug-list {
+    display: grid;
+    gap: 8px;
+    max-height: 300px;
+    overflow-y: auto;
+}
+
+.debug-item {
+    display: grid;
+    gap: 6px;
+    background: rgba(255,255,255,0.82);
+    color: #0f2741;
+    border: 1px solid rgba(255,255,255,0.5);
+    border-radius: 8px;
+    padding: 8px 10px;
+    font-size: 0.84rem;
+}
+
+.debug-item-meta {
+    font-size: 0.76rem;
+    opacity: 0.78;
+    word-break: break-all;
+}
+
+.debug-remove-btn {
+    justify-self: start;
+    padding: 4px 8px;
+    border: none;
+    border-radius: 6px;
+    background: #c62828;
+    color: #fff;
+    font-size: 0.74rem;
+    cursor: pointer;
+}
+
+@media (max-width: 980px) {
+    .contact-layout,
+    .admin-support-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* INDEX HOME WRAPPER + ASIDES MATCH PROGRAMS WRAPPER BACKGROUND */
+.home-layout,
+.index-aside {
+    background: linear-gradient(
+        135deg,
+        rgba(0, 122, 255, 0.35),
+        rgba(180, 210, 255, 0.45)
+    ) !important;
+    backdrop-filter: blur(22px) saturate(180%) !important;
+    -webkit-backdrop-filter: blur(22px) saturate(180%) !important;
+    border: 1px solid rgba(255,255,255,0.35) !important;
+}
+
+.home-layout {
+    border-radius: 18px;
+    padding: 14px;
+}
+
+.index-aside {
+    border-radius: 14px;
+    padding: 10px;
+}
+
+.index-aside h4 {
+    color: #000000 !important;
+    font-weight: 800 !important;
+}
+
+.home-layout > .index-aside:first-of-type h4 {
+    color: #fcd47f !important;
+    font-weight: 800 !important;
+}
+
+.index-aside p {
+    color: #ffffff !important;
+    font-weight: 700 !important;
+    text-align: justify !important;
+}
+
+/* INDEX LEFT ASIDE: unify all panel backgrounds */
+.index-aside .side-cardbig,
+.index-aside .side-card-second,
+.index-aside .side-card-rgbtn {
+    background-color: hsl(204, 49%, 33%) !important;
+}
+
+.home-layout > .index-aside:first-of-type .side-card-rgbtn .glass-btn {
+    background: rgba(227, 221, 138, 0.814) !important;
+    color: #0f2741 !important;
+    display: block;
+    width: fit-content;
+    margin-left: auto !important;
+    margin-right: auto !important;
+}
+
+.home-layout > .index-aside:first-of-type .side-card-rgbtn .glass-btn:hover {
+    background: rgba(246, 224, 117, 0.814) !important;
+}
+
+/* MEMBER PAGE WRAPPER + PANELS MATCH PROGRAMS WRAPPER BACKGROUND */
+.member-layout,
+.premium-glass,
+.member-slideshow {
+    background: linear-gradient(
+        135deg,
+        rgba(0, 122, 255, 0.35),
+        rgba(180, 210, 255, 0.45)
+    ) !important;
+    backdrop-filter: blur(22px) saturate(180%) !important;
+    -webkit-backdrop-filter: blur(22px) saturate(180%) !important;
+    border: 1px solid rgba(255,255,255,0.35) !important;
+}
+
+.member-layout {
+    border-radius: 18px;
+    padding: 14px;
+}
+
+/* HELP PAGE WRAPPER + CARDS MATCH PROGRAMS WRAPPER BACKGROUND */
+.help-wrapper,
+.member-portal-wrapper,
+.help-card {
+    background: linear-gradient(
+        135deg,
+        rgba(0, 122, 255, 0.35),
+        rgba(180, 210, 255, 0.45)
+    ) !important;
+    backdrop-filter: blur(22px) saturate(180%) !important;
+    -webkit-backdrop-filter: blur(22px) saturate(180%) !important;
+    border: 1px solid rgba(255,255,255,0.35) !important;
+}
+
+.help-wrapper,
+.member-portal-wrapper {
+    border-radius: 18px;
+    padding: 14px;
+}
+
+/* INDEX: LATEST POSTS INNER WRAPPER - PALE BACKGROUND ONLY */
+.posts-grid {
+    background-color: #dbeefa !important;
+}
+
+.posts .glass-title {
+    margin: 0 0 14px !important;
+}
+
+.post-illustration {
+    margin-top: 8px;
+    padding: 8px 10px;
+    border-radius: 10px;
+    background: rgba(255,255,255,0.72);
+    color: #0f2741;
+    font-size: 0.95rem;
+    text-align: center !important;
+    border: 1px solid rgba(255,255,255,0.45);
+}
+
+/* INDEX POSTS: separate panel colors for easy identification */
+.posts .post-wrapper:nth-child(1) {
+    background-color: #cfe8ff !important;
+    border: 1px solid rgba(25, 95, 165, 0.28);
+    border-radius: 14px;
+}
+
+.posts .post-wrapper:nth-child(2) {
+    background-color: #d9f3df !important;
+    border: 1px solid rgba(45, 120, 65, 0.28);
+    border-radius: 14px;
+}
+
+.posts .post-wrapper:nth-child(3) {
+    background-color: #f6e3d0 !important;
+    border: 1px solid rgba(140, 92, 38, 0.28);
+    border-radius: 14px;
+}
+
+/* INDEX POSTS: keep all three panels in one horizontal row */
+.posts .posts-grid {
+    display: grid !important;
+    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+    align-items: start;
+    gap: 20px !important;
+}
+
+.posts .post-wrapper {
+    width: 100% !important;
+    margin: 0 !important;
+}
+
+.posts .post-media {
+    width: 100% !important;
+    max-width: 100% !important;
+}
+
+/* MEMBER PORTAL DASHBOARD */
+.member-portal-wrapper {
+    max-width: 1500px;
+    margin: 0 auto;
+}
+
+/* PROGRAMS PAGE - BRING FIRST WRAPPER CONTENT HIGHER */
+.programs-section {
+    margin-top: 8px !important;
+    padding-top: 44px !important;
+}
+
+.programs-row {
+    margin-top: 14px !important;
+}
+
+/* PROGRAMS PAGE - GEEZ TWO PANEL WRAPPER */
+.programs-geez-section {
+    margin: 16px auto 22px;
+}
+
+.programs-geez-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(340px, 1fr));
+    gap: 18px;
+}
+
+.geez-panel {
+    border-radius: 16px;
+    padding: 14px;
+    min-height: 500px;
+    background: #efe6fa;
+    border: 1px solid #d2bee8;
+    box-shadow: none;
+    align-self: start;
+    contain: layout style paint;
+    overflow: hidden;
+}
+
+.geez-panel-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    margin-bottom: 6px;
+}
+
+.geez-panel h2 {
+    margin: 0;
+    color: #0f2741;
+    font-size: 1.22rem;
+}
+
+.geez-sound-toggle {
+    width: 36px;
+    height: 36px;
+    border: 1px solid rgba(255,255,255,0.55);
+    border-radius: 0;
+    background: rgba(255,255,255,0.72);
+    cursor: pointer;
+    font-size: 1.06rem;
+}
+
+.geez-letter-board {
+    display: grid;
+    gap: 10px;
+    position: relative;
+    padding-bottom: 72px;
+    background: #e9dcf8;
+    border: 1px solid #cdb5e6;
+    border-radius: 12px;
+    padding: 10px 10px 72px;
+}
+
+.geez-letter-board-footer {
+    margin-top: 8px;
+    padding: 10px;
+    border-radius: 10px;
+    background: rgba(255, 255, 255, 0.65);
+}
+
+.geez-letter-board-footer h4 {
+    margin: 0 0 6px;
+    text-align: left;
+    color: #0f2741;
+    font-weight: 800;
+}
+
+.geez-letter-board-footer p {
+    margin: 0;
+    text-align: justify;
+    color: #0f2741;
+    font-size: 0.92rem;
+    line-height: 1.4;
+}
+
+.geez-row {
+    display: grid;
+    grid-template-columns: repeat(7, minmax(38px, 1fr));
+    gap: 8px;
+}
+
+.geez-row-sixth {
+    grid-template-columns: repeat(5, minmax(38px, 1fr));
+    width: calc((100% - 8px * 6) * 5 / 7 + 8px * 4);
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.geez-glyph-btn {
+    height: 48px;
+    border-radius: 0;
+    border: 1px solid #4f1e7d;
+    background-color: #7a2db6;
+    position: relative;
+    overflow: hidden;
+    box-shadow: none;
+    cursor: pointer;
+    transition: transform 0.15s ease;
+    color: #ffffff;
+    font-weight: 800;
+    font-size: 1.58rem;
+    line-height: 1;
+    display: grid;
+    place-items: center;
+    text-shadow: none;
+}
+
+.geez-glyph-btn::before {
+    content: none;
+    position: absolute;
+    inset: 3px;
+    border-radius: 0;
+}
+
+.geez-glyph-btn:hover {
+    transform: translateY(-1px);
+}
+
+.geez-glyph-btn:active {
+    transform: scale(0.97);
+}
+
+.geez-panel-child-letters {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+}
+
+.geez-child-title {
+    text-align: center;
+    font-weight: 700;
+    margin: 0;
+}
+
+/* =========================================================
+   ADMIN DASHBOARD - PROGRAMS ALIGNMENT + COLOR PAIRING
+========================================================= */
+
+#programsPage .programs-section-grid {
+    display: grid !important;
+    grid-template-columns: repeat(5, minmax(170px, 1fr));
+    gap: 14px;
+    align-items: start;
+}
+
+#programsPage .programs-section-grid .program-box,
+#programsPage .programs-section-grid .program-resources-card {
+    width: 92% !important;
+    justify-self: center;
+}
+
+#programsPage .programs-section-grid .program-box {
+    min-height: 140px !important;
+    height: auto !important;
+}
+
+#programsPage .program-title-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 10px;
+}
+
+#programsPage .program-title-row h2,
+#programsPage .program-title-row .program-price {
+    margin: 0 !important;
+}
+
+/* Program card colors */
+#programsPage .program-box[data-level="beginner"] {
+    background: linear-gradient(135deg, #2c7dff, #1954c9) !important;
+}
+
+#programsPage .program-box[data-level="intermediate"] {
+    background: linear-gradient(135deg, #ff6fa9, #d94682) !important;
+}
+
+#programsPage .program-box[data-level="advanced"] {
+    background: linear-gradient(135deg, #33b85f, #228a47) !important;
+}
+
+#programsPage .program-box[data-level="afterschool"] {
+    background: linear-gradient(135deg, #8c57ff, #6230d6) !important;
+}
+
+#programsPage .program-box[data-level="religious"] {
+    background: linear-gradient(135deg, #ff9d32, #d77200) !important;
+}
+
+/* Uploaded resources containers aligned and color-matched */
+#programsPage .program-resources-card {
+    border-radius: 14px;
+    padding: 14px;
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.18);
+}
+
+#programsPage .program-resources-card[data-level="beginner"] {
+    background: linear-gradient(135deg, #2c7dff, #1954c9) !important;
+}
+
+#programsPage .program-resources-card[data-level="intermediate"] {
+    background: linear-gradient(135deg, #ff6fa9, #d94682) !important;
+}
+
+#programsPage .program-resources-card[data-level="advanced"] {
+    background: linear-gradient(135deg, #33b85f, #228a47) !important;
+}
+
+#programsPage .program-resources-card[data-level="afterschool"] {
+    background: linear-gradient(135deg, #8c57ff, #6230d6) !important;
+}
+
+#programsPage .program-resources-card[data-level="religious"] {
+    background: linear-gradient(135deg, #ff9d32, #d77200) !important;
+}
+
+/* Keep text readable in all colored containers */
+#programsPage .program-resources-card h2,
+#programsPage .program-resources-card .resource-item,
+#programsPage .program-resources-card .resource-item a,
+#programsPage .program-box h2,
+#programsPage .program-box p {
+    color: #ffffff !important;
+}
+
+@media (max-width: 1200px) {
+    #programsPage .programs-section-grid {
+        grid-template-columns: repeat(3, minmax(170px, 1fr));
+    }
+}
+
+@media (max-width: 860px) {
+    #programsPage .programs-section-grid {
+        grid-template-columns: repeat(2, minmax(160px, 1fr));
+    }
+}
+
+@media (max-width: 560px) {
+    #programsPage .programs-section-grid {
+        grid-template-columns: 1fr;
+    }
+
+    #programsPage .programs-section-grid .program-box,
+    #programsPage .programs-section-grid .program-resources-card {
+        width: 100% !important;
+    }
+}
+
+.geez-child-rows {
+    margin-top: 12px;
+}
+
+.geez-child-row {
+    display: none;
+    grid-template-columns: repeat(7, minmax(38px, 1fr));
+    gap: 8px;
+    background: #e6aee2;
+    padding: 10px 12px;
+}
+
+.geez-child-row.is-active {
+    display: grid;
+}
+
+.geez-child-btn {
+    font-size: 2rem;
+    font-weight: 800;
+    color: #ffffff;
+    transition: transform 0.15s ease;
+}
+
+.geez-child-btn:hover {
+    transform: translateY(-1px);
+}
+
+.geez-child-btn:active {
+    transform: scale(0.97);
+}
+
+.geez-child-btn-empty {
+    opacity: 0.55;
+    cursor: default;
+}
+
+.geez-child-preview {
+    flex: 1;
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+    min-height: 220px;
+    margin-top: 14px;
+    padding: 10px;
+    border-radius: 12px;
+    transition: background-color 0.2s ease;
+    contain: layout style paint;
+}
+
+.geez-child-preview.is-empty {
+    background: #efe6fa;
+}
+
+.geez-preview-empty {
+    margin: 0;
+    color: #0f2741;
+    font-weight: 600;
+    text-align: center;
+}
+
+.geez-preview-content {
+    width: 100%;
+    background: #2117b8;
+    padding: 10px;
+    border-radius: 8px;
+    animation: smooth-expand 0.3s ease-out;
+}
+
+@keyframes smooth-expand {
+    from {
+        opacity: 0.9;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+.geez-preview-active-letter {
+    margin: 0 0 8px;
+    color: #ffffff;
+    font-size: 4.8rem;
+    font-weight: 700;
+    line-height: 1;
+}
+
+.geez-preview-cards-row {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(110px, 1fr));
+    gap: 10px;
+    align-items: stretch;
+    contain: layout style paint;
+    will-change: contents;
+}
+
+.geez-preview-card {
+    display: grid;
+    gap: 6px;
+    justify-items: center;
+    grid-template-rows: auto 180px auto;
+}
+
+.geez-preview-card-geez {
+    margin: 0;
+    color: #ffd84a;
+    font-weight: 800;
+    font-size: 2rem;
+    line-height: 1;
+}
+
+.geez-preview-card-image {
+    width: 100%;
+    height: 180px;
+    object-fit: cover;
+    display: block;
+    background: #ddd;
+}
+
+.geez-preview-card-english {
+    margin: 0;
+    color: #ffffff;
+    font-size: 2rem;
+    font-weight: 500;
+    line-height: 1.1;
+}
+
+.geez-panel-empty {
+    padding-top: 14px;
+}
+
+@media (max-width: 980px) {
+    .programs-geez-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+.member-portal-title {
+    margin-bottom: 22px;
+}
+
+.member-portal-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(320px, 1fr));
+    gap: 18px;
+}
+
+.portal-panel {
+    padding: 18px;
+    background: linear-gradient(
+        135deg,
+        rgba(0, 122, 255, 0.35),
+        rgba(180, 210, 255, 0.45)
+    ) !important;
+    backdrop-filter: blur(22px) saturate(180%) !important;
+    -webkit-backdrop-filter: blur(22px) saturate(180%) !important;
+    border: 1px solid rgba(255,255,255,0.35) !important;
+}
+
+.portal-panel-wide {
+    grid-column: 1 / -1;
+}
+
+.portal-panel h2 {
+    margin: 0 0 12px;
+    font-size: 1.45rem;
+}
+
+.member-portal-wrapper .file-action-link,
+.member-portal-wrapper .file-action-link:hover,
+.member-portal-wrapper .file-action-link:active,
+.member-portal-wrapper .file-action-link:focus {
+    color: #0d60d4 !important;
+    text-decoration: underline;
+    cursor: pointer;
+    background: none;
+    border: none;
+    padding: 0;
+    margin: 0;
+    font: inherit;
+    appearance: none;
+    -webkit-appearance: none;
+}
+
+#panelCourses .support-actions {
+    margin-top: 10px;
+    margin-bottom: 0;
+}
+
+#panelFriendlyReminder .portal-list li {
+    line-height: 1.4;
+}
+
+.portal-subsection {
+    margin-top: 12px;
+}
+
+.portal-subsection h3 {
+    margin: 0 0 8px;
+    font-size: 1rem;
+}
+
+.portal-kv-list {
+    display: grid;
+    gap: 8px;
+}
+
+.portal-kv-item {
+    display: flex;
+    justify-content: space-between;
+    gap: 10px;
+    border-bottom: 1px dashed rgba(255,255,255,0.35);
+    padding-bottom: 6px;
+}
+
+.portal-kv-item span {
+    opacity: 0.88;
+}
+
+.portal-kv-item strong {
+    text-align: right;
+}
+
+.portal-list {
+    margin: 0;
+    padding-left: 18px;
+    display: grid;
+    gap: 6px;
+}
+
+.portal-list li {
+    line-height: 1.35;
+}
+
+.portal-form {
+    display: grid;
+    gap: 8px;
+}
+
+.portal-form input,
+.portal-form select,
+.portal-form textarea {
+    border-radius: 10px;
+    border: 1px solid rgba(255,255,255,0.35);
+    background: rgba(255,255,255,0.78);
+    color: #0f2741;
+    padding: 9px 11px;
+}
+
+.portal-progress-track {
+    width: 100%;
+    height: 11px;
+    border-radius: 999px;
+    background: rgba(255,255,255,0.34);
+    overflow: hidden;
+    margin-top: 10px;
+}
+
+.portal-progress-fill {
+    height: 100%;
+    width: 0;
+    background: linear-gradient(90deg, #8ee7a0, #c9f7d3);
+    transition: width 0.35s ease;
+}
+
+.portal-progress-label {
+    margin: 8px 0 0;
+    font-weight: 700;
+    font-size: 0.88rem;
+}
+
+.profile-edit-block {
+    margin-top: 12px;
+}
+
+.profile-edit-block summary {
+    cursor: pointer;
+    font-weight: 700;
+}
+
+#passwordChangeForm {
+    justify-items: start;
+}
+
+#passwordChangeForm .password-input-wrap {
+    position: relative;
+    width: 220px;
+    max-width: 100%;
+    display: grid;
+    gap: 4px;
+}
+
+#passwordChangeForm .password-input-wrap label {
+    font-size: 0.82rem;
+    font-weight: 700;
+    color: #0f2741;
+}
+
+#passwordChangeForm input {
+    width: 100%;
+    padding: 6px 10px;
+    padding-right: 34px;
+}
+
+#passwordChangeForm .password-visibility-toggle {
+    position: absolute;
+    right: 6px;
+    top: 50%;
+    transform: translateY(-50%);
+    border: none;
+    background: transparent;
+    cursor: pointer;
+    font-size: 0.95rem;
+    line-height: 1;
+    padding: 2px;
+}
+
+#passwordChangeForm .password-match-hint {
+    margin: 0;
+    font-size: 0.76rem;
+    font-weight: 700;
+    color: #0f2741;
+}
+
+#passwordChangeForm .password-match-hint.is-match {
+    color: #0b7a34;
+}
+
+#passwordChangeForm .password-match-hint.is-mismatch {
+    color: #b32020;
+}
+
+@media (max-width: 980px) {
+    .member-portal-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .portal-panel-wide {
+        grid-column: auto;
+    }
+
+    .price-setting-row {
+        grid-template-columns: 1fr;
+    }
+
+    .date-range-row {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* Friendly reminder alert animations */
+@keyframes slideDown {
+    from {
+        transform: translateY(-20px);
+        opacity: 0;
+    }
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+@keyframes slideUp {
+    from {
+        transform: translateY(0);
+        opacity: 1;
+    }
+    to {
+        transform: translateY(-20px);
+        opacity: 0;
+    }
+}
+
+/* Contact page adjustments */
+.contact-page-wrapper .admin-support-grid {
+    background: #d8ecff !important;
+    border: 1px solid rgba(28, 98, 168, 0.28) !important;
+    border-radius: 12px;
+    padding: 12px;
+}
+
+.contact-form-panel {
+    background: #d8ecff !important;
+    border: 1px solid rgba(28, 98, 168, 0.28) !important;
+}
+
+.contact-page-wrapper .support-card h2 {
+    color: rgb(166, 118, 162) !important;
+    font-weight: 800 !important;
+}
+
+.contact-send-btn {
+    width: fit-content;
+    border: 0;
+    cursor: pointer;
+}
+
+.help-contact-btn {
+    background: rgba(227, 221, 138, 0.814) !important;
+    color: #0f2741 !important;
+    display: inline-block;
+    width: fit-content;
+    margin-top: 8px;
+}
+
+.help-contact-btn:hover {
+    background: rgba(246, 224, 117, 0.814) !important;
+}
+
+/* Geez letter board — specific button colour overrides */
+[data-letter-id="L02"],
+[data-letter-id="L14"],
+[data-letter-id="L26"] {
+    background-color: hsl(286, 30%, 66%) !important;
 }
